@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "ModelPrompter",
+  "version": "0.0.1",
+  "permissions": ["storage", "tabs"],
+  "icons": {
+    "128": "public/favicon.png"
+  },
+  "action": { "default_popup": "index.html" }
+}

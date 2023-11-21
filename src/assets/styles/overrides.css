@@ -1,0 +1,51 @@
+.title-bar, .window, button, input, label, option, select, table, textarea, ul.tree-view  {
+  font-family: Tahoma, Geneva, Verdana, sans-serif;
+  font-weight: 500;
+  font-size: 1.1em;
+}
+
+.title-bar-controls button[aria-label] {
+  background-size: 50%;
+  background-position: center;
+  padding: 0.6em;
+}
+
+legend {
+  font-weight: bold;
+}
+button {
+  font-weight: bold;
+}
+select {
+  height: 30px;
+  background-size: 26px 26px;
+}
+
+.field-row-stacked + .field-row-stacked {
+  margin-top: 2em;
+}
+
+.window {
+  white-space: pre-wrap;
+  display: flex;
+  flex-direction: column;
+}
+.window .title-bar {
+  flex: 0 0 auto;
+}
+.window .window-body {
+  flex: 1;
+  overflow: auto;
+  margin: 0;
+  padding: .5em;
+  box-sizing: border-box;
+}
+
+menu[role="tablist"] {
+  flex: 0;
+}
+.window[role="tabpanel"] {
+  /* flex grow */
+  flex: 0 1 100%;
+  overflow: auto;
+}

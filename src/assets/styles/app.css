@@ -1,0 +1,59 @@
+html, body {
+  background: transparent;
+}
+
+#app {
+  min-width: 350px;
+  max-width: 100%;
+}
+
+/* Messages */
+.messages > p {
+  margin: 0;
+  margin-block: 0;
+}
+.message {
+  margin-bottom: 1em;
+}
+.messages > p:last-child, .message:last-child {
+  margin-bottom: 0;
+}
+.messages .message .window-body {
+  max-width: 100%;
+}
+.messages .message:nth-child(2n) {
+  box-sizing: border-box;
+  padding-right: 1em;
+}
+.messages .message:nth-child(2n) .window {
+  background: #dedede;
+}
+.messages .message[rel="User"] {
+  box-sizing: border-box;
+  padding-left: 1em;
+}
+.messages .message[rel="User"] .window {
+  background: #dfdacd;
+}
+.messages .message:first-child .window {
+  background: #a6b3b9;
+}
+
+.messages .message .window-body > p {
+  margin: 0
+}
+
+
+/* Menu */
+.menu {
+  position: absolute;
+  top: 0;
+  transform: translateY(-100%);
+  left: 0;
+  z-index: 100;
+  min-width: 200px;
+}
+.menu li {
+  list-style: none;
+  padding: .25em 1em;
+}
