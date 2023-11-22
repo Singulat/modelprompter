@@ -7,5 +7,3 @@ globalThis.mp = {
   app: createApp(App).mount('#app'),
   params
 }
-
-console.log(mp)

@@ -37,7 +37,7 @@ const onClose = () => {emit('close')}
 const onRestore = () => {emit('restore')}
 
 const onMaximize = () => {
-  if (globalThis.browserlink.params?.get('context') === 'iframe') {
+  if (globalThis.mp.params?.get('context') === 'iframe') {
     windowHeight.value = '100vh'
   } else {
     chrome.runtime.sendMessage({type: 'maximizePopup'})
@@ -47,7 +47,7 @@ const onMaximize = () => {
 
 onMounted(() => {
   setTimeout(() => {
-    globalThis.browserlink?.params?.get('context') === 'iframe' && onMaximize()
+    globalThis.mp?.params?.get('context') === 'iframe' && onMaximize()
   }, 0)
 })
 </script>

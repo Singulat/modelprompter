@@ -1,5 +1,11 @@
 <template>
-  <Window title="ModelPrompter" :canMax="!isIframe" @maximize="onMaximize" canClose @close="onClose" :style="{height}" bodyClass="flex column overflow-hidden m-0 p-1 fullwidth fullheight">
+  <Window title="ModelPrompter" :canMax="!isIframe" canClose @close="onClose" :style="{height}" bodyClass="flex column overflow-hidden m-0 p-1 fullwidth fullheight">
+    <Tabs v-model="activeTab" :tabs="{connections: 'Connections', prompt: 'Prompt'}">
+      <template v-slot:connections>
+      </template>
+      <template v-slot:prompt>
+      </template>
+    </Tabs>
   </Window>
 </template>
 
@@ -13,22 +19,26 @@
 
 <script setup>
 import Window from './components/Window.vue'
-import {ref} from 'vue'
+import Tabs from './components/Tabs.vue'
+import {ref, onMounted} from 'vue'
 
+// Sync store with local storage
+const activeTab = ref('prompt')
+const height = ref('')
 const isIframe = ref(false)
+onMounted(() => {
+  const params = new URLSearchParams(window.location.search)
+  
+  isIframe.value = params.get('context') === 'iframe'
+  height.value = isIframe.value ? '100%' : '450px'
+
+  chrome.storage.local('connections', (connections) => {
+    console.log(connections)
+  })
+})
 
 // Close window
 const onClose = () => {
-  if (globalThis.mp.params.get('context') === 'iframe') {
-    // Message parent window to close iframe
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      chrome.tabs.sendMessage(tabs[0].id, { type: 'closeInstance' })
-    })
-  } else {
-    window.close()
-  }
-}
-const onMaximize = () => {
   window.close()
 }
 </script>

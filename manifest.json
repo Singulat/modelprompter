@@ -2,9 +2,14 @@
   "manifest_version": 3,
   "name": "ModelPrompter",
   "version": "0.0.1",
-  "permissions": ["storage", "tabs"],
+  "permissions": ["storage", "unlimitedStorage", "tabs", "activeTab", "scripting"],
   "icons": {
     "128": "public/favicon.png"
   },
-  "action": { "default_popup": "index.html" }
+  "action": { "default_popup": "index.html" },
+
+  "background": {
+    "service_worker": "src/background.js",
+    "type": "module"
+  }
 }
