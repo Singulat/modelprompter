@@ -19,9 +19,9 @@ export const useConnectionsModel = defineStore({
       return id
     },
 
-    removeConnection (id) {
+    async deleteConnection (id) {
       delete this.connections[id]
-      chrome.storage.sync.set({connections: this.connections})
+      await chrome.storage.sync.set({connections: this.connections})
     },
 
     async getConnections () {

@@ -1,3 +1,7 @@
+.hidden {
+  display: none !important;
+}
+
 .fullwidth {
   width: 100%;
 }
@@ -42,6 +46,10 @@
 }
 .align-right {
   justify-content: flex-end;
+}
+
+.float-right {
+  float: right;
 }
 
 /* Padding */

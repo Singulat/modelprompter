@@ -11,7 +11,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="key in Object.keys(connectionsModel.connections)" :key="key">
+        <tr v-for="key in Object.keys(connectionsModel.connections)" :key="key" @click="selectRow" :data-id="key">
           <td>{{ connectionsModel.connections[key].name }}</td>
           <td class="gt-md">{{ connectionsModel.connections[key].model }}</td>
           <td class="gt-md">{{ connectionsModel.connections[key].baseurl }}</td>
@@ -23,8 +23,8 @@
 </div>
 
 <div class="flex-auto pt2">
-  <div class="inline-block spacer"></div>
   <button @click="toggleModal(true)" >Add connection</button>
+  <button :class="{hidden: !highlightedRow, 'float-right': true}" @click="deleteConnection">Delete</button>
 
   <Window v-if="isModalOpen" title="Add new connection" class="modal" canClose isModal @close="toggleModal(false)">
     <div class="field-row-stacked">
@@ -116,5 +116,36 @@ const submitConnectionForm = () => {
   const id = connectionsModel.addConnection(connection.value)
   connection.value = connectDefaults
   toggleModal(false)
+}
+
+/**
+ * Select a row in the table
+ */
+const highlightedRow = ref(null)
+const selectRow = (e) => {
+  const $table = e.target.closest('table')
+  const $row = e.target.closest('tr')
+
+  let isHighlighted = $row.classList.contains('highlighted')
+  $table.querySelectorAll('tr').forEach(($row) => {
+    $row.classList.remove('highlighted')
+  })
+
+  $row.classList.toggle('highlighted')
+  if (isHighlighted) {
+    $row.classList.remove('highlighted')
+    highlightedRow.value = null
+  } else {
+    highlightedRow.value = $row
+  }
+}
+
+/**
+ * Delete a connection
+ */
+const deleteConnection = () => {
+  const id = highlightedRow.value.attributes['data-id'].value
+  connectionsModel.deleteConnection(id)
+  highlightedRow.value = null
 }
 </script>
