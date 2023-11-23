@@ -22,14 +22,20 @@
 import Window from './components/Window.vue'
 import Tabs from './components/Tabs.vue'
 import Connections from './layouts/Connections.vue'
-import {ref, onMounted} from 'vue'
+import { useConnectionsModel } from './model/connections'
+import {ref, onMounted, onBeforeMount} from 'vue'
 
-// Sync store with local storage
 const activeTab = ref('prompt')
 const height = ref('')
 const isIframe = ref(false)
 const isModal = ref(false)
 const tabs = ref(null)
+
+// Setup stores
+const connectionsModel = useConnectionsModel()
+onBeforeMount(async () => {
+  await connectionsModel.init()
+})
 
 onMounted(() => {
   const params = new URLSearchParams(window.location.search)

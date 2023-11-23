@@ -64,3 +64,6 @@ table th, table td {
   padding-top: 6px !important;
   padding-bottom: 6px !important;
 }
+table td {
+  vertical-align: top;
+}

@@ -1,19 +1,25 @@
 <template>
 <div id="connections-container" class="sunken-panel fullwidth">
-  <table class="interactive fullwidth fullheight">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Temp</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
+  <div>
+    <table class="interactive fullwidth fullheight">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th class="gt-md">Model Name</th>
+          <th class="gt-md">Base URL</th>
+          <th>Temp</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="key in Object.keys(connectionsModel.connections)" :key="key">
+          <td>{{ connectionsModel.connections[key].name }}</td>
+          <td class="gt-md">{{ connectionsModel.connections[key].model }}</td>
+          <td class="gt-md">{{ connectionsModel.connections[key].baseurl }}</td>
+          <td>{{ connectionsModel.connections[key].temp }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </div>
 
 <div class="flex-auto pt2">
@@ -64,19 +70,23 @@
 import Window from '../components/Window.vue'
 import {ref, computed} from 'vue'
 import {useTabsModel} from '../model/tabs.js'
+import {useConnectionsModel} from '../model/connections.js'
 
-const connectionName = ref(null)
-const addConnectionButton = ref(null)
-const isModalOpen = ref(false)
-const connection = ref({
+const connectDefaults = {
   name: 'GPT4 Turbo',
   model: 'gpt-4-1106-preview',
   baseurl: 'https://api.openai.com/v1/',
   apiKey: '',
   organization: '',
   temp: '0.7'
-})
+}
+
+const connectionName = ref(null)
+const addConnectionButton = ref(null)
+const isModalOpen = ref(false)
+const connection = ref(connectDefaults)
 const tabsModel = useTabsModel()
+const connectionsModel = useConnectionsModel()
 
 const toggleModal = (val) => {
   isModalOpen.value = val
@@ -103,6 +113,8 @@ const submitConnectionForm = () => {
     return
   }
 
+  const id = connectionsModel.addConnection(connection.value)
+  connection.value = connectDefaults
   toggleModal(false)
 }
 </script>

@@ -85,3 +85,16 @@ button.active {
   border-color: #222;
   cursor: pointer;
 }
+
+/* Responsive */
+.gt-md {
+  display: none;
+}
+@media (min-width: 768px) {
+  .gt-md {
+    display: block;
+  }
+  td.gt-md, th.gt-md {
+    display: table-cell;
+  }
+}
