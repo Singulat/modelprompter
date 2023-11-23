@@ -90,3 +90,6 @@ html, body {
 .window.modal > .window-body {
   background: #cacaca;
 }
+.window.modal {
+  max-height: calc(100% - 4em);
+}

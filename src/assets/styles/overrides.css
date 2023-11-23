@@ -1,7 +1,7 @@
 .title-bar, .window, button, input, label, option, select, table, textarea, ul.tree-view  {
   font-family: Tahoma, Geneva, Verdana, sans-serif;
   font-weight: 500;
-  font-size: 1.1em;
+  font-size: .85rem;
 }
 
 .title-bar-controls button[aria-label] {
