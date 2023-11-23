@@ -23,6 +23,10 @@ button {
   padding: .5em;
   cursor: pointer;
 }
+button span {
+  display: inline-block;
+  vertical-align: middle;
+}
 
 h1 {
   font-size: 3em;
@@ -53,4 +57,10 @@ menu {
 ul {
   margin-top: -1em;
   margin-bottom: -1em;
+}
+
+table th, table td {
+  font-size: .9em;
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
 }

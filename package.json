@@ -30,6 +30,7 @@
   "dependencies": {
     "@vueuse/core": "^10.2.1",
     "98.css": "^0.1.20",
+    "pinia": "^2.1.7",
     "vue": "^3.2.25"
   },
   "devDependencies": {

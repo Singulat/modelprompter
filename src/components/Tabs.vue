@@ -4,7 +4,7 @@
     <a :href="'#' + id" @click="modelValue=id">{{label}}</a>
   </li>
 </menu>
-<div class="window" role="tabpanel">
+<div ref="tabPanel" class="window" role="tabpanel" :style="{zIndex: (hasModals ? 100 : 5)}">
   <template v-for="(label, id) in tabs" :key="id">
     <div v-if="id===modelValue" class="window-body flex column overflow-hidden">
       <slot :name="id"></slot>
@@ -14,15 +14,28 @@
 </template>
 
 <script setup>
-import { ref, useSlots } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
+import {useTabsModel} from '../model/tabs.js'
 
+const tabsModel = useTabsModel()
 const props = defineProps({
   modelValue: String,
   tabs: Object
 })
-let slots = useSlots()
+const hasModals = ref(false)
+const id = ref('')
+const tabPanel = ref(null)
 
-if (slots.default && slots.default()?.[0]) {
-  slots = slots.default()
+onMounted(() => {
+  id.value = crypto.randomUUID()
+  tabsModel.onAdjustZIndex(id.value, adjustZIndex)
+})
+
+onUnmounted(() => {
+  tabsModel.removeOnAdjustZIndex(id.value)
+})
+
+const adjustZIndex = () => {
+  hasModals.value = !!tabPanel.value.querySelectorAll('.modal:not(.hidden)').length
 }
 </script>

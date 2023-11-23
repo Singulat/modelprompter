@@ -1,5 +1,5 @@
 <template>
-<div class="window" :style="{...props.style, height: windowHeight}">
+<div :class="{'window': true, 'modal': isModal}" :style="{...props.style, height: windowHeight}" role="tabpanel">
   <div class="title-bar">
     <div class="title-bar-text">{{title}}</div>
     <div class="title-bar-controls">
@@ -26,7 +26,14 @@ const props = defineProps({
   canRestore: Boolean,
   style: Object,
   bodyStyle: Object,
-  bodyClass: String
+  bodyClass: {
+    type: String,
+    default: ''
+  },
+  isModal: {
+    type: Boolean,
+    default: false
+  }
 })
 
 const windowHeight = ref(props.style?.height || '450px')

@@ -10,6 +10,9 @@
   padding: 0.6em;
 }
 
+label {
+  font-weight: bold;
+}
 legend {
   font-weight: bold;
 }
@@ -21,8 +24,9 @@ select {
   background-size: 26px 26px;
 }
 
+
 .field-row-stacked + .field-row-stacked {
-  margin-top: 2em;
+  margin-top: 1em;
 }
 
 .window {

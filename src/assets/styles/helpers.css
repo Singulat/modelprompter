@@ -4,6 +4,9 @@
 .fullheight {
   height: 100%;
 }
+.height-auto {
+  height: auto !important;
+}
 
 .overflow {
   overflow: auto;
@@ -21,6 +24,9 @@
 .flex {
   display: flex;
 }
+.flex-auto {
+  flex: auto !important;
+}
 .column {
   flex-direction: column;
 }
@@ -30,35 +36,35 @@
 .spacer {
   flex: auto;
 }
+.align-right {
+  justify-content: flex-end;
+}
 
 /* Padding */
-.m-0 {
+.m0 {
   margin: 0;
 }
-.m-1 {
-  margin: .5em;
-}
-.m-n-1 {
-  margin-top: .5em;
-}
-.m-s-1 {
-  margin-bottom: .5em;
-}
-.pad-0 {
+.p0 {
   padding: 0;
 }
-.pad-1, .p-1 {
-  padding: .5em;
+
+.ph2 {
+  padding-left: 1em !important;
+  padding-right: 1em !important;
 }
-.pad-h-1 {
-  padding-left: .5em;
-  padding-right: .5em;
+
+.mr2 {
+  margin-right: 1em !important;
 }
-.pad-e-1 {
-  padding-right: .5em;
+
+.pt1 {
+  padding-top: .5em !important;
 }
-.p-n-2 {
-  padding-top: 1em;
+.pt2 {
+  padding-top: 1em !important;
+}
+.pt3 {
+  padding-top: 1.5em !important;
 }
 
 /* Buttons */
