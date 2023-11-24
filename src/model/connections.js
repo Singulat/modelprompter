@@ -4,12 +4,20 @@ export const useConnectionsModel = defineStore({
   id: 'connections',
   
   state: () => ({
+    defaultConnection: '',
     connections: {}
   }),
   
   actions: {
     async init () {
       await this.getConnections()
+      const data = await chrome.storage.sync.get('defaultConnection') || {}
+      this.defaultConnection = data.defaultConnection || ''
+    },
+
+    async setDefault (id) {
+      this.defaultConnection = id
+      await chrome.storage.sync.set({defaultConnection: id})
     },
     
     async addConnection (connection) {

@@ -8,7 +8,7 @@
           <th class="gt-md">Model Name</th>
           <th class="gt-md">Base URL</th>
           <th>Temp</th>
-          <th>Connect</th>
+          <th>Default</th>
         </tr>
       </thead>
       <tbody>
@@ -19,8 +19,8 @@
           <td>{{ connectionsModel.connections[key].temp }}</td>
           <td>
             <div class="field-row">
-              <input checked type="checkbox" id="example2">
-              <label for="example2">&nbsp;</label>
+              <input name="connection" :checked="connectionsModel.defaultConnection == key" type="radio" :id="`connection-radio-${key}`" @change="onConnectionRadioChange">
+              <label :for="`connection-radio-${key}`">&nbsp;</label>
             </div>
           </td>
         </tr>
@@ -122,19 +122,26 @@ const isValidForm = computed(() => {
   return !!connectionForm.value.name && !!connectionForm.value.baseurl && !!connectionForm.value.temp
 })
 
-const submitConnectionForm = () => {
+const submitConnectionForm = async () => {
+  let id
   if (!isValidForm.value) {
     return
   }
 
   if (isEditMode.value) {
-    const id = highlightedRow.value.attributes['data-id'].value
+    id = highlightedRow.value.attributes['data-id'].value
     connectionsModel.updateConnection(id, connectionForm.value)
   } else {
-    connectionsModel.addConnection(connectionForm.value)
+    id = await connectionsModel.addConnection(connectionForm.value)
   }
   connectionForm.value = connectDefaults
   toggleModal(false)
+
+  // Set default
+  if (Object.keys(connectionsModel.connections).length < 2) {
+    console.log('length', Object.keys(connectionsModel.connections).length, id)
+    connectionsModel.setDefault(id)
+  }
 }
 
 /**
@@ -183,5 +190,12 @@ const showEditConnectionModal = () => {
   isEditMode.value = true
   connectionForm.value = Object.assign({}, connection)
   toggleModal(true)
+}
+
+
+const onConnectionRadioChange = (e) => {
+  const $row = e.target.closest('tr')
+  const id = $row.attributes['data-id'].value
+  connectionsModel.setDefault(id)
 }
 </script>
