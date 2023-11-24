@@ -54,7 +54,7 @@
 
   <div class="field-row-stacked">
     <label for="connections-apikey">API key:</label>
-    <input type="text" id="connections-apikey" placeholder="sk-1234" v-model="connectionForm.apiKey" />
+    <input type="password" id="connections-apikey" placeholder="sk-1234" v-model="connectionForm.apiKey" />
   </div>
 
   <div class="field-row-stacked">
