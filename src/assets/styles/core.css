@@ -67,3 +67,13 @@ table th, table td {
 table td {
   vertical-align: top;
 }
+
+/* Checkboxes */
+input[type=checkbox]+label:before {
+  height: 20px;
+  width: 20px;
+  text-align: center;
+}
+input[type=checkbox]:checked+label:after {
+  left: -12px;
+}

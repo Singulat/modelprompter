@@ -24,6 +24,10 @@ export const useConnectionsModel = defineStore({
       await chrome.storage.sync.set({connections: this.connections})
     },
 
+    getConnection (id) {
+      return this.connections[id]
+    },
+
     async getConnections () {
       // Load from memory
       let connections = await chrome.storage.sync.get('connections') || {}
@@ -33,6 +37,11 @@ export const useConnectionsModel = defineStore({
       this.connections = connections?.connections || {}
 
       return this.connections
+    },
+
+    async updateConnection (id, connection) {
+      this.connections[id] = Object.assign({}, connection)
+      await chrome.storage.sync.set({connections: this.connections})
     }
   }
 })
