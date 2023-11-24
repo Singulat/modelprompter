@@ -80,7 +80,7 @@
 
 <script setup>
 import Window from '../components/Window.vue'
-import {ref, computed} from 'vue'
+import {ref, computed, onMounted} from 'vue'
 import {useTabsModel} from '../model/tabs.js'
 import {useConnectionsModel} from '../model/connections.js'
 
@@ -173,6 +173,17 @@ const deleteConnection = () => {
   const id = highlightedRow.value.attributes['data-id'].value
   connectionsModel.deleteConnection(id)
   highlightedRow.value = null
+
+  // Set default
+  if (id === connectionsModel.defaultConnection) {
+    const newDefault = Object.keys(connectionsModel.connections)?.[0]
+
+    if (newDefault) {
+      connectionsModel.setDefault(newDefault)
+    } else {
+      connectionsModel.setDefault(null)
+    }
+  }
 }
 
 const showAddConnectionModal = () => {
@@ -198,4 +209,15 @@ const onConnectionRadioChange = (e) => {
   const id = $row.attributes['data-id'].value
   connectionsModel.setDefault(id)
 }
+
+/**
+ * Show popup if no connections
+ */
+onMounted(() => {
+  if (Object.keys(connectionsModel.connections).length === 0) {
+    setTimeout(() => {
+      showAddConnectionModal()
+    }, 0)
+  }
+})
 </script>

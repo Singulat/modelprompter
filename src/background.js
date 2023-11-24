@@ -22,6 +22,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           }
         })
       break
+
+      case 'submitPrompt':
+        console.log('prompt submitted')
+      break
     }
   })()
 })

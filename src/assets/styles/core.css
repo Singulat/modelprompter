@@ -23,6 +23,9 @@ button {
   padding: .5rem;
   cursor: pointer;
 }
+button:disabled {
+  cursor: default;
+}
 button span {
   display: inline-block;
   vertical-align: middle;

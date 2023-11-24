@@ -5,6 +5,7 @@
         <Connections />
       </template>
       <template v-slot:prompt>
+        <Prompt />
       </template>
     </Tabs>
   </Window>
@@ -21,20 +22,31 @@
 <script setup>
 import Window from './components/Window.vue'
 import Tabs from './components/Tabs.vue'
+import Prompt from './layouts/Prompt.vue'
 import Connections from './layouts/Connections.vue'
 import { useConnectionsModel } from './model/connections'
+import { useMessagesModel } from './model/messages'
 import {ref, onMounted, onBeforeMount} from 'vue'
 
 const activeTab = ref('prompt')
 const height = ref('')
 const isIframe = ref(false)
-const isModal = ref(false)
 const tabs = ref(null)
 
-// Setup stores
+const messagesModel = useMessagesModel()
 const connectionsModel = useConnectionsModel()
+
+/**
+ * Load data
+ */
 onBeforeMount(async () => {
   await connectionsModel.init()
+  await messagesModel.init()
+
+  // Redirect to connections if there are no connections
+  if (!connectionsModel.defaultConnection) {
+    activeTab.value = 'connections'
+  }
 })
 
 onMounted(() => {
@@ -42,10 +54,6 @@ onMounted(() => {
   
   isIframe.value = params.get('context') === 'iframe'
   height.value = isIframe.value ? '100%' : '450px'
-
-  chrome.storage.local.get('connections', (connections) => {
-    activeTab.value = 'connections'
-  })
 })
 
 // Close window
