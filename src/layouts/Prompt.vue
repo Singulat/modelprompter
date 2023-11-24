@@ -2,22 +2,22 @@
 <fieldset ref="$messages" class="messages-wrap overflow" style="flex: 0 1 100%; justify-content: space-between">
   <legend>Messages</legend>
   <div class="messages">
-    <div class="message" :data-role="messagesModel.messages[key].role" v-for="key in Object.keys(messagesModel.messages)" :key="key" :data-id="key">
+    <div class="message" v-for="message in sortedMessages" :data-role="message.role" :key="message.id" :data-id="message.id">
       <div class="window">
         <div class="window-body">
-          <div v-html="messagesModel.messages[key].text"></div>
+          <div v-html="message.text"></div>
         </div>
       </div>
     </div>
   </div>
 </fieldset>
 
-<div style="flex: 0">
-  <div class="flex column fullheight">
+<div style="flex: 0;">
+  <div class="flex column fullheight pt1 pb1">
     <div class="spacer"></div>
     <div style="flex: 0">
-      <div class="mb1 mt1">
-        <textarea id="prompt" v-model="prompt" autofocus multiline placeholder="Prompt..."></textarea>
+      <div class="mb1">
+        <textarea id="prompt" v-model="prompt" autofocus multiline placeholder="Prompt..." @keydown.ctrl.exact.enter="runPrompt"></textarea>
       </div>
       <div class="flex">
         <div class="flex-auto">
@@ -44,7 +44,7 @@
 
 
 <script setup>
-import {ref, onMounted} from 'vue'
+import {ref, onMounted, computed} from 'vue'
 import { useConnectionsModel } from '../model/connections'
 import {useMessagesModel} from '../model/messages'
 import Menu from '../components/Menu.vue'
@@ -138,6 +138,9 @@ const showingMore = ref(false)
 const showMore = () => {
   showingMore.value = !showingMore.value
 }
+
+// Sort by date
+const sortedMessages = computed(messagesModel.getSortedByDate)
 
 /**
  * Scan the page by stringifying the DOM and sending it to Claude
