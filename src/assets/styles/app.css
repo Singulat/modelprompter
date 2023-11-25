@@ -32,8 +32,12 @@ html, body {
   background: #a6b3b9;
 }
 
-.messages .message .window-body > p {
+.messages .message .window-body p {
   margin: 0
+}
+
+.messages .message .window-body p:last-child {
+  display: inline-block !important;
 }
 
 .messages .message.highlight > .window {

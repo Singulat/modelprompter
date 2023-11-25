@@ -13,7 +13,7 @@
     >
       <div class="window">
         <div class="window-body">
-          <div v-html="message.text"></div>
+          <div v-html="renderMarkdown(message.text)"></div>
         </div>
       </div>
     </div>
@@ -88,6 +88,7 @@ import { useConnectionsModel } from '../model/connections'
 import {useMessagesModel} from '../model/messages'
 import Menu from '../components/Menu.vue'
 import OpenAI from 'openai'
+import MarkdownIt from 'markdown-it'
 
 const prompt = ref('')
 const isThinking = ref(false)
@@ -354,4 +355,11 @@ const regenerateMessage = async () => {
   prompt.value = ''
 }
 
+/**
+ * Render markdown
+ */
+const md = new MarkdownIt()
+const renderMarkdown = (text) => {
+  return md.render(text)
+}
 </script>
