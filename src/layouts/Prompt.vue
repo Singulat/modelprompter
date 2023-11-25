@@ -26,9 +26,9 @@
               More
               <Menu v-model="showingMore" dir="n">
                 <li class="hoverable" @click="clearMessages">Clear messages</li>
+                <!-- <li class="hoverable" @click="startGettingTabHTMLAsString">Scan Page</li> -->
               </Menu>
             </button>
-            <button class="mr1" @click="startGettingTabHTMLAsString">Scan</button>
           </div>
         </div>
         <div>

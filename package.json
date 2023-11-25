@@ -4,8 +4,8 @@
   "description": "A prompt manager for browser agents",
   "main": "index.js",
   "scripts": {
-    "start": "npm run dev",
-    "dev": "vite",
+    "start": "nodemon --watch start.js start.js",
+    "dev": "nodemon --watch start.js start.js",
     "build": "vite build",
     "preview": "vite preview"
   },
@@ -38,6 +38,7 @@
   "devDependencies": {
     "@crxjs/vite-plugin": "^1.0.14",
     "@vitejs/plugin-vue": "^2.3.0",
+    "nodemon": "^3.0.1",
     "vite": "^2.9.0"
   }
 }
