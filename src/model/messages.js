@@ -87,6 +87,18 @@ export const useMessagesModel = defineStore({
       await chrome.storage.sync.set({messages: this.messages})
     },
 
+    /**
+     * Delete specific message
+     */
+    async deleteMessage (id) {
+      delete this.messages[id]
+      await chrome.storage.sync.set({messages: this.messages})
+    },
+
+    /**
+     * Get messages sorted by date
+     * @returns [messages]
+     */
     getSortedByDate () {
       const messages = Object.values(this.messages).sort((a, b) => {
         return a.created_at - b.created_at

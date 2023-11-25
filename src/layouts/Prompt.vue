@@ -39,15 +39,32 @@
       </div>
 
       <!-- Editing -->
-      <div v-else class="flex">
-        <div class="flex-auto mr1">
-          <button @click="cancelEditing">Cancel</button>
+      <div v-else>
+        <div class="flex">
+          <div class="mr1">
+            <button @click="showingChangeRole = !showingChangeRole" :class="{fullwidth: true, active: showingChangeRole}">
+              Change role
+              <Menu v-model="roleToChangeTo" dir="n">
+                <li class="hoverable" @click="changeRole('system')">System</li>
+                <li class="hoverable" @click="changeRole('user')">User</li>
+                <li class="hoverable" @click="changeRole('assistant')">Assistant</li>
+              </Menu>
+            </button>
+          </div>
+          <div>
+            <button class="fullwidth">Regenerate</button>
+          </div>
         </div>
-        <div class="mr1">
-          <button class="fullwidth" :disabled="!prompt" @click="updateMessage">Delete</button>
-        </div>
-        <div>
-          <button class="fullwidth" :disabled="!prompt" @click="updateMessage">Update</button>
+        <div class="flex pt1">
+          <div class="mr1">
+            <button class="fullwidth" @click="cancelEditing">Cancel</button>
+          </div>
+          <div class="mr1">
+            <button class="fullwidth" :disabled="!prompt" @click="deleteMessage">Delete</button>
+          </div>
+          <div>
+            <button class="fullwidth" :disabled="!prompt" @click="updateMessage">Update</button>
+          </div>
         </div>
       </div>
     </div>
@@ -66,6 +83,8 @@ import OpenAI from 'openai'
 
 const prompt = ref('')
 const isThinking = ref(false)
+const roleToChangeTo = ref('user')
+const showingChangeRole = ref(false)
 const $messages = ref(null)
 
 const messagesModel = useMessagesModel()
@@ -218,5 +237,45 @@ const updateMessage = async () => {
 
   const promptEl = document.getElementById('prompt')
   promptEl.focus()
+}
+
+/**
+ * Delete message
+ */
+const deleteMessage = async () => {
+  await messagesModel.deleteMessage(isEditing.value)
+  prompt.value = ''
+  isEditing.value = false
+
+  const $messages = document.querySelectorAll('.message')
+  $messages.forEach($message => {
+    $message.classList.remove('highlight')
+  })
+
+  const promptEl = document.getElementById('prompt')
+  promptEl.focus()
+  prompt.value = ''
+}
+
+/**
+ * Change the role of a message
+ */
+const changeRole = async (role) => {
+  await messagesModel.updateMessage(isEditing.value, {
+    role,
+    updated_at: Date.now()
+  })
+  
+  isEditing.value = false
+  showingChangeRole.value = false
+
+  const $messages = document.querySelectorAll('.message')
+  $messages.forEach($message => {
+    $message.classList.remove('highlight')
+  })
+  
+  const promptEl = document.getElementById('prompt')
+  promptEl.focus()
+  prompt.value = ''
 }
 </script>

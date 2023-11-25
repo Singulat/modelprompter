@@ -28,7 +28,7 @@ html, body {
 .messages .message[data-role="user"] > .window {
   background: #dfdacd;
 }
-.messages .message:first-child > .window {
+.messages .message[data-role="system"] > .window {
   background: #a6b3b9;
 }
 
