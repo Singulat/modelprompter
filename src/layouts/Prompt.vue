@@ -5,7 +5,7 @@
     <div class="message" v-for="message in sortedMessages" :data-role="message.role" :key="message.id" :data-id="message.id">
       <div class="window">
         <div class="window-body">
-          <div v-html="message.text"></div>
+          <div v-html="message.text" @dblclick="$ev => editMessage($ev)"></div>
         </div>
       </div>
     </div>
@@ -19,14 +19,15 @@
       <div class="mb1">
         <textarea id="prompt" v-model="prompt" autofocus multiline placeholder="Prompt..." @keydown.ctrl.exact.enter="runPrompt"></textarea>
       </div>
-      <div class="flex">
-        <div class="flex-auto">
+
+      <!-- Prompting -->
+      <div v-if="!isEditing" class="flex">
+        <div class="flex-auto mr1">
           <div style="display: flex; position: relative">
             <button @click="showMore" :class="{active: showingMore}">
               More
               <Menu v-model="showingMore" dir="n">
                 <li class="hoverable" @click="clearMessages">Clear messages</li>
-                <!-- <li class="hoverable" @click="startGettingTabHTMLAsString">Scan Page</li> -->
               </Menu>
             </button>
           </div>
@@ -34,6 +35,19 @@
         <div>
           <button v-if="!isThinking" class="fullwidth" :disabled="!prompt" @click="runPrompt">Run prompt</button>
           <button v-else class="fullwidth" disabled>Thinking...</button>
+        </div>
+      </div>
+
+      <!-- Editing -->
+      <div v-else class="flex">
+        <div class="flex-auto mr1">
+          <button @click="cancelEditing">Cancel</button>
+        </div>
+        <div class="mr1">
+          <button class="fullwidth" :disabled="!prompt" @click="updateMessage">Delete</button>
+        </div>
+        <div>
+          <button class="fullwidth" :disabled="!prompt" @click="updateMessage">Update</button>
         </div>
       </div>
     </div>
@@ -75,6 +89,11 @@ onMounted(() => {
 
 // Run prompt
 const runPrompt = async () => {
+  if (isEditing.value) {
+    updateMessage()
+    return
+  }
+  
   isThinking.value = true
   
   let defaultConnection = connectionsModel.defaultConnection
@@ -143,9 +162,61 @@ const showMore = () => {
 const sortedMessages = computed(messagesModel.getSortedByDate)
 
 /**
- * Scan the page by stringifying the DOM and sending it to Claude
+ * Edit message
  */
-const startGettingTabHTMLAsString = async () => {
-  chrome.runtime.sendMessage({type: 'startGettingTabHTMLAsString'})
+const isEditing = ref(false)
+const editMessage = async (ev) => {
+  const $message = ev.target.closest('.message')
+  isEditing.value = $message.getAttribute('data-id')
+  const message = messagesModel.messages[isEditing.value]
+
+  // Unhighlight others
+  const $messages = document.querySelectorAll('.message')
+  $messages.forEach($message => {
+    $message.classList.remove('highlight')
+  })
+  
+  // Highlight current one
+  $message.classList.add('highlight')
+
+  // Update prompt with message
+  prompt.value = message.text
+
+  const promptEl = document.getElementById('prompt')
+  promptEl.focus()
+}
+
+/**
+ * Cancel editing
+ */
+const cancelEditing = () => {
+  isEditing.value = false
+  prompt.value = ''
+  const $messages = document.querySelectorAll('.message')
+  $messages.forEach($message => {
+    $message.classList.remove('highlight')
+  })
+}
+
+/**
+ * Update a message
+ */
+const updateMessage = async () => {
+  const message = messagesModel.messages[isEditing.value]
+  await messagesModel.updateMessage(isEditing.value, {
+    updated_at: Date.now(),
+    text: prompt.value
+  })
+
+  prompt.value = ''
+  isEditing.value = false
+
+  const $messages = document.querySelectorAll('.message')
+  $messages.forEach($message => {
+    $message.classList.remove('highlight')
+  })
+
+  const promptEl = document.getElementById('prompt')
+  promptEl.focus()
 }
 </script>

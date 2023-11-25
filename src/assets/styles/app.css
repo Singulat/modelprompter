@@ -25,10 +25,10 @@ html, body {
   box-sizing: border-box;
   padding-left: 1em;
 }
-.messages .message[data-role="user"] .window {
+.messages .message[data-role="user"] > .window {
   background: #dfdacd;
 }
-.messages .message:first-child .window {
+.messages .message:first-child > .window {
   background: #a6b3b9;
 }
 
@@ -36,6 +36,10 @@ html, body {
   margin: 0
 }
 
+.messages .message.highlight > .window {
+  background: #1084d0;
+  color: #fff;
+}
 
 /* Menu */
 .menu {
