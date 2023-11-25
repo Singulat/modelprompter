@@ -2,10 +2,18 @@
 <fieldset ref="$messages" class="messages-wrap overflow" style="flex: 0 1 100%; justify-content: space-between">
   <legend>Messages</legend>
   <div class="messages">
-    <div class="message" v-for="message in sortedMessages" :data-role="message.role" :key="message.id" :data-id="message.id">
+    <div
+    v-for="message in sortedMessages"
+    class="message"
+    :data-role="message.role"
+    :key="message.id"
+    :data-id="message.id"
+    @dblclick="$ev => editMessage($ev)"
+    @contextmenu="$ev => editMessage($ev)"
+    >
       <div class="window">
         <div class="window-body">
-          <div v-html="message.text" @dblclick="$ev => editMessage($ev)"></div>
+          <div v-html="message.text"></div>
         </div>
       </div>
     </div>
@@ -24,9 +32,9 @@
       <div v-if="!isEditing" class="flex">
         <div class="flex-auto mr1">
           <div style="display: flex; position: relative">
-            <button @click="showMore" :class="{active: showingMore}">
+            <button @click="showMore" :class="{active: isShowingMore}">
               More
-              <Menu v-model="showingMore" dir="n">
+              <Menu v-model="isShowingMore" dir="n">
                 <li class="hoverable" @click="clearMessages">Clear messages</li>
               </Menu>
             </button>
@@ -167,14 +175,14 @@ const runPrompt = async () => {
 
 // Clear messages
 const clearMessages = async () => {
-  showingMore.value = false
+  isShowingMore.value = false
   await messagesModel.deleteAll()
 }
 
 // Show more panel
-const showingMore = ref(false)
+const isShowingMore = ref(false)
 const showMore = () => {
-  showingMore.value = !showingMore.value
+  isShowingMore.value = !isShowingMore.value
 }
 
 // Sort by date
@@ -185,9 +193,22 @@ const sortedMessages = computed(messagesModel.getSortedByDate)
  */
 const isEditing = ref(false)
 const editMessage = async (ev) => {
+  // Prevent bubbling, otherwise it would select all the text or bring up native context menu
+  ev.stopPropagation()
+  ev.preventDefault()
+  isShowingMore.value = false
+  
+  // Get message
   const $message = ev.target.closest('.message')
-  isEditing.value = $message.getAttribute('data-id')
+  const id = $message.getAttribute('data-id')
   const message = messagesModel.messages[isEditing.value]
+
+  // If already editing, cancel
+  if (isEditing.value && id === isEditing.value) {
+    cancelEditing()
+    return
+  }
+  isEditing.value = id
 
   // Unhighlight others
   const $messages = document.querySelectorAll('.message')
