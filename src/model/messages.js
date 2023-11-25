@@ -36,10 +36,12 @@ export const useMessagesModel = defineStore({
     async addMessage (message) {
       const id = crypto.randomUUID()
       
-      message.id = id
-      message.created_at = message.created_at || Date.now()
-      message.role = message.role || 'user'
-      message.channel = message.channel || 'default'
+      message = Object.assign({
+        id: id,
+        created_at: Date.now(),
+        role: 'user',
+        channel: 'default',
+      }, message)
       
       this.messages[id] = Object.assign({}, message)
       await chrome.storage.sync.set({messages: this.messages})
@@ -54,6 +56,9 @@ export const useMessagesModel = defineStore({
     async getPreparedMessages () {
       await this.getMessages()
       const messages = this.getSortedByDate()
+      return this.prepareMessages(messages)
+    },
+    prepareMessages (messages) {
       const preparedMessages = []
 
       // Loop through each message and prepare it for sending

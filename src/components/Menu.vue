@@ -14,7 +14,7 @@ import { ref, watch } from 'vue'
 const $menu = ref(null)
 
 const props = defineProps({
-  modelValue: Boolean,
+  modelValue: null,
   dir: {
     type: String,
     // n/e/s/w
