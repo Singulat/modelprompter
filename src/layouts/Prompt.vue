@@ -3,7 +3,7 @@
   <fieldset class="overflow fullheight">
     <legend>Channel</legend>
     <div class="flex">
-      <select class="mr1" name="channel" v-model="activeChannel">
+      <select class="mr1" name="channel" v-model="activeChannel" @change="changeCurrentChannel">
         <option value="general">General</option>
         <option v-for="channel in channelsModel.channels" :key="channel.id" :value="channel.id">{{channel.name}}</option>
       </select>
@@ -136,7 +136,10 @@ const scrollBottom = () => {
   }
 }
 onMounted(() => {
-  scrollBottom()
+  setTimeout(async () => {
+    scrollBottom()
+    activeChannel.value = await channelsModel.getCurrentChannel()
+  }, 0)
 })
 
 /**
@@ -170,6 +173,10 @@ const showEditChannelModal = () => {
 const channelCreated = (id) => {
   activeChannel.value = id
   isShowingMoreChannel.value = false
+}
+
+const changeCurrentChannel = async () => {
+  await channelsModel.setCurrentChannel(activeChannel.value)
 }
 
 

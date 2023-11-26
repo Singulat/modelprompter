@@ -5,12 +5,19 @@ export const useChannelsModel = defineStore({
   id: 'channels',
 
   state: () => ({
-    channels: {}
+    channels: {},
+    currentChannel: 'general'
   }),
 
   actions: {
     async init () {
       await this.getChannels()
+      await this.getCurrentChannel()
+    },
+
+    async getCurrentChannel () {
+      this.currentChannel = await chrome.storage.sync.get('currentChannel')
+      return this.currentChannel?.currentChannel || 'general'
     },
 
     /**
@@ -46,6 +53,13 @@ export const useChannelsModel = defineStore({
       await chrome.storage.sync.set({channels: this.channels})
 
       return id
+    },
+
+    /**
+     * Select a channel as the current one
+     */
+    async setCurrentChannel (id) {
+      await chrome.storage.sync.set({currentChannel: id})
     },
 
     /**

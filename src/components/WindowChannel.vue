@@ -65,6 +65,7 @@ const submitChannelForm = async () => {
       console.log('@todo: editing')
     } else {
       const id = await channelsModel.addChannel(channelForm.value)
+      await channelsModel.setCurrentChannel(id)
       emit('created', id)
     }
     closeModal()
