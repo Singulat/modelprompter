@@ -1,4 +1,21 @@
 <template>
+<div class="flex-auto">
+  <fieldset class="overflow fullheight">
+    <legend>Channel</legend>
+    <div class="flex">
+      <select class="mr1" name="channel" type="text" v-model="activeChannel">
+        <option value="general">General</option>
+      </select>
+      <button :class="{'flex-auto': true, active: isShowingMoreChannel}" @click="toggleShowMoreChannel">More</button>
+    </div>
+    <div v-if="isShowingMoreChannel" class="flex pt1">
+      <button v-if="activeChannel !== 'general'" class="flex-auto mr1">Delete</button>
+      <button class="flex-auto mr1">Edit</button>
+      <button class="flex-auto">New</button>
+    </div>
+  </fieldset>
+</div>
+  
 <div class="overflow fullheight">
   <fieldset ref="$messages" class="messages-wrap overflow fullheight">
     <legend>Messages</legend>
@@ -115,6 +132,31 @@ onMounted(() => {
   scrollBottom()
 })
 
+/**
+ * Sort by date
+ */
+ const sortedMessages = computed(messagesModel.getSortedByDate)
+
+
+
+
+
+
+/**
+ * Channel management
+ */
+const activeChannel = ref('general')
+const isShowingMoreChannel = ref(false)
+const toggleShowMoreChannel = () => {
+  isShowingMoreChannel.value = !isShowingMoreChannel.value
+}
+
+
+
+
+
+
+
 
 
 
@@ -138,7 +180,6 @@ const runPrompt = async () => {
   const messages = await messagesModel.getPreparedMessages()
   sendToLLM(messages)
 }
-
 
 /**
  * Send to the llm for inference
@@ -193,15 +234,6 @@ const clearMessages = async () => {
   isShowingMore.value = false
   await messagesModel.deleteAll()
 }
-
-// Show more panel
-const isShowingMore = ref(false)
-const showMore = () => {
-  isShowingMore.value = !isShowingMore.value
-}
-
-// Sort by date
-const sortedMessages = computed(messagesModel.getSortedByDate)
 
 /**
  * Edit message
@@ -353,6 +385,14 @@ const regenerateMessage = async () => {
   const promptEl = document.getElementById('prompt')
   promptEl.focus()
   prompt.value = ''
+}
+
+/**
+ * Show more panel
+ */
+const isShowingMore = ref(false)
+const showMore = () => {
+  isShowingMore.value = !isShowingMore.value
 }
 
 /**

@@ -35,6 +35,9 @@
 .flex-auto {
   flex: auto !important;
 }
+.flex-none {
+  flex: none !important;
+}
 .row {
   flex-direction: row;
 }
