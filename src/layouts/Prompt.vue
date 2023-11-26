@@ -47,7 +47,7 @@
     <div class="spacer"></div>
     <div style="flex: 0">
       <div class="mb1">
-        <textarea id="prompt" v-model="prompt" autofocus multiline placeholder="Prompt..." @keydown.ctrl.exact.enter="runPrompt"></textarea>
+        <textarea ref="$prompt" id="prompt" v-model="prompt" autofocus multiline placeholder="Prompt..." @keydown.ctrl.exact.enter="runPrompt"></textarea>
       </div>
 
       <div v-if="isShowingMore" class="mb1">
@@ -120,6 +120,7 @@ const isThinking = ref(false)
 const roleToChangeTo = ref('user')
 const showingChangeRole = ref(false)
 const $messages = ref(null)
+const $prompt = ref(null)
 
 const messagesModel = useMessagesModel()
 const connectionsModel = useConnectionsModel()
@@ -155,7 +156,6 @@ const sortedMessages = computed(function () {
 
 
 
-
 /**
  * Channel management
  */
@@ -185,11 +185,13 @@ const onChannelCreated = (id) => {
   activeChannel.value = id
   isShowingMoreChannel.value = false
   tabsModel.adjustZIndex()
+  $prompt.value.focus()
 }
 const onChannelUpdated = (id) => {
   isShowingChannelModal.value = false
   isShowingMoreChannel.value = false
   tabsModel.adjustZIndex()
+  $prompt.value.focus()
 }
 const changeCurrentChannel = async () => {
   await channelsModel.setCurrentChannel(activeChannel.value)
@@ -270,10 +272,7 @@ const runPrompt = async () => {
     role: 'assistant',
     text: '',
   }))
-
-  // focus prompt
-  const promptEl = document.getElementById('prompt')
-  promptEl.focus()
+  $prompt.value.focus()
 
   let combinedMessage = ''
   for await (const chunk of completion) {
@@ -292,9 +291,7 @@ const runPrompt = async () => {
 const clearMessages = async () => {
   isShowingMore.value = false
   await messagesModel.deleteAll(activeChannel.value)
-
-  const promptEl = document.getElementById('prompt')
-  promptEl.focus()
+  $prompt.value.focus()
 }
 
 /**
@@ -332,9 +329,7 @@ const editMessage = async (ev, stopBubble = false) => {
 
   // Update prompt with message
   prompt.value = message.text
-
-  const promptEl = document.getElementById('prompt')
-  promptEl.focus()
+  $prompt.value.focus()
 }
 
 /**
@@ -367,8 +362,7 @@ const updateMessage = async () => {
     $message.classList.remove('highlight')
   })
 
-  const promptEl = document.getElementById('prompt')
-  promptEl.focus()
+  $prompt.value.focus()
 }
 
 /**
@@ -384,9 +378,8 @@ const deleteMessage = async () => {
     $message.classList.remove('highlight')
   })
 
-  const promptEl = document.getElementById('prompt')
-  promptEl.focus()
   prompt.value = ''
+  $prompt.value.focus()
 }
 
 /**
@@ -406,9 +399,8 @@ const changeRole = async (role) => {
     $message.classList.remove('highlight')
   })
   
-  const promptEl = document.getElementById('prompt')
-  promptEl.focus()
   prompt.value = ''
+  $prompt.value.focus()
 }
 
 /**
@@ -444,9 +436,8 @@ const regenerateMessage = async () => {
     $message.classList.remove('highlight')
   })
 
-  const promptEl = document.getElementById('prompt')
-  promptEl.focus()
   prompt.value = ''
+  $prompt.value.focus()
 }
 
 /**

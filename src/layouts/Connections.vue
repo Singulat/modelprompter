@@ -39,32 +39,32 @@
 <Window v-if="isModalOpen" :title="isEditMode ? 'Update connection' : 'Add new connection'" class="modal" canClose isModal @close="toggleModal(false)">
   <div class="field-row-stacked">
     <label for="connections-name">Connection name:</label>
-    <input type="text" id="connections-name" ref="connectionName" autofocus placeholder="Local Mistral 7B" v-model="connectionForm.name" />
+    <input @keydown.enter.prevent="submitConnectionForm" type="text" id="connections-name" ref="connectionName" autofocus placeholder="Local Mistral 7B" v-model="connectionForm.name" />
   </div>
 
   <div class="field-row-stacked">
     <label for="connections-model">Model:</label>
-    <input type="text" id="connections-model" placeholder="gpt-4-1106-preview" v-model="connectionForm.model" />
+    <input @keydown.enter.prevent="submitConnectionForm" type="text" id="connections-model" placeholder="gpt-4-1106-preview" v-model="connectionForm.model" />
   </div>
 
   <div class="field-row-stacked">
     <label for="connections-baseurl">Base URL:</label>
-    <input type="text" id="connections-baseurl" placeholder="http://localhost:1234/v1" v-model="connectionForm.baseurl" />
+    <input @keydown.enter.prevent="submitConnectionForm" type="text" id="connections-baseurl" placeholder="http://localhost:1234/v1" v-model="connectionForm.baseurl" />
   </div>
 
   <div class="field-row-stacked">
     <label for="connections-apikey">API key:</label>
-    <input type="password" id="connections-apikey" placeholder="sk-1234" v-model="connectionForm.apiKey" />
+    <input @keydown.enter.prevent="submitConnectionForm" type="password" id="connections-apikey" placeholder="sk-1234" v-model="connectionForm.apiKey" />
   </div>
 
   <div class="field-row-stacked">
     <label for="connections-organization">Organization:</label>
-    <input type="text" id="connections-organization" placeholder="OpenAI" v-model="connectionForm.organization" />
+    <input @keydown.enter.prevent="submitConnectionForm" type="text" id="connections-organization" placeholder="OpenAI" v-model="connectionForm.organization" />
   </div>
 
   <div class="field-row-stacked">
     <label for="connections-temp">Temperature:</label>
-    <input type="text" id="connections-temp" placeholder="0.7" v-model="connectionForm.temp" />
+    <input @keydown.enter.prevent="submitConnectionForm" type="text" id="connections-temp" placeholder="0.7" v-model="connectionForm.temp" />
   </div>
 
   <div class="flex pt3">

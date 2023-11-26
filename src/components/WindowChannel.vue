@@ -2,7 +2,7 @@
 <Window :title="props.isEditing ? 'Update channel' : 'Add new channel'" class="modal" canClose isModal @close="closeModal">
   <div class="field-row-stacked">
     <label for="channel-name">Channel:</label>
-    <input type="text" id="channel-name" ref="channelName" autofocus placeholder="Untitled" v-model="channelForm.name" />
+    <input type="text" id="channel-name" ref="channelName" autofocus placeholder="Untitled" v-model="channelForm.name" @keydown.enter.prevent="submitChannelForm" />
   </div>
 
   <div class="flex pt3">
