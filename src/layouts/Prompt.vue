@@ -10,8 +10,8 @@
       <button :class="{'flex-auto': true, active: isShowingMoreChannel}" @click="toggleShowMoreChannel">More</button>
     </div>
     <div v-if="isShowingMoreChannel" class="flex pt1">
-      <button v-if="activeChannel !== 'general'" class="flex-auto mr1">Delete</button>
-      <button class="flex-auto mr1" @click="showEditChannelModal">Edit</button>
+      <button v-if="activeChannel !== 'general'" class="flex-auto mr1" @click="deleteChannel">Delete</button>
+      <button v-if="activeChannel !== 'general'" class="flex-auto mr1" @click="showEditChannelModal">Edit</button>
       <button class="flex-auto" @click="showNewChannelModal">New</button>
     </div>
   </fieldset>
@@ -145,7 +145,10 @@ onMounted(() => {
 /**
  * Sort by date
  */
- const sortedMessages = computed(messagesModel.getSortedByDate)
+const sortedMessages = computed(function () {
+  const messages = messagesModel.getSortedByDate(activeChannel.value)
+  return messages
+})
 
 
 
@@ -189,6 +192,15 @@ const changeCurrentChannel = async () => {
   await channelsModel.setCurrentChannel(activeChannel.value)
 }
 
+/**
+ * Delete channel
+ */
+const deleteChannel = async () => {
+  await channelsModel.deleteChannel(activeChannel.value)
+  activeChannel.value = 'general'
+  isShowingMoreChannel.value = false
+}
+
 
 
 
@@ -207,11 +219,12 @@ const runPrompt = async () => {
   await messagesModel.addMessage({
     role: 'user',
     text: prompt.value,
+    channel: activeChannel.value
   })
   prompt.value = ''
 
   // Send the messages
-  const messages = await messagesModel.getPreparedMessages()
+  const messages = await messagesModel.getPreparedMessages(activeChannel.value)
   sendToLLM(messages)
 }
 
@@ -242,6 +255,7 @@ const runPrompt = async () => {
 
   // Add an empty message to start updating
   const assistantId = await messagesModel.addMessage(Object.assign(assistantDefaults, {
+    channel: activeChannel.value,
     role: 'assistant',
     text: '',
   }))
@@ -266,7 +280,7 @@ const runPrompt = async () => {
 // Clear messages
 const clearMessages = async () => {
   isShowingMore.value = false
-  await messagesModel.deleteAll()
+  await messagesModel.deleteAll(activeChannel.value)
 }
 
 /**
