@@ -104,7 +104,7 @@
 
 
 <script setup>
-import {ref, onMounted, computed} from 'vue'
+import {ref, onMounted, onUnmounted, computed} from 'vue'
 import OpenAI from 'openai'
 import MarkdownIt from 'markdown-it'
 
@@ -114,6 +114,8 @@ import {useChannelsModel} from '../model/channels'
 import {useTabsModel} from '../model/tabs.js'
 import Menu from '../components/Menu.vue'
 import WindowChannel from '../components/WindowChannel.vue'
+import Mousetrap from 'mousetrap'
+import 'mousetrap/plugins/global-bind/mousetrap-global-bind.js'
 
 const prompt = ref('')
 const isThinking = ref(false)
@@ -455,4 +457,35 @@ const md = new MarkdownIt()
 const renderMarkdown = (text) => {
   return md.render(text)
 }
+
+/**
+ * Keyboard shortcuts
+ */
+onMounted(() => {
+  // New channel
+  Mousetrap.bindGlobal('ctrl+shift+n', (ev) => {
+    ev.preventDefault()
+    ev.stopPropagation()
+    showNewChannelModal()
+  })
+
+  // Delete channel
+  Mousetrap.bindGlobal('ctrl+shift+d', async (ev) => {
+    ev.preventDefault()
+    ev.stopPropagation()
+    
+    // Delete if not general and not have messages, otherwise just clear
+    if (channelsModel.currentChannel !== 'general' && !sortedMessages.value.length) {
+      await deleteChannel()
+    } else {
+      await clearMessages()
+    }
+
+    $prompt.value.focus()
+  })
+})
+onUnmounted(() => {
+  Mousetrap.unbind('ctrl+shift+n')
+  Mousetrap.unbind('ctrl+shift+d')
+})
 </script>
