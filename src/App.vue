@@ -26,6 +26,7 @@ import Prompt from './layouts/Prompt.vue'
 import Connections from './layouts/Connections.vue'
 import { useConnectionsModel } from './model/connections'
 import { useMessagesModel } from './model/messages'
+import { useChannelsModel } from './model/channels'
 import {ref, onMounted, onBeforeMount} from 'vue'
 
 const activeTab = ref('prompt')
@@ -35,13 +36,16 @@ const tabs = ref(null)
 
 const messagesModel = useMessagesModel()
 const connectionsModel = useConnectionsModel()
+const channelsModel = useChannelsModel()
 
 /**
  * Load data
  */
 onBeforeMount(async () => {
+  // Load models
   await connectionsModel.init()
   await messagesModel.init()
+  await channelsModel.init()
 
   // Redirect to connections if there are no connections
   if (!connectionsModel.defaultConnection) {

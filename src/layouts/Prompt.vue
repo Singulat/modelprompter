@@ -3,19 +3,22 @@
   <fieldset class="overflow fullheight">
     <legend>Channel</legend>
     <div class="flex">
-      <select class="mr1" name="channel" type="text" v-model="activeChannel">
+      <select class="mr1" name="channel" v-model="activeChannel">
         <option value="general">General</option>
+        <option v-for="channel in channelsModel.channels" :key="channel.id" :value="channel.id">{{channel.name}}</option>
       </select>
       <button :class="{'flex-auto': true, active: isShowingMoreChannel}" @click="toggleShowMoreChannel">More</button>
     </div>
     <div v-if="isShowingMoreChannel" class="flex pt1">
       <button v-if="activeChannel !== 'general'" class="flex-auto mr1">Delete</button>
-      <button class="flex-auto mr1">Edit</button>
-      <button class="flex-auto">New</button>
+      <button class="flex-auto mr1" @click="showEditChannelModal">Edit</button>
+      <button class="flex-auto" @click="showNewChannelModal">New</button>
     </div>
   </fieldset>
 </div>
-  
+
+<WindowChannel v-if="isShowingChannelModal" @created="channelCreated" @close="isShowingChannelModal = false"></WindowChannel>
+
 <div class="overflow fullheight">
   <fieldset ref="$messages" class="messages-wrap overflow fullheight">
     <legend>Messages</legend>
@@ -103,11 +106,14 @@
 
 <script setup>
 import {ref, onMounted, computed} from 'vue'
-import { useConnectionsModel } from '../model/connections'
-import {useMessagesModel} from '../model/messages'
-import Menu from '../components/Menu.vue'
 import OpenAI from 'openai'
 import MarkdownIt from 'markdown-it'
+
+import { useConnectionsModel } from '../model/connections'
+import {useMessagesModel} from '../model/messages'
+import {useChannelsModel} from '../model/channels'
+import Menu from '../components/Menu.vue'
+import WindowChannel from '../components/WindowChannel.vue'
 
 const prompt = ref('')
 const isThinking = ref(false)
@@ -117,6 +123,7 @@ const $messages = ref(null)
 
 const messagesModel = useMessagesModel()
 const connectionsModel = useConnectionsModel()
+const channelsModel = useChannelsModel()
 
 /**
  * Handle scrolling
@@ -147,14 +154,23 @@ onMounted(() => {
  */
 const activeChannel = ref('general')
 const isShowingMoreChannel = ref(false)
+const isShowingChannelModal = ref(false)
+
 const toggleShowMoreChannel = () => {
   isShowingMoreChannel.value = !isShowingMoreChannel.value
 }
 
+const showNewChannelModal = () => {
+  isShowingChannelModal.value = true
+}
+const showEditChannelModal = () => {
+  console.log('show edit channel modal')
+}
 
-
-
-
+const channelCreated = (id) => {
+  activeChannel.value = id
+  isShowingMoreChannel.value = false
+}
 
 
 
