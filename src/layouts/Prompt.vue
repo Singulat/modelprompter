@@ -17,7 +17,7 @@
   </fieldset>
 </div>
 
-<WindowChannel v-if="isShowingChannelModal" @created="channelCreated" @close="isShowingChannelModal = false"></WindowChannel>
+<WindowChannel v-if="isShowingChannelModal" @created="onChannelCreated" @updated="onChannelUpdated" @close="isShowingChannelModal = false" :isEditing="channelBeingEdited"></WindowChannel>
 
 <div class="overflow fullheight">
   <fieldset ref="$messages" class="messages-wrap overflow fullheight">
@@ -163,21 +163,32 @@ const toggleShowMoreChannel = () => {
   isShowingMoreChannel.value = !isShowingMoreChannel.value
 }
 
+// Show new vs edit modals
+const channelBeingEdited = ref(null) 
 const showNewChannelModal = () => {
+  channelBeingEdited.value = null
   isShowingChannelModal.value = true
 }
 const showEditChannelModal = () => {
-  console.log('show edit channel modal')
+  channelBeingEdited.value = activeChannel.value
+  isShowingChannelModal.value = true
 }
 
-const channelCreated = (id) => {
+/**
+ * Handle channel creation and changing
+ */
+const onChannelCreated = (id) => {
   activeChannel.value = id
   isShowingMoreChannel.value = false
 }
-
+const onChannelUpdated = (id) => {
+  isShowingChannelModal.value = false
+  isShowingMoreChannel.value = false
+}
 const changeCurrentChannel = async () => {
   await channelsModel.setCurrentChannel(activeChannel.value)
 }
+
 
 
 

@@ -76,6 +76,18 @@ export const useChannelsModel = defineStore({
     async deleteChannel (id) {
       delete this.channels[id]
       await chrome.storage.sync.set({channels: this.channels})
+    },
+
+    /**
+     * Update
+     */
+    async updateChannel (id, channel) {
+      this.channels[id].updated_at = Date.now()
+      Object.keys(channel).forEach(key => {
+        this.channels[id][key] = channel[key]
+      })
+
+      await chrome.storage.sync.set({channels: this.channels})
     }
   }
 })

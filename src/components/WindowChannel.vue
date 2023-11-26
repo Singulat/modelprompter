@@ -1,5 +1,5 @@
 <template>
-<Window :title="props.isEditMode ? 'Update channel' : 'Add new channel'" class="modal" canClose isModal @close="closeModal">
+<Window :title="props.isEditing ? 'Update channel' : 'Add new channel'" class="modal" canClose isModal @close="closeModal">
   <div class="field-row-stacked">
     <label for="channel-name">Channel:</label>
     <input type="text" id="channel-name" ref="channelName" autofocus placeholder="Untitled" v-model="channelForm.name" />
@@ -8,7 +8,7 @@
   <div class="flex pt3">
     <button class="flex-auto mr2" @click="closeModal">Cancel</button>
     <button ref="addChannelButton" :disabled="!isValidForm" @click="submitChannelForm">
-      <span v-if="isEditMode">Update channel</span>
+      <span v-if="isEditing">Update channel</span>
       <span v-else>Add channel</span>
     </button>
   </div>
@@ -31,10 +31,9 @@ const channelName = ref(null)
 const channelForm = ref(channelDefaults)
 
 const props = defineProps({
-  isEditMode: Boolean,
-  channel: Object
+  isEditing: String
 })
-const emit = defineEmits(['close', 'created'])
+const emit = defineEmits(['close', 'created', 'updated'])
 
 /**
  * Manage tab z-index bug
@@ -42,6 +41,12 @@ const emit = defineEmits(['close', 'created'])
 onMounted(() => {
   setTimeout(() => {
     tabsModel.adjustZIndex()
+
+    if (props.isEditing) {
+      const channel = channelsModel.channels[props.isEditing]
+      channelForm.value.name = channel.name
+    }
+    
     channelName.value.focus()
   }, 0)
 })
@@ -61,8 +66,9 @@ const isValidForm = computed(() => {
  */
 const submitChannelForm = async () => {
   if (isValidForm.value) {
-    if (props.isEditMode) {
-      console.log('@todo: editing')
+    if (props.isEditing) {
+      await channelsModel.updateChannel(props.isEditing, channelForm.value)
+      emit('updated')
     } else {
       const id = await channelsModel.addChannel(channelForm.value)
       await channelsModel.setCurrentChannel(id)
