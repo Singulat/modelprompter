@@ -63,14 +63,6 @@ export const useChannelsModel = defineStore({
     },
 
     /**
-     * Delete all channels
-     */
-    async deleteChannels () {
-      this.channels = {}
-      await chrome.storage.sync.set({channels: this.channels})
-    },
-
-    /**
      * Delete specific channel
      */
     async deleteChannel (id) {

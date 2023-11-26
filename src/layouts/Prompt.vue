@@ -4,20 +4,20 @@
     <legend>Channel</legend>
     <div class="flex">
       <select class="mr1" name="channel" v-model="activeChannel" @change="changeCurrentChannel">
-        <option value="general">General</option>
+        <option value="general">Scratchpad</option>
         <option v-for="channel in channelsModel.channels" :key="channel.id" :value="channel.id">{{channel.name}}</option>
       </select>
       <button :class="{'flex-auto': true, active: isShowingMoreChannel}" @click="toggleShowMoreChannel">More</button>
     </div>
     <div v-if="isShowingMoreChannel" class="flex pt1">
-      <button v-if="activeChannel !== 'general'" class="flex-auto mr1" @click="deleteChannel">Delete</button>
-      <button v-if="activeChannel !== 'general'" class="flex-auto mr1" @click="showEditChannelModal">Edit</button>
+      <button :disabled="activeChannel == 'general'" class="flex-auto mr1" @click="deleteChannel">Delete</button>
+      <button :disabled="activeChannel == 'general'" class="flex-auto mr1" @click="showEditChannelModal">Edit</button>
       <button class="flex-auto" @click="showNewChannelModal">New</button>
     </div>
   </fieldset>
 </div>
 
-<WindowChannel v-if="isShowingChannelModal" @created="onChannelCreated" @updated="onChannelUpdated" @close="isShowingChannelModal = false" :isEditing="channelBeingEdited"></WindowChannel>
+<WindowChannel v-if="isShowingChannelModal" @created="onChannelCreated" @updated="onChannelUpdated" @close="closeChannelModal" :isEditing="channelBeingEdited"></WindowChannel>
 
 <div class="overflow fullheight">
   <fieldset ref="$messages" class="messages-wrap overflow fullheight">
@@ -50,16 +50,15 @@
         <textarea id="prompt" v-model="prompt" autofocus multiline placeholder="Prompt..." @keydown.ctrl.exact.enter="runPrompt"></textarea>
       </div>
 
+      <div v-if="isShowingMore" class="mb1">
+        <button class="fullwidth" @click="clearMessages">Clear messages</button>
+      </div>
+
       <!-- Prompting -->
       <div v-if="!isEditing" class="flex">
         <div class="flex-auto mr1">
           <div style="display: flex; position: relative">
-            <button @click="showMore" :class="{active: isShowingMore}">
-              More
-              <Menu v-model="isShowingMore" dir="n">
-                <li class="hoverable" @click="clearMessages">Clear messages</li>
-              </Menu>
-            </button>
+            <button @click="showMore" :class="{active: isShowingMore}">More</button>
           </div>
         </div>
         <div>
@@ -112,6 +111,7 @@ import MarkdownIt from 'markdown-it'
 import { useConnectionsModel } from '../model/connections'
 import {useMessagesModel} from '../model/messages'
 import {useChannelsModel} from '../model/channels'
+import {useTabsModel} from '../model/tabs.js'
 import Menu from '../components/Menu.vue'
 import WindowChannel from '../components/WindowChannel.vue'
 
@@ -124,6 +124,7 @@ const $messages = ref(null)
 const messagesModel = useMessagesModel()
 const connectionsModel = useConnectionsModel()
 const channelsModel = useChannelsModel()
+const tabsModel = useTabsModel()
 
 /**
  * Handle scrolling
@@ -183,25 +184,35 @@ const showEditChannelModal = () => {
 const onChannelCreated = (id) => {
   activeChannel.value = id
   isShowingMoreChannel.value = false
+  tabsModel.adjustZIndex()
 }
 const onChannelUpdated = (id) => {
   isShowingChannelModal.value = false
   isShowingMoreChannel.value = false
+  tabsModel.adjustZIndex()
 }
 const changeCurrentChannel = async () => {
   await channelsModel.setCurrentChannel(activeChannel.value)
+  scrollBottom()
 }
 
 /**
  * Delete channel
  */
 const deleteChannel = async () => {
+  await messagesModel.deleteAll(activeChannel.value)
   await channelsModel.deleteChannel(activeChannel.value)
   activeChannel.value = 'general'
   isShowingMoreChannel.value = false
 }
 
-
+/**
+ * Close channel modal
+ */
+const closeChannelModal = () => {
+  isShowingChannelModal.value = false
+  tabsModel.adjustZIndex()
+}
 
 
 
@@ -281,6 +292,9 @@ const runPrompt = async () => {
 const clearMessages = async () => {
   isShowingMore.value = false
   await messagesModel.deleteAll(activeChannel.value)
+
+  const promptEl = document.getElementById('prompt')
+  promptEl.focus()
 }
 
 /**
