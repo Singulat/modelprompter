@@ -1,24 +1,26 @@
 <template>
-<fieldset ref="$messages" class="messages-wrap overflow" style="flex: 0 1 100%; justify-content: space-between">
-  <legend>Messages</legend>
-  <div class="messages">
-    <div
-    v-for="message in sortedMessages"
-    class="message"
-    :data-role="message.role"
-    :key="message.id"
-    :data-id="message.id"
-    @dblclick="$ev => editMessage($ev)"
-    @contextmenu="$ev => editMessage($ev, true)"
-    >
-      <div class="window">
-        <div class="window-body">
-          <div v-html="renderMarkdown(message.text)"></div>
+<div class="overflow fullheight">
+  <fieldset ref="$messages" class="messages-wrap overflow fullheight">
+    <legend>Messages</legend>
+    <div class="messages">
+      <div
+      v-for="message in sortedMessages"
+      class="message"
+      :data-role="message.role"
+      :key="message.id"
+      :data-id="message.id"
+      @dblclick="$ev => editMessage($ev)"
+      @contextmenu="$ev => editMessage($ev, true)"
+      >
+        <div class="window">
+          <div class="window-body">
+            <div v-html="renderMarkdown(message.text)"></div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-</fieldset>
+  </fieldset>
+</div>
 
 <div style="flex: 0;">
   <div class="flex column fullheight pt1 pb1">
@@ -68,7 +70,7 @@
             <button class="fullwidth" @click="cancelEditing">Cancel</button>
           </div>
           <div class="mr1">
-            <button class="fullwidth" :disabled="!prompt" @click="deleteMessage">Delete</button>
+            <button class="fullwidth" @click="deleteMessage">Delete</button>
           </div>
           <div>
             <button class="fullwidth" :disabled="!prompt" @click="updateMessage">Update</button>
@@ -99,20 +101,18 @@ const $messages = ref(null)
 const messagesModel = useMessagesModel()
 const connectionsModel = useConnectionsModel()
 
-// Scroll to bottom
+/**
+ * Handle scrolling
+ */
+// Scroll to bottom once
 const scrollBottom = () => {
   const target = $messages.value
   if (target) {
     target.scrollTop = target.scrollHeight
   }
 }
-const scrollBlast = () => {
-  for (let i = 0; i < 25; i += 20) {
-    setTimeout(() => {scrollBottom()}, i*25)
-  }
-}
 onMounted(() => {
-  scrollBlast()
+  scrollBottom()
 })
 
 
@@ -182,7 +182,7 @@ const runPrompt = async () => {
       text: combinedMessage
     })
     
-    scrollBlast()
+    scrollBottom()
   }
 
   isThinking.value = false  

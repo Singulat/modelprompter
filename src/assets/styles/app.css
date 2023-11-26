@@ -44,6 +44,12 @@ html, body {
   background: #1084d0;
   color: #fff;
 }
+.messages .message.highlight > .window pre {
+  color: initial;
+}
+.messages .message pre {
+  white-space: pre-wrap;
+}
 
 /* Menu */
 .menu {
