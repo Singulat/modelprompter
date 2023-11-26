@@ -53,9 +53,9 @@ export const useMessagesModel = defineStore({
      * Transforms our messages into the format OpenAI expects
      * @returns [openai messages]
      */
-    async getPreparedMessages () {
+    async getPreparedMessages (channelID) {
       await this.getMessages()
-      const messages = this.getSortedByDate()
+      const messages = this.getSortedByDate(channelID)
       return this.prepareMessages(messages)
     },
     prepareMessages (messages) {
@@ -87,8 +87,15 @@ export const useMessagesModel = defineStore({
     /**
      * Delete all messages
      */
-    async deleteAll () {
+    async deleteAll (channelID) {
+      // Delete all messages for a specific channel
+      const messages = Object.values(this.messages).filter(message => {
+        return message.channel != channelID
+      })
       this.messages = {}
+      messages.forEach(message => {
+        this.messages[message.id] = message
+      })
       await chrome.storage.sync.set({messages: this.messages})
     },
 
@@ -104,10 +111,13 @@ export const useMessagesModel = defineStore({
      * Get messages sorted by date
      * @returns [messages]
      */
-    getSortedByDate () {
-      const messages = Object.values(this.messages).sort((a, b) => {
+    getSortedByDate (channelID) {
+      const messages = Object.values(this.messages).filter(message => {
+        return message.channel == channelID
+      }).sort((a, b) => {
         return a.created_at - b.created_at
       })
+      
       return messages
     }
   }

@@ -1,4 +1,24 @@
 <template>
+<div class="flex-auto">
+  <fieldset class="overflow fullheight">
+    <legend>Channel</legend>
+    <div class="flex">
+      <select class="mr1" name="channel" v-model="activeChannel" @change="changeCurrentChannel">
+        <option value="general">Scratchpad</option>
+        <option v-for="channel in channelsModel.channels" :key="channel.id" :value="channel.id">{{channel.name}}</option>
+      </select>
+      <button :class="{'flex-auto': true, active: isShowingMoreChannel}" @click="toggleShowMoreChannel">More</button>
+    </div>
+    <div v-if="isShowingMoreChannel" class="flex pt1">
+      <button :disabled="activeChannel == 'general'" class="flex-auto mr1" @click="deleteChannel">Delete</button>
+      <button :disabled="activeChannel == 'general'" class="flex-auto mr1" @click="showEditChannelModal">Edit</button>
+      <button class="flex-auto" @click="showNewChannelModal">New</button>
+    </div>
+  </fieldset>
+</div>
+
+<WindowChannel v-if="isShowingChannelModal" @created="onChannelCreated" @updated="onChannelUpdated" @close="closeChannelModal" :isEditing="channelBeingEdited"></WindowChannel>
+
 <div class="overflow fullheight">
   <fieldset ref="$messages" class="messages-wrap overflow fullheight">
     <legend>Messages</legend>
@@ -30,16 +50,15 @@
         <textarea id="prompt" v-model="prompt" autofocus multiline placeholder="Prompt..." @keydown.ctrl.exact.enter="runPrompt"></textarea>
       </div>
 
+      <div v-if="isShowingMore" class="mb1">
+        <button class="fullwidth" @click="clearMessages">Clear messages</button>
+      </div>
+
       <!-- Prompting -->
       <div v-if="!isEditing" class="flex">
         <div class="flex-auto mr1">
           <div style="display: flex; position: relative">
-            <button @click="showMore" :class="{active: isShowingMore}">
-              More
-              <Menu v-model="isShowingMore" dir="n">
-                <li class="hoverable" @click="clearMessages">Clear messages</li>
-              </Menu>
-            </button>
+            <button @click="showMore" :class="{active: isShowingMore}">More</button>
           </div>
         </div>
         <div>
@@ -86,11 +105,15 @@
 
 <script setup>
 import {ref, onMounted, computed} from 'vue'
-import { useConnectionsModel } from '../model/connections'
-import {useMessagesModel} from '../model/messages'
-import Menu from '../components/Menu.vue'
 import OpenAI from 'openai'
 import MarkdownIt from 'markdown-it'
+
+import { useConnectionsModel } from '../model/connections'
+import {useMessagesModel} from '../model/messages'
+import {useChannelsModel} from '../model/channels'
+import {useTabsModel} from '../model/tabs.js'
+import Menu from '../components/Menu.vue'
+import WindowChannel from '../components/WindowChannel.vue'
 
 const prompt = ref('')
 const isThinking = ref(false)
@@ -100,6 +123,8 @@ const $messages = ref(null)
 
 const messagesModel = useMessagesModel()
 const connectionsModel = useConnectionsModel()
+const channelsModel = useChannelsModel()
+const tabsModel = useTabsModel()
 
 /**
  * Handle scrolling
@@ -112,8 +137,82 @@ const scrollBottom = () => {
   }
 }
 onMounted(() => {
-  scrollBottom()
+  setTimeout(async () => {
+    scrollBottom()
+    activeChannel.value = await channelsModel.getCurrentChannel()
+  }, 0)
 })
+
+/**
+ * Sort by date
+ */
+const sortedMessages = computed(function () {
+  const messages = messagesModel.getSortedByDate(activeChannel.value)
+  return messages
+})
+
+
+
+
+
+
+/**
+ * Channel management
+ */
+const activeChannel = ref('general')
+const isShowingMoreChannel = ref(false)
+const isShowingChannelModal = ref(false)
+
+const toggleShowMoreChannel = () => {
+  isShowingMoreChannel.value = !isShowingMoreChannel.value
+}
+
+// Show new vs edit modals
+const channelBeingEdited = ref(null) 
+const showNewChannelModal = () => {
+  channelBeingEdited.value = null
+  isShowingChannelModal.value = true
+}
+const showEditChannelModal = () => {
+  channelBeingEdited.value = activeChannel.value
+  isShowingChannelModal.value = true
+}
+
+/**
+ * Handle channel creation and changing
+ */
+const onChannelCreated = (id) => {
+  activeChannel.value = id
+  isShowingMoreChannel.value = false
+  tabsModel.adjustZIndex()
+}
+const onChannelUpdated = (id) => {
+  isShowingChannelModal.value = false
+  isShowingMoreChannel.value = false
+  tabsModel.adjustZIndex()
+}
+const changeCurrentChannel = async () => {
+  await channelsModel.setCurrentChannel(activeChannel.value)
+  scrollBottom()
+}
+
+/**
+ * Delete channel
+ */
+const deleteChannel = async () => {
+  await messagesModel.deleteAll(activeChannel.value)
+  await channelsModel.deleteChannel(activeChannel.value)
+  activeChannel.value = 'general'
+  isShowingMoreChannel.value = false
+}
+
+/**
+ * Close channel modal
+ */
+const closeChannelModal = () => {
+  isShowingChannelModal.value = false
+  tabsModel.adjustZIndex()
+}
 
 
 
@@ -131,14 +230,14 @@ const runPrompt = async () => {
   await messagesModel.addMessage({
     role: 'user',
     text: prompt.value,
+    channel: activeChannel.value
   })
   prompt.value = ''
 
   // Send the messages
-  const messages = await messagesModel.getPreparedMessages()
+  const messages = await messagesModel.getPreparedMessages(activeChannel.value)
   sendToLLM(messages)
 }
-
 
 /**
  * Send to the llm for inference
@@ -167,6 +266,7 @@ const runPrompt = async () => {
 
   // Add an empty message to start updating
   const assistantId = await messagesModel.addMessage(Object.assign(assistantDefaults, {
+    channel: activeChannel.value,
     role: 'assistant',
     text: '',
   }))
@@ -191,17 +291,11 @@ const runPrompt = async () => {
 // Clear messages
 const clearMessages = async () => {
   isShowingMore.value = false
-  await messagesModel.deleteAll()
-}
+  await messagesModel.deleteAll(activeChannel.value)
 
-// Show more panel
-const isShowingMore = ref(false)
-const showMore = () => {
-  isShowingMore.value = !isShowingMore.value
+  const promptEl = document.getElementById('prompt')
+  promptEl.focus()
 }
-
-// Sort by date
-const sortedMessages = computed(messagesModel.getSortedByDate)
 
 /**
  * Edit message
@@ -353,6 +447,14 @@ const regenerateMessage = async () => {
   const promptEl = document.getElementById('prompt')
   promptEl.focus()
   prompt.value = ''
+}
+
+/**
+ * Show more panel
+ */
+const isShowingMore = ref(false)
+const showMore = () => {
+  isShowingMore.value = !isShowingMore.value
 }
 
 /**

@@ -79,6 +79,7 @@
 
 
 <script setup>
+// @todo Refactor out the window component
 import Window from '../components/Window.vue'
 import {ref, computed, onMounted} from 'vue'
 import {useTabsModel} from '../model/tabs.js'
