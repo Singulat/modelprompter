@@ -185,7 +185,9 @@ defineExpose({
         emit('updateHighlightedRow', $row.getAttribute('data-id'))
       }
     }
-  }
+  },
+
+  showAddModal
 })
 
 

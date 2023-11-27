@@ -73,10 +73,11 @@ const onSubmit = async (isEditMode, data) => {
  */
 onMounted(() => {
   setTimeout(() => {
-    if (Object.keys(connectionsModel.connections).length === 0) {
-      showAddConnectionModal()
+    if (!Object.keys(connectionsModel.connections).length) {
+      $table.value.showAddModal()
+    } else {
+      $table.value.selectRow(connectionsModel.defaultConnection)
     }
-    $table.value.selectRow(connectionsModel.defaultConnection)
   }, 0)
 })
 </script>
