@@ -16,10 +16,15 @@
 </template>
 
 <script setup>
-import {ref, onMounted} from 'vue'
+import {ref, onMounted, onBeforeUnmount} from 'vue'
+import Mousetrap from 'mousetrap'
 
 const props = defineProps({
   title: String,
+  bubbleEsc: {
+    type: Boolean,
+    default: false
+  },
   canMin: Boolean,
   canMax: Boolean,
   canClose: Boolean,
@@ -56,5 +61,13 @@ onMounted(() => {
   setTimeout(() => {
     globalThis.mp?.params?.get('context') === 'iframe' && onMaximize()
   }, 0)
+
+  if (!props.bubbleEsc) {
+    Mousetrap.bindGlobal('esc', (ev) => {
+      ev.preventDefault()
+      ev.stopPropagation()
+      onClose()
+    })
+  }
 })
 </script>

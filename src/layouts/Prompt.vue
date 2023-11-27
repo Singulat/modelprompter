@@ -104,7 +104,7 @@
 
 
 <script setup>
-import {ref, onMounted, onUnmounted, computed} from 'vue'
+import {ref, onMounted, onBeforeUnmount, computed} from 'vue'
 import OpenAI from 'openai'
 import MarkdownIt from 'markdown-it'
 
@@ -547,7 +547,7 @@ onMounted(() => {
     $channels.value.focus()
   })
 })
-onUnmounted(() => {
+onBeforeUnmount(() => {
   Mousetrap.unbind('ctrl+shift+n')
   Mousetrap.unbind('ctrl+shift+e')
   Mousetrap.unbind('ctrl+shift+r')

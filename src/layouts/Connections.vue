@@ -39,42 +39,49 @@
 </div>
 
 <Window v-if="isModalOpen" :title="isEditMode ? 'Update connection' : 'Add new connection'" class="modal" canClose isModal @close="toggleModal(false)">
-  <div class="field-row-stacked">
-    <label for="connections-name">Connection name:</label>
-    <input @keydown.ctrl.exact.enter.prevent="submitConnectionForm" type="text" id="connections-name" ref="connectionName" autofocus placeholder="Local Mistral 7B" v-model="connectionForm.name" />
-  </div>
-
-  <div class="field-row-stacked">
-    <label for="connections-model">Model:</label>
-    <input @keydown.ctrl.exact.enter.prevent="submitConnectionForm" type="text" id="connections-model" placeholder="gpt-4-1106-preview" v-model="connectionForm.model" />
-  </div>
-
-  <div class="field-row-stacked">
-    <label for="connections-baseurl">Base URL:</label>
-    <input @keydown.ctrl.exact.enter.prevent="submitConnectionForm" type="text" id="connections-baseurl" placeholder="http://localhost:1234/v1" v-model="connectionForm.baseurl" />
-  </div>
-
-  <div class="field-row-stacked">
-    <label for="connections-apikey">API key:</label>
-    <input @keydown.ctrl.exact.enter.prevent="submitConnectionForm" type="password" id="connections-apikey" placeholder="sk-1234" v-model="connectionForm.apiKey" />
-  </div>
-
-  <div class="field-row-stacked">
-    <label for="connections-organization">Organization:</label>
-    <input @keydown.ctrl.exact.enter.prevent="submitConnectionForm" type="text" id="connections-organization" placeholder="OpenAI" v-model="connectionForm.organization" />
-  </div>
-
-  <div class="field-row-stacked">
-    <label for="connections-temp">Temperature:</label>
-    <input @keydown.ctrl.exact.enter.prevent="submitConnectionForm" type="text" id="connections-temp" placeholder="0.7" v-model="connectionForm.temp" />
-  </div>
-
-  <div class="flex pt3">
-    <button class="flex-auto mr2" @click="closeModal">Cancel</button>
-    <button ref="addConnectionButton" :disabled="!isValidForm" @click="submitConnectionForm">
-      <span v-if="isEditMode">Update connection</span>
-      <span v-else>Add connection</span>
-    </button>
+  <div class="autoscroll">
+    <div class="flex column fullheight">
+      <div>
+        <div class="field-row-stacked">
+          <label for="connections-name">Connection name:</label>
+          <input @keydown.ctrl.exact.enter.prevent="submitConnectionForm" type="text" id="connections-name" ref="connectionName" autofocus placeholder="Local Mistral 7B" v-model="connectionForm.name" />
+        </div>
+      
+        <div class="field-row-stacked">
+          <label for="connections-model">Model:</label>
+          <input @keydown.ctrl.exact.enter.prevent="submitConnectionForm" type="text" id="connections-model" placeholder="gpt-4-1106-preview" v-model="connectionForm.model" />
+        </div>
+      
+        <div class="field-row-stacked">
+          <label for="connections-baseurl">Base URL:</label>
+          <input @keydown.ctrl.exact.enter.prevent="submitConnectionForm" type="text" id="connections-baseurl" placeholder="http://localhost:1234/v1" v-model="connectionForm.baseurl" />
+        </div>
+      
+        <div class="field-row-stacked">
+          <label for="connections-apikey">API key:</label>
+          <input @keydown.ctrl.exact.enter.prevent="submitConnectionForm" type="password" id="connections-apikey" placeholder="sk-1234" v-model="connectionForm.apiKey" />
+        </div>
+      
+        <div class="field-row-stacked">
+          <label for="connections-organization">Organization:</label>
+          <input @keydown.ctrl.exact.enter.prevent="submitConnectionForm" type="text" id="connections-organization" placeholder="OpenAI" v-model="connectionForm.organization" />
+        </div>
+      
+        <div class="field-row-stacked">
+          <label for="connections-temp">Temperature:</label>
+          <input @keydown.ctrl.exact.enter.prevent="submitConnectionForm" type="text" id="connections-temp" placeholder="0.7" v-model="connectionForm.temp" />
+        </div>
+      </div>
+      <div>
+        <div class="flex pt3">
+          <button class="flex-auto mr2" @click="closeModal">Cancel</button>
+          <button ref="addConnectionButton" :disabled="!isValidForm" @click="submitConnectionForm">
+            <span v-if="isEditMode">Update connection</span>
+            <span v-else>Add connection</span>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </Window>
 </template>
@@ -83,7 +90,7 @@
 <script setup>
 // @todo Refactor out the window component
 import Window from '../components/Window.vue'
-import {ref, computed, onMounted, onUnmounted} from 'vue'
+import {ref, computed, onMounted, onBeforeUnmount} from 'vue'
 import {useTabsModel} from '../model/tabs.js'
 import {useConnectionsModel} from '../model/connections.js'
 import Mousetrap from 'mousetrap';
@@ -138,7 +145,7 @@ const submitConnectionForm = async () => {
   } else {
     id = await connectionsModel.addConnection(connectionForm.value)
   }
-  connectionForm.value = connectDefaults
+  connectionForm.value = Object.keys({}, connectDefaults)
   toggleModal(false)
 
   // Set default
@@ -192,6 +199,7 @@ const deleteConnection = () => {
 
 const showAddConnectionModal = () => {
   isEditMode.value = false
+  connectionForm.value = Object.assign({}, connectDefaults)
   toggleModal(true)
 } 
 
@@ -232,7 +240,7 @@ onMounted(() => {
   }, 0)
 
   // Show new connection
-  Mousetrap.bindGlobal('ctrl+shift+`', (ev) => {
+  Mousetrap.bindGlobal('ctrl+shift+n', (ev) => {
     ev.preventDefault()
     ev.stopPropagation()
     showAddConnectionModal()
@@ -255,7 +263,7 @@ onMounted(() => {
   })
 })
 
-onUnmounted(() => {
+onBeforeUnmount(() => {
   Mousetrap.unbind('ctrl+shift+n')
   Mousetrap.unbind('ctrl+shift+e')
   Mousetrap.unbind('ctrl+shift+d')
