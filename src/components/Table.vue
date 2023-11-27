@@ -10,7 +10,7 @@
         </slot>
       </thead>
       <tbody>
-        <tr @click="clickedRow" v-for="(record, dataKey) in data" :key=dataKey :class="{'highlighted': dataKey == props.highlightedRow}" :data-key="dataKey">
+        <tr @click="clickedRow" v-for="(record, dataKey) in data" :key=dataKey :class="{'highlighted': dataKey == props.highlightedRow}" :data-id="dataKey">
           <td v-for="heading in props.headings" :class="heading.class" :key="heading.key">
             {{ record[heading.key] }}
           </td>
@@ -31,22 +31,22 @@
 </div>
 
 <!-- Modal -->
-<Window v-if="isModalOpen" :title="isEditMode ? 'Update connection' : 'Add new connection'" class="modal" canClose isModal @close="toggleModal(false)">
+<Window v-if="isModalOpen" :title="isEditMode ? 'Update' : 'Add new'" class="modal" canClose isModal @close="toggleModal(false)">
   <div class="autoscroll">
     <div class="flex column fullheight">
       <div ref="$form">
         <!-- Loop for each root form field -->
         <div v-for="key in Object.keys(defaults)" class="field-row-stacked">
           <label :for="`field-${key}`">{{ key }}:</label>
-          <input @keydown.ctrl.exact.enter.prevent="submitForm" id="`field-${key}`" type="text" :value="defaults[key]">
+          <input @keydown.ctrl.exact.enter.prevent="submitForm" id="`field-${key}`" type="text" v-model="curForm[key]">
         </div>
       </div>
       <div>
         <div class="flex pt3">
           <button class="flex-auto mr2" @click="closeModal">Cancel</button>
           <button ref="addButton" :disabled="!isValidForm" @click="submitForm">
-            <span v-if="isEditMode">Update connection</span>
-            <span v-else>Add connection</span>
+            <span v-if="isEditMode">Update</span>
+            <span v-else>Add</span>
           </button>
         </div>
       </div>
@@ -81,7 +81,7 @@ const props = defineProps({
     required: false
   },
   highlightedRow: {
-    type: String,
+    type: Object,
     required: false
   },
   defaults: {
@@ -104,6 +104,7 @@ const emit = defineEmits(['submit', 'delete', 'updateHighlightedRow'])
  * Toggle modal on/off
  */
 const toggleModal = (val) => {
+  console.log('toggleModal', val)
   isModalOpen.value = val
   tabsModel.adjustZIndex()
 
@@ -125,7 +126,7 @@ const closeModal = () => {
  * Submit form
  */
 const submitForm = () => {
-  if (!props.isValidForm.value) {
+  if (!props.isValidForm) {
     return
   }
   emit('submit', isEditMode.value, curForm.value)
@@ -147,47 +148,41 @@ const clickedRow = (e) => {
   })
 
   $row.classList.toggle('highlighted')
-  emit('updateHighlightedRow', $row.getAttribute('data-key'))
+  emit('updateHighlightedRow', $row.getAttribute('data-id'))
 }
 
 
 
 const showAddModal = () => {
   isEditMode.value = false
-  curForm.value = Object.assign({}, props.connectDefaults)
+  curForm.value = Object.assign({}, props.defaults)
   toggleModal(true)
 } 
 
 /**
- * Edit a connection
+ * Edit
  */
 const showEditModal = () => {
-  const id = props.highlightedRow.value.attributes['data-id'].value
-  const connection = connectionsModel.getConnection(id)
-  
   isEditMode.value = true
-  curForm.value = Object.assign({}, connection)
+  curForm.value = Object.assign({}, props.highlightedRow)
   toggleModal(true)
 }
 
-
-const onConnectionRadioChange = (e) => {
-  const $row = e.target.closest('tr')
-  const id = $row.attributes['data-id'].value
-  connectionsModel.setDefault(id)
-}
 
 /**
  * Expose methods
  */
 defineExpose({
   selectRow: (rowToSelect) => {
-    // Select the default connection if one exists
+    // Select the defaults if one exists
     if (rowToSelect) {
       const $row = document.querySelector(`[data-id="${rowToSelect}"]`)
       if ($row) {
+        $table.value.querySelectorAll('tr').forEach(($row) => {
+          $row.classList.remove('highlighted')
+        })
         $row.classList.add('highlighted')
-        props.highlightedRow.value = $row
+        emit('updateHighlightedRow', $row.getAttribute('data-id'))
       }
     }
   }
@@ -195,10 +190,32 @@ defineExpose({
 
 
 /**
- * Show popup if no connections
+ * Delete
+ */
+const deleteRecord = () => {
+  const $row = $table.value.querySelector('.highlighted')
+  const $nextRow = $row.nextElementSibling
+  const $prevRow = $row.previousElementSibling
+  
+  emit('delete')
+
+  setTimeout(() => {
+    if ($nextRow) {
+      clickedRow({target: $nextRow})
+    } else if ($prevRow) {
+      clickedRow({target: $prevRow})
+    } else {
+      emit('updateHighlightedRow', null)
+    }
+  }, 0)
+}
+
+
+/**
+ * Keyboard shortcuts
  */
 onMounted(() => {
-  // Show new connection
+  // Show new
   Mousetrap.bindGlobal('ctrl+shift+n', (ev) => {
     if (isModalOpen.value) {
       return
@@ -207,30 +224,31 @@ onMounted(() => {
     ev.stopPropagation()
     showAddModal()
   })
-  // Edit connection
+  // Edit
   Mousetrap.bindGlobal('ctrl+shift+e', (ev) => {
     if (isModalOpen.value) {
       return
     }
     ev.preventDefault()
     ev.stopPropagation()
-    if (props.highlightedRow.value) {
+    if (props.highlightedRow) {
       showEditModal()
     }
   })
-  // Delete connection
+  
+  // Delete
   Mousetrap.bindGlobal('ctrl+shift+d', (ev) => {
     if (isModalOpen.value) {
       return
     }
     ev.preventDefault()
     ev.stopPropagation()
-    if (props.highlightedRow.value) {
-      deleteConnection()
+    if (props.highlightedRow) {
+      deleteRecord()
     }
   })
 
-  // Select connections
+  // Select prev
   const selectPrev = (ev) => {
     if (isModalOpen.value) {
       return
@@ -249,6 +267,7 @@ onMounted(() => {
   Mousetrap.bindGlobal('up', selectPrev)
   Mousetrap.bindGlobal('ctrl+shift+up', selectPrev)
 
+  // Select next
   const selectNext = (ev) => {
     if (isModalOpen.value) {
       return

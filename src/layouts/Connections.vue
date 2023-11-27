@@ -6,7 +6,7 @@ ref="$table"
 :data="connectionsModel.connections"
 :isValidForm="isValidForm"
 :defaults="connectDefaults"
-:highlightedRow="connectionsModel.defaultConnection"
+:highlightedRow="connectionsModel.connections[connectionsModel.defaultConnection]"
 @updateHighlightedRow="connectionsModel.setDefault"
 @submit="onSubmit"
 @delete="deleteConnection"
@@ -48,25 +48,21 @@ const isValidForm = computed(() => {
  */
 const onSubmit = async (isEditMode, data) => {
   let id = connectionsModel.defaultConnection
-  if (isEditMode.value) {
+  if (isEditMode) {
     connectionsModel.updateConnection(id, data)
   } else {
-    id = await connectionsModel.addConnection(connectionForm.data)
+    id = await connectionsModel.addConnection(data)
   }
-  connectionForm.value = Object.keys({}, connectDefaults)
   
   // Set default
-  if (Object.keys(connectionsModel.connections).length < 2) {
-    connectionsModel.setDefault(id)
-  }
+  $table.value.selectRow(id)
 }
 
 /**
  * Delete a connection
  */
  const deleteConnection = () => {
-  const id = connectionsModel.defaultConnection
-  connectionsModel.deleteConnection(id)
+  connectionsModel.deleteConnection(connectionsModel.defaultConnection)
 }
 
 
