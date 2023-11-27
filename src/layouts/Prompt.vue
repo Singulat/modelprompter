@@ -394,6 +394,13 @@ const updateMessage = async () => {
     text: prompt.value
   })
 
+  // If this is the first message and it's also a system prompt, update the channel system prompt
+  if (message.role === 'system' && sortedMessages.value[0].id === message.id) {
+    await channelsModel.updateChannel(activeChannel.value, {
+      systemPrompt: prompt.value
+    })
+  }
+
   prompt.value = ''
   isEditing.value = false
 
