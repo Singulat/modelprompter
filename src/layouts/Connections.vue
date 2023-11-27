@@ -31,9 +31,11 @@
 
 <!-- Bottom of  form -->
 <div class="flex-auto pt2">
-  <button @click="showAddConnectionModal" >Add connection</button>
-  <button :class="{hidden: !highlightedRow, 'float-right': true}" @click="showEditConnectionModal">Edit</button>
-  <button :class="{'mr1': true, hidden: !highlightedRow, 'float-right': true}" @click="deleteConnection">Delete</button>
+  <div class="flex">
+    <button class="flex-auto mr1" :class="{hidden: !highlightedRow,}" @click="deleteConnection">Delete</button>
+    <button class="mr1" :class="{hidden: !highlightedRow}" @click="showEditConnectionModal">Edit</button>
+    <button @click="showAddConnectionModal">New</button>
+  </div>
 </div>
 
 <Window v-if="isModalOpen" :title="isEditMode ? 'Update connection' : 'Add new connection'" class="modal" canClose isModal @close="toggleModal(false)">
@@ -81,9 +83,10 @@
 <script setup>
 // @todo Refactor out the window component
 import Window from '../components/Window.vue'
-import {ref, computed, onMounted} from 'vue'
+import {ref, computed, onMounted, onUnmounted} from 'vue'
 import {useTabsModel} from '../model/tabs.js'
 import {useConnectionsModel} from '../model/connections.js'
+import Mousetrap from 'mousetrap';
 
 const connectDefaults = {
   name: 'GPT4 Turbo',
@@ -215,10 +218,46 @@ const onConnectionRadioChange = (e) => {
  * Show popup if no connections
  */
 onMounted(() => {
-  if (Object.keys(connectionsModel.connections).length === 0) {
-    setTimeout(() => {
+  setTimeout(() => {
+    if (Object.keys(connectionsModel.connections).length === 0) {
       showAddConnectionModal()
-    }, 0)
-  }
+    }
+
+    // Select the default connection if one exists
+    if (connectionsModel.defaultConnection) {
+      const $row = document.querySelector(`[data-id="${connectionsModel.defaultConnection}"]`)
+      $row.classList.add('highlighted')
+      highlightedRow.value = $row
+    }
+  }, 0)
+
+  // Show new connection
+  Mousetrap.bindGlobal('ctrl+shift+`', (ev) => {
+    ev.preventDefault()
+    ev.stopPropagation()
+    showAddConnectionModal()
+  })
+  // Edit connection
+  Mousetrap.bindGlobal('ctrl+shift+e', (ev) => {
+    ev.preventDefault()
+    ev.stopPropagation()
+    if (highlightedRow.value) {
+      showEditConnectionModal()
+    }
+  })
+  // Delete connection
+  Mousetrap.bindGlobal('ctrl+shift+d', (ev) => {
+    ev.preventDefault()
+    ev.stopPropagation()
+    if (highlightedRow.value) {
+      deleteConnection()
+    }
+  })
+})
+
+onUnmounted(() => {
+  Mousetrap.unbind('ctrl+shift+n')
+  Mousetrap.unbind('ctrl+shift+e')
+  Mousetrap.unbind('ctrl+shift+d')
 })
 </script>

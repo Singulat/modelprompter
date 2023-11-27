@@ -115,7 +115,6 @@ import {useTabsModel} from '../model/tabs.js'
 import Menu from '../components/Menu.vue'
 import WindowChannel from '../components/WindowChannel.vue'
 import Mousetrap from 'mousetrap'
-import 'mousetrap/plugins/global-bind/mousetrap-global-bind.js'
 
 const prompt = ref('')
 const isThinking = ref(false)
@@ -509,7 +508,7 @@ const renderMarkdown = (text) => {
 onMounted(() => {
   setTimeout(() => {
     scrollBottom()
-    $prompt.value.focus()
+    $prompt.value?.focus()
   }, 100)
   
   // New channel
