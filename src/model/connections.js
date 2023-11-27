@@ -33,6 +33,7 @@ export const useConnectionsModel = defineStore({
     },
 
     async setDefault (id) {
+      console.log('id', id)
       this.defaultConnection = id
       await chrome.storage.sync.set({defaultConnection: id})
     },
@@ -46,6 +47,17 @@ export const useConnectionsModel = defineStore({
 
     async deleteConnection (id) {
       delete this.connections[id]
+
+      if (id === this.defaultConnection) {
+        const newDefault = Object.keys(this.connections)?.[0]
+    
+        if (newDefault) {
+          this.setDefault(newDefault)
+        } else {
+          this.setDefault(null)
+        }
+      }      
+
       await chrome.storage.sync.set({connections: this.connections})
     },
 
