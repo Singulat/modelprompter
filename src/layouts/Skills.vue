@@ -1,15 +1,17 @@
 <template>
 <div id="connections-container" class="sunken-panel fullwidth">
   <div>
-    <Table :headings="[
-      {content: 'Name'},
-      {content: 'Model Name', class: 'gt-md'},
-      {content: 'Base URL', class: 'gt-md'},
-      {content: 'Temp'},
-      {content: 'Default'}
-    ]"
-    :data="connectionsModel.connections">
-      <template v-slot:tbody>
+    <table class="interactive fullwidth fullheight">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th class="gt-md">Model Name</th>
+          <th class="gt-md">Base URL</th>
+          <th>Temp</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
         <tr v-for="key in Object.keys(connectionsModel.connections)" :key="key" @click="selectRow" :data-id="key">
           <td>{{ connectionsModel.connections[key].name }}</td>
           <td class="gt-md">{{ connectionsModel.connections[key].model }}</td>
@@ -22,8 +24,8 @@
             </div>
           </td>
         </tr>
-      </template>
-    </Table>
+      </tbody>
+    </table>
   </div>
 </div>
 
@@ -91,8 +93,7 @@ import Window from '../components/Window.vue'
 import {ref, computed, onMounted, onBeforeUnmount} from 'vue'
 import {useTabsModel} from '../model/tabs.js'
 import {useConnectionsModel} from '../model/connections.js'
-import Table from '../components/Table.vue'
-import Mousetrap from 'mousetrap'
+import Mousetrap from 'mousetrap';
 
 const connectDefaults = {
   name: 'GPT4 Turbo',

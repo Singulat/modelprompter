@@ -1,8 +1,11 @@
 <template>
   <Window title="ModelPrompter" :canMax="!isIframe" :bubbleEsc="true" canClose @close="onClose" :style="{height}" bodyClass="flex column overflow-hidden m0 p1 fullwidth fullheight">
-    <Tabs ref="tabs" v-model="activeTab" :tabs="{connections: 'Connections', prompt: 'Prompt'}">
+    <Tabs ref="tabs" v-model="activeTab" :tabs="mainTabs" @updateTab="$ev => updateTab($ev)">
       <template v-slot:connections>
         <Connections />
+      </template>
+      <template v-slot:skills>
+        <Skills />
       </template>
       <template v-slot:prompt>
         <Prompt />
@@ -23,6 +26,7 @@
 import Window from './components/Window.vue'
 import Tabs from './components/Tabs.vue'
 import Prompt from './layouts/Prompt.vue'
+import Skills from './layouts/Skills.vue'
 import Connections from './layouts/Connections.vue'
 import { useConnectionsModel } from './model/connections'
 import { useMessagesModel } from './model/messages'
@@ -34,7 +38,7 @@ import 'mousetrap/plugins/global-bind/mousetrap-global-bind.js'
 const activeTab = ref('prompt')
 const height = ref('')
 const isIframe = ref(false)
-const tabs = ref(null)
+const mainTabs = ref({connections: 'Connections', prompt: 'Prompt', skills: 'Skills'})
 
 const messagesModel = useMessagesModel()
 const connectionsModel = useConnectionsModel()
@@ -44,6 +48,10 @@ const channelsModel = useChannelsModel()
 watch(activeTab, async (value) => {
   await chrome.storage.local.set({activeTab: value})
 })
+
+const updateTab = (tab) => {
+  activeTab.value = tab
+}
 
 /**
  * Load data
@@ -73,24 +81,24 @@ onMounted(async () => {
   height.value = isIframe.value ? '100%' : '450px'
   
   Mousetrap.bindGlobal('ctrl+shift+left', () => {
-    if (activeTab.value === 'prompt') {
-      activeTab.value = 'connections'
+    const tabs = Object.keys(mainTabs.value)
+    const currentIndex = tabs.indexOf(activeTab.value)
+    const nextIndex = currentIndex - 1
+    if (nextIndex < 0) {
+      activeTab.value = tabs[tabs.length - 1]
       return
     }
-    if (activeTab.value === 'connections') {
-      activeTab.value = 'prompt'
-      return
-    }
+    activeTab.value = tabs[nextIndex]
   })
   Mousetrap.bindGlobal('ctrl+shift+right', () => {
-    if (activeTab.value === 'prompt') {
-      activeTab.value = 'connections'
+    const tabs = Object.keys(mainTabs.value)
+    const currentIndex = tabs.indexOf(activeTab.value)
+    const nextIndex = currentIndex + 1
+    if (nextIndex >= tabs.length) {
+      activeTab.value = tabs[0]
       return
     }
-    if (activeTab.value === 'connections') {
-      activeTab.value = 'prompt'
-      return
-    }
+    activeTab.value = tabs[nextIndex]
   })
   // Maximize
   Mousetrap.bindGlobal('ctrl+shift+m', () => {

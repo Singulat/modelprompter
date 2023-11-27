@@ -1,7 +1,7 @@
 <template>
 <menu role="tablist">
   <li v-for="(label, id) in tabs" :key="id" role="tab" :aria-selected="(id === modelValue) ? 'true' : 'false'">
-    <a :href="'#' + id" @click="modelValue=id">{{label}}</a>
+    <a :href="'#' + id" @click="emit('updateTab', id)">{{label}}</a>
   </li>
 </menu>
 <div ref="tabPanel" class="window" role="tabpanel" :style="{zIndex: (hasModals ? 100 : 5)}">
@@ -25,6 +25,8 @@ const props = defineProps({
 const hasModals = ref(false)
 const id = ref('')
 const tabPanel = ref(null)
+
+const emit = defineEmits(['updateTab'])
 
 onMounted(() => {
   id.value = crypto.randomUUID()
