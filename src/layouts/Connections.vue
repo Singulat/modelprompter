@@ -47,7 +47,6 @@ const isValidForm = computed(() => {
  * Submit form
  */
 const onSubmit = async (isEditMode, data) => {
-  console.log('test')
   let id = connectionsModel.defaultConnection
   if (isEditMode.value) {
     connectionsModel.updateConnection(id, data)

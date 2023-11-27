@@ -1,7 +1,7 @@
 <template>
 <div class="sunken-panel fullwidth flex column">
   <div>
-    <table class="interactive fullwidth">
+    <table ref="$table" class="interactive fullwidth">
       <thead>
         <slot name="theader">
           <tr style="flex: 0">
@@ -90,6 +90,7 @@ const props = defineProps({
   }
 })
 
+const $table = ref(null)
 const $form = ref(null)
 const addButton = ref(null)
 const isModalOpen = ref(false)
@@ -141,18 +142,12 @@ const clickedRow = (e) => {
   const $table = e.target.closest('table')
   const $row = e.target.closest('tr')
 
-  let isHighlighted = $row.classList.contains('highlighted')
   $table.querySelectorAll('tr').forEach(($row) => {
     $row.classList.remove('highlighted')
   })
 
   $row.classList.toggle('highlighted')
-  if (isHighlighted) {
-    $row.classList.remove('highlighted')
-    emit('updateHighlightedRow', null)
-  } else {
-    emit('updateHighlightedRow', $row.getAttribute('data-key'))
-  }
+  emit('updateHighlightedRow', $row.getAttribute('data-key'))
 }
 
 
@@ -167,7 +162,7 @@ const showAddModal = () => {
  * Edit a connection
  */
 const showEditModal = () => {
-  const id = highlightedRow.value.attributes['data-id'].value
+  const id = props.highlightedRow.value.attributes['data-id'].value
   const connection = connectionsModel.getConnection(id)
   
   isEditMode.value = true
@@ -192,7 +187,7 @@ defineExpose({
       const $row = document.querySelector(`[data-id="${rowToSelect}"]`)
       if ($row) {
         $row.classList.add('highlighted')
-        highlightedRow.value = $row
+        props.highlightedRow.value = $row
       }
     }
   }
@@ -205,31 +200,81 @@ defineExpose({
 onMounted(() => {
   // Show new connection
   Mousetrap.bindGlobal('ctrl+shift+n', (ev) => {
+    if (isModalOpen.value) {
+      return
+    }
     ev.preventDefault()
     ev.stopPropagation()
     showAddModal()
   })
   // Edit connection
   Mousetrap.bindGlobal('ctrl+shift+e', (ev) => {
+    if (isModalOpen.value) {
+      return
+    }
     ev.preventDefault()
     ev.stopPropagation()
-    if (highlightedRow.value) {
+    if (props.highlightedRow.value) {
       showEditModal()
     }
   })
   // Delete connection
   Mousetrap.bindGlobal('ctrl+shift+d', (ev) => {
+    if (isModalOpen.value) {
+      return
+    }
     ev.preventDefault()
     ev.stopPropagation()
-    if (highlightedRow.value) {
+    if (props.highlightedRow.value) {
       deleteConnection()
     }
   })
+
+  // Select connections
+  const selectPrev = (ev) => {
+    if (isModalOpen.value) {
+      return
+    }
+    ev.preventDefault()
+    ev.stopPropagation()
+    const $row = $table.value.querySelector('.highlighted')
+    
+    if ($row) {
+      const $prevRow = $row.previousElementSibling
+      if ($prevRow) {
+        clickedRow({target: $prevRow})
+      }
+    }
+  }
+  Mousetrap.bindGlobal('up', selectPrev)
+  Mousetrap.bindGlobal('ctrl+shift+up', selectPrev)
+
+  const selectNext = (ev) => {
+    if (isModalOpen.value) {
+      return
+    }
+    ev.preventDefault()
+    ev.stopPropagation()
+    const $row = $table.value.querySelector('.highlighted')
+    
+    if ($row) {
+      const $nextRow = $row.nextElementSibling
+      if ($nextRow) {
+        clickedRow({target: $nextRow})
+      }
+    }
+  }
+  Mousetrap.bindGlobal('down', selectNext)
+  Mousetrap.bindGlobal('ctrl+shift+down', selectNext)
 })
 
 onBeforeUnmount(() => {
   Mousetrap.unbind('ctrl+shift+n')
   Mousetrap.unbind('ctrl+shift+e')
   Mousetrap.unbind('ctrl+shift+d')
+  Mousetrap.unbind('ctrl+shift+up')
+  Mousetrap.unbind('ctrl+shift+down')
+  Mousetrap.unbind('up')
+  Mousetrap.unbind('down')
 })
 </script>
