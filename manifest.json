@@ -9,10 +9,10 @@
   "action": { "default_popup": "index.html" },
   "_execute_action": {
     "suggested_key": {
-      "windows": "Ctrl+Space",
-      "mac": "Command+Space",
-      "chromeos": "Ctrl+Space",
-      "linux": "Ctrl+Space"
+      "windows": "Ctrl+Shift+Space",
+      "mac": "Command+Shift+Space",
+      "chromeos": "Ctrl+Shift+Space",
+      "linux": "Ctrl+Shift+Space"
     }
   },
 

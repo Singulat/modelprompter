@@ -3,7 +3,7 @@
   <fieldset class="overflow fullheight">
     <legend>Channel</legend>
     <div class="flex">
-      <select class="mr1" name="channel" v-model="activeChannel" @change="changeCurrentChannel">
+      <select ref="$channels" class="mr1" name="channel" v-model="activeChannel" @change="changeCurrentChannel(false)" @keydown.enter="changeCurrentChannel(true)">
         <option value="general">Scratchpad</option>
         <option v-for="channel in channelsModel.channels" :key="channel.id" :value="channel.id">{{channel.name}}</option>
       </select>
@@ -123,6 +123,7 @@ const roleToChangeTo = ref('user')
 const showingChangeRole = ref(false)
 const $messages = ref(null)
 const $prompt = ref(null)
+const $channels = ref(null)
 
 const messagesModel = useMessagesModel()
 const connectionsModel = useConnectionsModel()
@@ -195,9 +196,10 @@ const onChannelUpdated = (id) => {
   tabsModel.adjustZIndex()
   $prompt.value.focus()
 }
-const changeCurrentChannel = async () => {
+const changeCurrentChannel = async (focusPrompt = false) => {
   await channelsModel.setCurrentChannel(activeChannel.value)
   scrollBottom()
+  focusPrompt && $prompt.value.focus()
 }
 
 /**
@@ -469,6 +471,13 @@ onMounted(() => {
     showNewChannelModal()
   })
 
+  // Edit channel
+  Mousetrap.bindGlobal('ctrl+shift+e', (ev) => {
+    ev.preventDefault()
+    ev.stopPropagation()
+    showEditChannelModal()
+  })
+
   // Delete channel
   Mousetrap.bindGlobal('ctrl+shift+d', async (ev) => {
     ev.preventDefault()
@@ -483,9 +492,18 @@ onMounted(() => {
 
     $prompt.value.focus()
   })
+
+  // Show the dropdown and focus it
+  Mousetrap.bindGlobal('ctrl+shift+l', (ev) => {
+    ev.preventDefault()
+    ev.stopPropagation()
+    $channels.value.focus()
+  })
 })
 onUnmounted(() => {
   Mousetrap.unbind('ctrl+shift+n')
+  Mousetrap.unbind('ctrl+shift+e')
   Mousetrap.unbind('ctrl+shift+d')
+  Mousetrap.unbind('ctrl+shift+l')
 })
 </script>
