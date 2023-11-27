@@ -184,16 +184,18 @@ const showEditChannelModal = () => {
 /**
  * Handle channel creation and changing
  */
-const onChannelCreated = (id) => {
+const onChannelCreated = async (id) => {
   activeChannel.value = id
   isShowingMoreChannel.value = false
   tabsModel.adjustZIndex()
+  await maybeAddSystemPrompt()
   $prompt.value.focus()
 }
-const onChannelUpdated = (id) => {
+const onChannelUpdated = async (id) => {
   isShowingChannelModal.value = false
   isShowingMoreChannel.value = false
   tabsModel.adjustZIndex()
+  await maybeAddOrUpdateSystemPrompt()
   $prompt.value.focus()
 }
 const changeCurrentChannel = async (focusPrompt = false) => {
@@ -220,6 +222,39 @@ const closeChannelModal = () => {
   tabsModel.adjustZIndex()
 }
 
+/**
+ * Add system prompt
+ */
+const maybeAddSystemPrompt = async () => {
+  const channel = channelsModel.channels[activeChannel.value]
+  if (channel.systemPrompt) {
+    await messagesModel.addMessage({
+      role: 'system',
+      text: channel.systemPrompt,
+      channel: activeChannel.value
+    })
+  }
+}
+
+const maybeAddOrUpdateSystemPrompt = async () => {
+  const channel = channelsModel.channels[activeChannel.value]
+  // Check if the first sorted message is a system prompt, if so update. if not, add a new one with the date a bit before the first
+  const sortedClone = [...sortedMessages.value]
+  const firstMessage = sortedClone.shift()
+  if (firstMessage.role === 'system') {
+    await messagesModel.updateMessage(firstMessage.id, {
+      text: channel.systemPrompt,
+      updated_at: Date.now()
+    })
+  } else {
+    await messagesModel.addMessage({
+      role: 'system',
+      text: channel.systemPrompt,
+      channel: activeChannel.value,
+      created_at: firstMessage.created_at - 10
+    })
+  }
+}
 
 
 
@@ -295,6 +330,7 @@ const runPrompt = async () => {
 const clearMessages = async () => {
   isShowingMore.value = false
   await messagesModel.deleteAll(activeChannel.value)
+  await maybeAddSystemPrompt()
   $prompt.value.focus()
 }
 
@@ -464,6 +500,11 @@ const renderMarkdown = (text) => {
  * Keyboard shortcuts
  */
 onMounted(() => {
+  setTimeout(() => {
+    scrollBottom()
+    $prompt.value.focus()
+  }, 100)
+  
   // New channel
   Mousetrap.bindGlobal('ctrl+shift+n', (ev) => {
     ev.preventDefault()
@@ -479,7 +520,7 @@ onMounted(() => {
   })
 
   // Delete channel
-  Mousetrap.bindGlobal('ctrl+shift+d', async (ev) => {
+  Mousetrap.bindGlobal('ctrl+shift+r', async (ev) => {
     ev.preventDefault()
     ev.stopPropagation()
     
@@ -503,7 +544,7 @@ onMounted(() => {
 onUnmounted(() => {
   Mousetrap.unbind('ctrl+shift+n')
   Mousetrap.unbind('ctrl+shift+e')
-  Mousetrap.unbind('ctrl+shift+d')
+  Mousetrap.unbind('ctrl+shift+r')
   Mousetrap.unbind('ctrl+shift+l')
 })
 </script>

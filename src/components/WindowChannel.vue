@@ -4,6 +4,10 @@
     <label for="channel-name">Channel:</label>
     <input type="text" id="channel-name" ref="channelName" autofocus placeholder="Untitled" v-model="channelForm.name" @keydown.escape.prevent="closeModal" @keydown.enter.prevent="submitChannelForm" />
   </div>
+  <div class="field-row-stacked">
+    <label for="channel-name">System Prompt:</label>
+    <textarea id="channel-system-prompt" ref="channelSystemPrompt" autofocus placeholder="Untitled" v-model="channelForm.systemPrompt" @keydown.escape.prevent="closeModal" @keydown.ctrl.exact.enter.prevent="submitChannelForm" />
+  </div>
 
   <div class="flex pt3">
     <button class="flex-auto mr2" @click="closeModal">Cancel</button>
@@ -23,11 +27,13 @@ import {useChannelsModel} from '../model/channels.js'
 
 const channelDefaults = {
   name: 'Untitled',
+  systemPrompt: 'You are a friendly assistant.'
 }
 const channelsModel = useChannelsModel()
 
 const tabsModel = useTabsModel()
 const channelName = ref(null)
+const channelSystemPrompt = ref(null)
 const channelForm = ref(channelDefaults)
 
 const props = defineProps({
@@ -45,9 +51,14 @@ onMounted(() => {
     if (props.isEditing) {
       const channel = channelsModel.channels[props.isEditing]
       channelForm.value.name = channel.name
+      channelForm.value.systemPrompt = channel.systemPrompt
     }
     
-    channelName.value.focus()
+    if (props.isEditing) {
+      channelSystemPrompt.value.focus()
+    } else {
+      channelName.value.focus()
+    }
   }, 0)
 })
 const closeModal = () => {
