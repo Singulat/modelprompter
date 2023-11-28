@@ -190,7 +190,7 @@ const showNewChannelModal =()=> channel.showNewChannelModal({channelBeingEdited,
 const showEditChannelModal =()=> channel.showEditChannelModal({isShowingChannelModal, channelBeingEdited, activeChannel})
 const closeChannelModal =()=> channel.closeChannelModal({isShowingChannelModal, tabsModel})
 
-const onChannelCreated = async()=> channel.onChannelCreated({activeChannel, tabsModel, $promptEl, maybeAddSystemPrompt})
+const onChannelCreated = async(id)=> channel.onChannelCreated({activeChannel, tabsModel, $promptEl, maybeAddSystemPrompt, isShowingMoreChannel, id})
 const onChannelUpdated = async(id)=> channel.onChannelUpdated({id, isShowingChannelModal, isShowingMoreChannel, tabsModel, maybeAddOrUpdateSystemPrompt, $promptEl})
 const changeCurrentChannel = async(focusPrompt = false)=> channel.changeCurrentChannel({activeChannel, channelsModel, scrollBottom, focusPrompt, $promptEl})
 
@@ -202,7 +202,7 @@ const deleteChannel =()=> channel.deleteChannel({messagesModel, channelsModel, a
  */
 const maybeAddSystemPrompt = async()=> await prompt.maybeAddSystemPrompt({channelsModel, activeChannel, messagesModel})
 const maybeAddOrUpdateSystemPrompt = async()=> await prompt.maybeAddOrUpdateSystemPrompt({channelsModel, activeChannel, messagesModel, sortedMessages})
-const runPrompt = async()=> await prompt.runPrompt({isEditing, curPrompt, messagesModel, activeChannel, sendToLLM, scrollBottom})
+const runPrompt = async()=> await prompt.runPrompt({isEditing, curPrompt, messagesModel, activeChannel, sendToLLM, updateMessage})
 const sendToLLM = async(messages, assistantDefaults = {}) => await prompt.sendToLLM({messages, assistantDefaults, isThinking, connectionsModel, activeChannel, messagesModel, $promptEl, scrollBottom})
 
 

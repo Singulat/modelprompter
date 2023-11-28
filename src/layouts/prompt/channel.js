@@ -18,26 +18,26 @@ export default {
   /**
    * Handle channel creation and changing
    */
-  async onChannelCreated ({activeChannel, tabsModel, $prompt, maybeAddSystemPrompt}) {
+  async onChannelCreated ({activeChannel, isShowingMoreChannel , tabsModel, $promptEl, maybeAddSystemPrompt, id}) {
     activeChannel.value = id
     isShowingMoreChannel.value = false
     tabsModel.adjustZIndex()
     await maybeAddSystemPrompt()
-    $prompt.value.focus()
+    $promptEl.value.focus()
   },
   
-  async onChannelUpdated ({isShowingChannelModal, isShowingMoreChannel, tabsModel, maybeAddOrUpdateSystemPrompt, $prompt}) {
+  async onChannelUpdated ({isShowingChannelModal, isShowingMoreChannel, tabsModel, maybeAddOrUpdateSystemPrompt, $promptEl}) {
     isShowingChannelModal.value = false
     isShowingMoreChannel.value = false
     tabsModel.adjustZIndex()
     await maybeAddOrUpdateSystemPrompt()
-    $prompt.value.focus()
+    $promptEl.value.focus()
   },
 
-  async changeCurrentChannel ({focusPrompt = false, channelsModel, activeChannel, $prompt, scrollBottom}) {
+  async changeCurrentChannel ({focusPrompt = false, channelsModel, activeChannel, $promptEl, scrollBottom}) {
     await channelsModel.setCurrentChannel(activeChannel.value)
     scrollBottom()
-    focusPrompt && $prompt.value.focus()
+    focusPrompt && $promptEl.value.focus()
   },
 
   /**
@@ -206,5 +206,14 @@ export default {
 
     curPrompt.value = ''
     $promptEl.value.focus()
-  }  
+  },
+
+  cancelEditing ({isEditing, curPrompt, $messages}) {
+    isEditing.value = false
+    curPrompt.value = ''
+    const $messagesEl = $messages.value.querySelectorAll('.message')
+    $messagesEl.forEach($message => {
+      $message.classList.remove('highlight')
+    })
+  }
 }
