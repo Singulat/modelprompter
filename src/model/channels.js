@@ -1,5 +1,4 @@
 import {defineStore} from 'pinia'
-import {throttle} from 'lodash'
 
 export const useChannelsModel = defineStore({
   id: 'channels',

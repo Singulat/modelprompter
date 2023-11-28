@@ -3,7 +3,7 @@
   <fieldset class="overflow fullheight">
     <legend>Channel</legend>
     <div class="flex">
-      <select class="mr1" name="channel" v-model="activeChannel" @change="changeCurrentChannel">
+      <select ref="$channels" class="mr1" name="channel" v-model="activeChannel" @change="changeCurrentChannel(false)" @keydown.enter="changeCurrentChannel(true)">
         <option value="general">Scratchpad</option>
         <option v-for="channel in channelsModel.channels" :key="channel.id" :value="channel.id">{{channel.name}}</option>
       </select>
@@ -47,7 +47,7 @@
     <div class="spacer"></div>
     <div style="flex: 0">
       <div class="mb1">
-        <textarea id="prompt" v-model="prompt" autofocus multiline placeholder="Prompt..." @keydown.ctrl.exact.enter="runPrompt"></textarea>
+        <textarea ref="$prompt" id="prompt" v-model="prompt" autofocus multiline placeholder="Prompt..." @keydown.ctrl.exact.enter="runPrompt"></textarea>
       </div>
 
       <div v-if="isShowingMore" class="mb1">
@@ -104,7 +104,7 @@
 
 
 <script setup>
-import {ref, onMounted, computed} from 'vue'
+import {ref, onMounted, onBeforeUnmount, computed} from 'vue'
 import OpenAI from 'openai'
 import MarkdownIt from 'markdown-it'
 
@@ -114,12 +114,15 @@ import {useChannelsModel} from '../model/channels'
 import {useTabsModel} from '../model/tabs.js'
 import Menu from '../components/Menu.vue'
 import WindowChannel from '../components/WindowChannel.vue'
+import Mousetrap from 'mousetrap'
 
 const prompt = ref('')
 const isThinking = ref(false)
 const roleToChangeTo = ref('user')
 const showingChangeRole = ref(false)
 const $messages = ref(null)
+const $prompt = ref(null)
+const $channels = ref(null)
 
 const messagesModel = useMessagesModel()
 const connectionsModel = useConnectionsModel()
@@ -155,7 +158,6 @@ const sortedMessages = computed(function () {
 
 
 
-
 /**
  * Channel management
  */
@@ -181,19 +183,24 @@ const showEditChannelModal = () => {
 /**
  * Handle channel creation and changing
  */
-const onChannelCreated = (id) => {
+const onChannelCreated = async (id) => {
   activeChannel.value = id
   isShowingMoreChannel.value = false
   tabsModel.adjustZIndex()
+  await maybeAddSystemPrompt()
+  $prompt.value.focus()
 }
-const onChannelUpdated = (id) => {
+const onChannelUpdated = async (id) => {
   isShowingChannelModal.value = false
   isShowingMoreChannel.value = false
   tabsModel.adjustZIndex()
+  await maybeAddOrUpdateSystemPrompt()
+  $prompt.value.focus()
 }
-const changeCurrentChannel = async () => {
+const changeCurrentChannel = async (focusPrompt = false) => {
   await channelsModel.setCurrentChannel(activeChannel.value)
   scrollBottom()
+  focusPrompt && $prompt.value.focus()
 }
 
 /**
@@ -214,6 +221,39 @@ const closeChannelModal = () => {
   tabsModel.adjustZIndex()
 }
 
+/**
+ * Add system prompt
+ */
+const maybeAddSystemPrompt = async () => {
+  const channel = channelsModel.channels[activeChannel.value]
+  if (channel.systemPrompt) {
+    await messagesModel.addMessage({
+      role: 'system',
+      text: channel.systemPrompt,
+      channel: activeChannel.value
+    })
+  }
+}
+
+const maybeAddOrUpdateSystemPrompt = async () => {
+  const channel = channelsModel.channels[activeChannel.value]
+  // Check if the first sorted message is a system prompt, if so update. if not, add a new one with the date a bit before the first
+  const sortedClone = [...sortedMessages.value]
+  const firstMessage = sortedClone.shift()
+  if (firstMessage.role === 'system') {
+    await messagesModel.updateMessage(firstMessage.id, {
+      text: channel.systemPrompt,
+      updated_at: Date.now()
+    })
+  } else {
+    await messagesModel.addMessage({
+      role: 'system',
+      text: channel.systemPrompt,
+      channel: activeChannel.value,
+      created_at: firstMessage.created_at - 10
+    })
+  }
+}
 
 
 
@@ -270,10 +310,7 @@ const runPrompt = async () => {
     role: 'assistant',
     text: '',
   }))
-
-  // focus prompt
-  const promptEl = document.getElementById('prompt')
-  promptEl.focus()
+  $prompt.value.focus()
 
   let combinedMessage = ''
   for await (const chunk of completion) {
@@ -292,9 +329,8 @@ const runPrompt = async () => {
 const clearMessages = async () => {
   isShowingMore.value = false
   await messagesModel.deleteAll(activeChannel.value)
-
-  const promptEl = document.getElementById('prompt')
-  promptEl.focus()
+  await maybeAddSystemPrompt()
+  $prompt.value.focus()
 }
 
 /**
@@ -304,8 +340,8 @@ const isEditing = ref(false)
 const editMessage = async (ev, stopBubble = false) => {
   // Prevent bubbling, otherwise it would select all the text or bring up native context menu
   if (!isEditing.value || stopBubble) {
-    ev.stopPropagation()
-    ev.preventDefault()
+    ev.stopPropagation && ev.stopPropagation()
+    ev.preventDefault && ev.preventDefault()
   }
   isShowingMore.value = false
   
@@ -322,8 +358,8 @@ const editMessage = async (ev, stopBubble = false) => {
   const message = messagesModel.messages[isEditing.value]
 
   // Unhighlight others
-  const $messages = document.querySelectorAll('.message')
-  $messages.forEach($message => {
+  const $messagesEl = $messages.value.querySelectorAll('.message')
+  $messagesEl.forEach($message => {
     $message.classList.remove('highlight')
   })
   
@@ -332,9 +368,7 @@ const editMessage = async (ev, stopBubble = false) => {
 
   // Update prompt with message
   prompt.value = message.text
-
-  const promptEl = document.getElementById('prompt')
-  promptEl.focus()
+  $prompt.value.focus()
 }
 
 /**
@@ -343,8 +377,8 @@ const editMessage = async (ev, stopBubble = false) => {
 const cancelEditing = () => {
   isEditing.value = false
   prompt.value = ''
-  const $messages = document.querySelectorAll('.message')
-  $messages.forEach($message => {
+  const $messagesEl = $messages.value.querySelectorAll('.message')
+  $messagesEl.forEach($message => {
     $message.classList.remove('highlight')
   })
 }
@@ -359,16 +393,22 @@ const updateMessage = async () => {
     text: prompt.value
   })
 
+  // If this is the first message and it's also a system prompt, update the channel system prompt
+  if (message.role === 'system' && sortedMessages.value[0].id === message.id) {
+    await channelsModel.updateChannel(activeChannel.value, {
+      systemPrompt: prompt.value
+    })
+  }
+
   prompt.value = ''
   isEditing.value = false
 
-  const $messages = document.querySelectorAll('.message')
-  $messages.forEach($message => {
+  const $messagesEl = $messages.value.querySelectorAll('.message')
+  $messagesEl.forEach($message => {
     $message.classList.remove('highlight')
   })
 
-  const promptEl = document.getElementById('prompt')
-  promptEl.focus()
+  $prompt.value.focus()
 }
 
 /**
@@ -379,14 +419,13 @@ const deleteMessage = async () => {
   prompt.value = ''
   isEditing.value = false
 
-  const $messages = document.querySelectorAll('.message')
-  $messages.forEach($message => {
+  const $messagesEl = $messages.value.querySelectorAll('.message')
+  $messagesEl.forEach($message => {
     $message.classList.remove('highlight')
   })
 
-  const promptEl = document.getElementById('prompt')
-  promptEl.focus()
   prompt.value = ''
+  $prompt.value.focus()
 }
 
 /**
@@ -401,14 +440,13 @@ const changeRole = async (role) => {
   isEditing.value = false
   showingChangeRole.value = false
 
-  const $messages = document.querySelectorAll('.message')
-  $messages.forEach($message => {
+  const $messagesEl = $messages.value.querySelectorAll('.message')
+  $messagesEl.forEach($message => {
     $message.classList.remove('highlight')
   })
   
-  const promptEl = document.getElementById('prompt')
-  promptEl.focus()
   prompt.value = ''
+  $prompt.value.focus()
 }
 
 /**
@@ -439,14 +477,13 @@ const regenerateMessage = async () => {
   }
 
   isEditing.value = false
-  const $messages = document.querySelectorAll('.message')
-  $messages.forEach($message => {
+  const $messagesEl = $messages.value.querySelectorAll('.message')
+  $messagesEl.forEach($message => {
     $message.classList.remove('highlight')
   })
 
-  const promptEl = document.getElementById('prompt')
-  promptEl.focus()
   prompt.value = ''
+  $prompt.value.focus()
 }
 
 /**
@@ -464,4 +501,130 @@ const md = new MarkdownIt()
 const renderMarkdown = (text) => {
   return md.render(text)
 }
+
+/**
+ * Keyboard shortcuts
+ */
+onMounted(() => {
+  setTimeout(() => {
+    scrollBottom()
+    $prompt.value?.focus()
+  }, 10)
+  
+  // New channel
+  Mousetrap.bindGlobal('ctrl+shift+n', (ev) => {
+    ev.preventDefault()
+    ev.stopPropagation()
+    showNewChannelModal()
+  })
+
+  // Edit channel
+  Mousetrap.bindGlobal('ctrl+shift+e', (ev) => {
+    ev.preventDefault()
+    ev.stopPropagation()
+    showEditChannelModal()
+  })
+
+  // Delete messsage
+  Mousetrap.bindGlobal('ctrl+shift+d', (ev) => {
+    ev.preventDefault()
+    ev.stopPropagation()
+    deleteMessage()
+  })
+
+  // Delete channel
+  Mousetrap.bindGlobal('ctrl+shift+r', async (ev) => {
+    ev.preventDefault()
+    ev.stopPropagation()
+    
+    // Delete if not general and not have messages, otherwise just clear
+    if (channelsModel.currentChannel !== 'general' && !sortedMessages.value.length) {
+      await deleteChannel()
+    } else {
+      await clearMessages()
+    }
+
+    $prompt.value.focus()
+  })
+
+  // Show the dropdown and focus it
+  Mousetrap.bindGlobal('ctrl+shift+l', (ev) => {
+    ev.preventDefault()
+    ev.stopPropagation()
+    $channels.value.focus()
+  })
+
+  // Enter selection mode (or select the prev message)
+  Mousetrap.bindGlobal('ctrl+shift+up', (ev) => {
+    ev.preventDefault()
+    ev.stopPropagation()
+
+    const $messageEls = $messages.value.querySelectorAll('.message')
+    if (!$messageEls.length) {
+      $prompt.value.focus()
+      return
+    }
+    
+    // If already editing, select the previous message
+    let $message
+    if (isEditing.value) {
+      $message = $messages.value.querySelector(`.message[data-id="${isEditing.value}"]`)
+      const index = [...$messageEls].indexOf($message)
+      if (index > 0) {
+        const $prevMessage = $messageEls[index-1]
+        editMessage({target: $prevMessage})
+      }
+    } else {
+      // Otherwise, get last
+      $message = $messageEls[$messageEls.length-1]
+      editMessage({target: $messageEls[$messageEls.length-1]})
+    }
+
+    // Scroll so top of $messages.value is at top of $message
+    if ($message) {
+      $messages.value.scrollTop = $message.offsetTop - $messages.value.offsetTop - 80
+    }
+    $prompt.value.focus()
+  })
+
+  Mousetrap.bindGlobal('ctrl+shift+down', (ev) => {
+    ev.preventDefault()
+    ev.stopPropagation()
+
+    const $messageEls = $messages.value.querySelectorAll('.message')
+    
+    // If already editing, select the next message
+    let $message
+    if (isEditing.value) {
+      $message = $messages.value.querySelector(`.message[data-id="${isEditing.value}"]`)
+      const index = [...$messageEls].indexOf($message)
+      if (index < $messageEls.length-1) {
+        const $nextMessage = $messageEls[index+1]
+        editMessage({target: $nextMessage})
+      }
+      $messages.value.scrollTop = $message.offsetTop - $messages.value.offsetTop
+    }
+
+    $prompt.value.focus()
+  })
+
+  /**
+   * Cancel
+   */
+  Mousetrap.bindGlobal('esc', (ev) => {
+    ev.preventDefault()
+    ev.stopPropagation()
+    cancelEditing()
+    $prompt.value.focus()
+  })
+})
+onBeforeUnmount(() => {
+  Mousetrap.unbind('ctrl+shift+n')
+  Mousetrap.unbind('ctrl+shift+e')
+  Mousetrap.unbind('ctrl+shift+d')
+  Mousetrap.unbind('ctrl+shift+r')
+  Mousetrap.unbind('ctrl+shift+l')
+  Mousetrap.unbind('ctrl+shift+up')
+  Mousetrap.unbind('ctrl+shift+down')
+})
 </script>

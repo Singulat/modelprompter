@@ -41,7 +41,7 @@ html, body {
 }
 
 .messages .message.highlight > .window {
-  background: #1084d0;
+  background: navy;
   color: #fff;
 }
 .messages .message.highlight > .window pre {
