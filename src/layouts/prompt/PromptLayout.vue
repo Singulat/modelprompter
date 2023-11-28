@@ -134,10 +134,14 @@ import prompt from './prompt'
 /**
  * Refs
  */
+const md = new MarkdownIt()
+
 const curPrompt = ref('')
 const isThinking = ref(false)
+const isShowingMore = ref(false)
 const roleToChangeTo = ref('user')
 const showingChangeRole = ref(false)
+
 const $messages = ref(null)
 const $promptEl = ref(null)
 
@@ -167,6 +171,8 @@ onMounted(() => {
  */
 const scrollBottom =()=> helpers.scrollBottom({$messages})
 const sortedMessages = computed(() => helpers.sortedMessages({messagesModel, activeChannel}))
+const showMore =()=> {isShowingMore.value = !isShowingMore.value}
+const renderMarkdown = (text) => md.render(text)
 
 
 /**
@@ -181,13 +187,13 @@ const channelBeingEdited = ref(null)
 const toggleShowMoreChannel =()=> channel.toggleShowMoreChannel({isShowingMoreChannel})
 const showNewChannelModal =()=> channel.showNewChannelModal({channelBeingEdited, isShowingChannelModal})
 const showEditChannelModal =()=> channel.showEditChannelModal({isShowingChannelModal, channelBeingEdited, activeChannel})
+const closeChannelModal =()=> channel.closeChannelModal({isShowingChannelModal, tabsModel})
 
 const onChannelCreated = async()=> channel.onChannelCreated({activeChannel, tabsModel, $promptEl, maybeAddSystemPrompt})
 const onChannelUpdated = async(id)=> channel.onChannelUpdated({id, isShowingChannelModal, isShowingMoreChannel, tabsModel, maybeAddOrUpdateSystemPrompt, $promptEl})
 const changeCurrentChannel = async(focusPrompt = false)=> channel.changeCurrentChannel({activeChannel, channelsModel, scrollBottom, focusPrompt, $promptEl})
 
 const deleteChannel =()=> channel.deleteChannel({messagesModel, channelsModel, activeChannel, isShowingMoreChannel, isShowingChannelModal, tabsModel, $promptEl, scrollBottom})
-const closeChannelModal =()=> channel.closeChannelModal({isShowingChannelModal, tabsModel})
 
 
 /**
@@ -203,141 +209,15 @@ const sendToLLM = async(messages, assistantDefaults = {}) => await prompt.sendTo
  * Message management
  */
 const isEditing = ref(false)
-const clearMessages =()=> prompt.clearMessages({isShowingMore, messagesModel, activeChannel, maybeAddSystemPrompt, $promptEl})
-const editMessage = (ev, stopBubble = false)=> prompt.editMessage({ev, stopBubble, isEditing, isShowingMore, messagesModel, curPrompt, $messages, $promptEl})
+const clearMessages =()=> channel.clearMessages({isShowingMore, messagesModel, activeChannel, maybeAddSystemPrompt, $promptEl})
+const editMessage = (ev, stopBubble = false)=> channel.editMessage({ev, stopBubble, isEditing, isShowingMore, messagesModel, curPrompt, $messages, $promptEl})
+const cancelEditing =()=> channel.cancelEditing({isEditing, curPrompt, $messages, $promptEl})
+const updateMessage = async()=> channel.updateMessage({isEditing, messagesModel, curPrompt, activeChannel, channelsModel, sortedMessages, $messages, $promptEl})
+const deleteMessage = async()=> channel.deleteMessage({isEditing, messagesModel, curPrompt, $messages, $promptEl})
+const changeRole = async(role)=> channel.changeRole({role, isEditing, messagesModel, $messages, $promptEl})
+const regenerateMessage = async()=> channel.regenerateMessage({isEditing, messagesModel, sortedMessages, $messages, $promptEl, curPrompt, sendToLLM})
 
 
-
-/**
- * Cancel editing
- */
-const cancelEditing =()=> {
-  isEditing.value = false
-  curPrompt.value = ''
-  const $messagesEl = $messages.value.querySelectorAll('.message')
-  $messagesEl.forEach($message => {
-    $message.classList.remove('highlight')
-  })
-}
-
-/**
- * Update a message
- */
-const updateMessage = async () => {
-  const message = messagesModel.messages[isEditing.value]
-  await messagesModel.updateMessage(isEditing.value, {
-    updated_at: Date.now(),
-    text: curPrompt.value
-  })
-
-  // If this is the first message and it's also a system prompt, update the channel system prompt
-  if (message.role === 'system' && sortedMessages.value[0].id === message.id) {
-    await channelsModel.updateChannel(activeChannel.value, {
-      systemPrompt: curPrompt.value
-    })
-  }
-
-  curPrompt.value = ''
-  isEditing.value = false
-
-  const $messagesEl = $messages.value.querySelectorAll('.message')
-  $messagesEl.forEach($message => {
-    $message.classList.remove('highlight')
-  })
-
-  $promptEl.value.focus()
-}
-
-/**
- * Delete message
- */
-const deleteMessage = async () => {
-  await messagesModel.deleteMessage(isEditing.value)
-  curPrompt.value = ''
-  isEditing.value = false
-
-  const $messagesEl = $messages.value.querySelectorAll('.message')
-  $messagesEl.forEach($message => {
-    $message.classList.remove('highlight')
-  })
-
-  curPrompt.value = ''
-  $promptEl.value.focus()
-}
-
-/**
- * Change the role of a message
- */
-const changeRole = async (role) => {
-  await messagesModel.updateMessage(isEditing.value, {
-    role,
-    updated_at: Date.now()
-  })
-  
-  isEditing.value = false
-  showingChangeRole.value = false
-
-  const $messagesEl = $messages.value.querySelectorAll('.message')
-  $messagesEl.forEach($message => {
-    $message.classList.remove('highlight')
-  })
-  
-  curPrompt.value = ''
-  $promptEl.value.focus()
-}
-
-/**
- * Regenerate message
- */
-const regenerateMessage = async () => {
-  const message = messagesModel.messages[isEditing.value]
-
-  // If user, get all messages up to this one
-  if (message.role === 'user') {
-    const sortedClone = [...sortedMessages.value]
-    const index = sortedClone.findIndex(m => m.id === message.id)
-    const messages = sortedClone.slice(0, index + 1)
-    await sendToLLM(messagesModel.prepareMessages(messages), {created_at: message.created_at+1})
-  } else if (message.role === 'assistant') {
-    // If only one message, regenerate using it's own prompt as input
-    if (sortedMessages.value.length === 1) {
-      await sendToLLM(messagesModel.prepareMessages([message]))
-      await messagesModel.deleteMessage(message.id)
-    // Get up to the one before it
-    } else {
-      const sortedClone = [...sortedMessages.value]
-      const index = sortedClone.findIndex(m => m.id === message.id)
-      const messages = sortedClone.slice(0, index)
-      await messagesModel.deleteMessage(message.id)
-      await sendToLLM(messagesModel.prepareMessages(messages), {created_at: message.created_at-1})
-    }
-  }
-
-  isEditing.value = false
-  const $messagesEl = $messages.value.querySelectorAll('.message')
-  $messagesEl.forEach($message => {
-    $message.classList.remove('highlight')
-  })
-
-  curPrompt.value = ''
-  $promptEl.value.focus()
-}
-
-/**
- * Show more panel
- */
-const isShowingMore = ref(false)
-const showMore =()=> {
-  isShowingMore.value = !isShowingMore.value
-}
-
-/**
- * Render markdown
- */
-const md = new MarkdownIt()
-const renderMarkdown = (text) => {
-  return md.render(text)
-}
 
 /**
  * Keyboard shortcuts

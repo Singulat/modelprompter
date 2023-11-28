@@ -73,9 +73,7 @@ const deleteSkill = () => {
  */
  onMounted(() => {
   setTimeout(() => {
-    if (!Object.keys(skillsModel.skills).length) {
-      $table.value.showAddModal()
-    } else {
+    if (Object.keys(skillsModel.skills).length) {
       $table.value.selectRow(skillsModel.defaultSkill)
     }
   }, 0)
