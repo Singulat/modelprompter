@@ -31,6 +31,7 @@ import Connections from './layouts/Connections.vue'
 import { useConnectionsModel } from './model/connections'
 import { useMessagesModel } from './model/messages'
 import { useChannelsModel } from './model/channels'
+import { useSkillsModel } from './model/skills'
 import {ref, onMounted, onBeforeMount, watch} from 'vue'
 import Mousetrap from 'mousetrap'
 import 'mousetrap/plugins/global-bind/mousetrap-global-bind.js'
@@ -43,6 +44,7 @@ const mainTabs = ref({connections: 'Connections', prompt: 'Prompt', skills: 'Ski
 const messagesModel = useMessagesModel()
 const connectionsModel = useConnectionsModel()
 const channelsModel = useChannelsModel()
+const skillsModel = useSkillsModel()
 
 // Watch for changes to activeTab and persist
 watch(activeTab, async (value) => {
@@ -61,6 +63,7 @@ onBeforeMount(async () => {
   await connectionsModel.init()
   await messagesModel.init()
   await channelsModel.init()
+  await skillsModel.init()
 
   let lastTab = await chrome.storage.local.get('activeTab')
   lastTab = lastTab.activeTab

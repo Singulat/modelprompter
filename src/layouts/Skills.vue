@@ -1,12 +1,13 @@
 <template>
 <Table
 ref="$table"
+title="Skill"
 :headings="headings"
 :form="skillForm"
 :data="skillsModel.skills"
-:isValidForm="isValidForm"
+:validateForm="validateForm"
 :defaults="skillDefaults"
-:highlightedRow="skillsModel.skills[skillsModel.defaultskill]"
+:highlightedRow="skillsModel.skills[skillsModel.defaultSkill]"
 @updateHighlightedRow="skillsModel.setDefault"
 @submit="onSubmit"
 @delete="deleteSkill"
@@ -27,17 +28,17 @@ const skillDefaults = {
 
 const headings = [
   {key: 'name', content: 'Name'},
-  {key: 'triggers', content: ''},
-  {key: 'response', content: '', class: 'gt-md'},
+  {key: 'triggers', content: 'Triggers', field: {type: 'textarea'}},
+  {key: 'response', content: 'Response', class: 'gt-md', field: {type: 'textarea'}},
 ]
 
 const $table = ref(null)
 const skillsModel = useSkillsModel()
 const skillForm = ref(skillDefaults)
 
-const isValidForm = computed(() => {
-  return !!skillForm.value.name && !!skillForm.value.response
-})
+const validateForm = (record) => {
+  return !!record.name && !!record.response
+}
 
 
 /**
@@ -62,4 +63,21 @@ const onSubmit = async (isEditMode, data) => {
 const deleteSkill = () => {
   skillsModel.deleteSkill(skillsModel.defaultSkill)
 }
+
+
+
+
+/**
+ * Show modal if no connections,
+ * otherwise show default connection
+ */
+ onMounted(() => {
+  setTimeout(() => {
+    if (!Object.keys(skillsModel.skills).length) {
+      $table.value.showAddModal()
+    } else {
+      $table.value.selectRow(skillsModel.defaultSkill)
+    }
+  }, 0)
+})
 </script>

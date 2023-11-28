@@ -1,10 +1,11 @@
 <template>
 <Table
 ref="$table"
+title="Connection"
 :headings="headings"
 :form="connectionForm"
 :data="connectionsModel.connections"
-:isValidForm="isValidForm"
+:validateForm="validateForm"
 :defaults="connectDefaults"
 :highlightedRow="connectionsModel.connections[connectionsModel.defaultConnection]"
 @updateHighlightedRow="connectionsModel.setDefault"
@@ -38,9 +39,9 @@ const $table = ref(null)
 const connectionsModel = useConnectionsModel()
 const connectionForm = ref(connectDefaults)
 
-const isValidForm = computed(() => {
-  return !!connectionForm.value.name && !!connectionForm.value.baseurl && !!connectionForm.value.temp
-})
+const validateForm = (record) => {
+  return !!record.value.name && !!record.value.baseurl && !!record.value.temp
+}
 
 
 /**

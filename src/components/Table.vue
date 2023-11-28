@@ -24,29 +24,31 @@
 <!-- Bottom of  form -->
 <div class="flex-auto pt1">
   <div class="flex">
-    <button class="flex-auto mr1" :class="{hidden: !props.highlightedRow,}" @click="deleteRecord">Delete</button>
+    {{ props.highlightedRow }}
+    <button class="flex-auto mr1" :class="{hidden: !props.highlightedRow}" @click="deleteRecord">Delete</button>
     <button class="mr1" :class="{hidden: !props.highlightedRow}" @click="showEditModal">Edit</button>
     <button @click="showAddModal">New</button>
   </div>
 </div>
 
 <!-- Modal -->
-<Window v-if="isModalOpen" :title="isEditMode ? 'Update' : 'Add new'" class="modal" canClose isModal @close="toggleModal(false)">
+<Window v-if="isModalOpen" :title="isEditMode ? 'Update ' + props.title.toLowerCase() : 'Add new ' + props.title.toLowerCase()" class="modal" canClose isModal @close="toggleModal(false)">
   <div class="autoscroll">
     <div class="flex column fullheight">
       <div ref="$form">
         <!-- Loop for each root form field -->
-        <div v-for="key in Object.keys(defaults)" class="field-row-stacked">
+        <div v-for="key, n in Object.keys(defaults)" class="field-row-stacked">
           <label :for="`field-${key}`">{{ key }}:</label>
-          <input @keydown.ctrl.exact.enter.prevent="submitForm" id="`field-${key}`" type="text" v-model="curForm[key]">
+          <input v-if="!headings[n]?.field?.type || headings[n]?.field?.type == 'text'" @keydown.ctrl.exact.enter.prevent="submitForm" :id="`field-${key}`" type="text" v-model="curForm[key]">
+          <textarea v-else-if="headings[n]?.field?.type == 'textarea'" @keydown.ctrl.exact.enter.prevent="submitForm" :id="`field-${key}`" :rows="headings[n]?.field?.rows || 3" v-model="curForm[key]"></textarea>
         </div>
       </div>
       <div>
         <div class="flex pt3">
           <button class="flex-auto mr2" @click="closeModal">Cancel</button>
           <button ref="addButton" :disabled="!isValidForm" @click="submitForm">
-            <span v-if="isEditMode">Update</span>
-            <span v-else>Add</span>
+            <span v-if="isEditMode">Update {{ props.title }}</span>
+            <span v-else>Add {{ props.title }}</span>
           </button>
         </div>
       </div>
@@ -56,7 +58,7 @@
 </template>
 
 <script setup>
-import {ref, onMounted, onBeforeUnmount} from 'vue'
+import {ref, onMounted, onBeforeUnmount, watch} from 'vue'
 import {useTabsModel} from '../model/tabs.js'
 import Window from '../components/Window.vue'
 import Table from '../components/Table.vue'
@@ -64,30 +66,13 @@ import Mousetrap from 'mousetrap'
 
 // Props
 const props = defineProps({
-  headings: {
-    type: Array,
-    required: true
-  },
-  data: {
-    type: Object,
-    required: true
-  },
-  form: {
-    type: Object,
-    required: true
-  },
-  isValidForm: {
-    type: Boolean,
-    required: false
-  },
-  highlightedRow: {
-    type: Object,
-    required: false
-  },
-  defaults: {
-    type: Object,
-    required: false
-  }
+  title: String,
+  headings: Array,
+  data: Object,
+  form: Object,
+  highlightedRow: Object,
+  defaults: Object,
+  validateForm: Function,
 })
 
 const $table = ref(null)
@@ -97,14 +82,18 @@ const isModalOpen = ref(false)
 const tabsModel = useTabsModel()
 const isEditMode = ref(false)
 const curForm = ref({})
+const isValidForm = ref(false)
 
 const emit = defineEmits(['submit', 'delete', 'updateHighlightedRow'])
+
+watch(curForm, (val) => {
+  isValidForm.value = props.validateForm(val)
+}, {deep: true})
 
 /**
  * Toggle modal on/off
  */
 const toggleModal = (val) => {
-  console.log('toggleModal', val)
   isModalOpen.value = val
   tabsModel.adjustZIndex()
 
@@ -112,7 +101,7 @@ const toggleModal = (val) => {
   if (val) {
     setTimeout(() => {
       $form.value.querySelector('input').focus()
-    }, 0)
+    }, 100)
   }
 }
 
@@ -126,7 +115,7 @@ const closeModal = () => {
  * Submit form
  */
 const submitForm = () => {
-  if (!props.isValidForm) {
+  if (!isValidForm.value) {
     return
   }
   emit('submit', isEditMode.value, curForm.value)
@@ -287,6 +276,22 @@ onMounted(() => {
   }
   Mousetrap.bindGlobal('down', selectNext)
   Mousetrap.bindGlobal('ctrl+shift+down', selectNext)
+
+  // Trap the global tab swapping when in modal
+  Mousetrap.bindGlobal('ctrl+shift+left', (ev) => {
+    if (isModalOpen.value) {
+      ev.preventDefault()
+      ev.stopPropagation()
+      return
+    }
+  })
+  Mousetrap.bindGlobal('ctrl+shift+right', (ev) => {
+    if (isModalOpen.value) {
+      ev.preventDefault()
+      ev.stopPropagation()
+      return
+    }
+  })
 })
 
 onBeforeUnmount(() => {
