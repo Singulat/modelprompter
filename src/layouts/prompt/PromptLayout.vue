@@ -104,41 +104,56 @@
 
 
 <script setup>
+/**
+ * Dependencies
+ */
 import {ref, onMounted, onBeforeUnmount, computed} from 'vue'
 import OpenAI from 'openai'
 import MarkdownIt from 'markdown-it'
-
-import { useConnectionsModel } from '../model/connections'
-import {useMessagesModel} from '../model/messages'
-import {useChannelsModel} from '../model/channels'
-import {useTabsModel} from '../model/tabs.js'
-import Menu from '../components/Menu.vue'
-import WindowChannel from '../components/WindowChannel.vue'
 import Mousetrap from 'mousetrap'
 
+
+/**
+ * Vue
+ */
+import { useConnectionsModel } from '../../model/connections'
+import {useMessagesModel} from '../../model/messages'
+import {useChannelsModel} from '../../model/channels'
+import {useTabsModel} from '../../model/tabs.js'
+import Menu from '../../components/Menu.vue'
+import WindowChannel from '../../components/WindowChannel.vue'
+
+
+/**
+ * Helpers
+ */
+import helpers from './helpers'
+import channel from './channel'
+
+
+/**
+ * Refs
+ */
 const prompt = ref('')
 const isThinking = ref(false)
 const roleToChangeTo = ref('user')
 const showingChangeRole = ref(false)
 const $messages = ref(null)
 const $prompt = ref(null)
-const $channels = ref(null)
 
+
+/**
+ * Stores
+ */
 const messagesModel = useMessagesModel()
 const connectionsModel = useConnectionsModel()
 const channelsModel = useChannelsModel()
 const tabsModel = useTabsModel()
 
+
 /**
- * Handle scrolling
+ * Set active channel
  */
-// Scroll to bottom once
-const scrollBottom = () => {
-  const target = $messages.value
-  if (target) {
-    target.scrollTop = target.scrollHeight
-  }
-}
 onMounted(() => {
   setTimeout(async () => {
     scrollBottom()
@@ -146,80 +161,34 @@ onMounted(() => {
   }, 0)
 })
 
+
 /**
- * Sort by date
+ * Helpers
  */
-const sortedMessages = computed(function () {
-  const messages = messagesModel.getSortedByDate(activeChannel.value)
-  return messages
-})
-
-
-
+const scrollBottom =()=> helpers.scrollBottom({$messages})
+const sortedMessages = computed(() => helpers.sortedMessages({messagesModel, activeChannel}))
 
 
 /**
  * Channel management
  */
+const $channels = ref(null)
 const activeChannel = ref('general')
 const isShowingMoreChannel = ref(false)
 const isShowingChannelModal = ref(false)
-
-const toggleShowMoreChannel = () => {
-  isShowingMoreChannel.value = !isShowingMoreChannel.value
-}
-
-// Show new vs edit modals
 const channelBeingEdited = ref(null) 
-const showNewChannelModal = () => {
-  channelBeingEdited.value = null
-  isShowingChannelModal.value = true
-}
-const showEditChannelModal = () => {
-  channelBeingEdited.value = activeChannel.value
-  isShowingChannelModal.value = true
-}
 
-/**
- * Handle channel creation and changing
- */
-const onChannelCreated = async (id) => {
-  activeChannel.value = id
-  isShowingMoreChannel.value = false
-  tabsModel.adjustZIndex()
-  await maybeAddSystemPrompt()
-  $prompt.value.focus()
-}
-const onChannelUpdated = async (id) => {
-  isShowingChannelModal.value = false
-  isShowingMoreChannel.value = false
-  tabsModel.adjustZIndex()
-  await maybeAddOrUpdateSystemPrompt()
-  $prompt.value.focus()
-}
-const changeCurrentChannel = async (focusPrompt = false) => {
-  await channelsModel.setCurrentChannel(activeChannel.value)
-  scrollBottom()
-  focusPrompt && $prompt.value.focus()
-}
+const toggleShowMoreChannel =()=> channel.toggleShowMoreChannel({isShowingMoreChannel})
+const showNewChannelModal =()=> channel.showNewChannelModal({channelBeingEdited, isShowingChannelModal})
+const showEditChannelModal =()=> channel.showEditChannelModal({isShowingChannelModal, channelBeingEdited, activeChannel})
 
-/**
- * Delete channel
- */
-const deleteChannel = async () => {
-  await messagesModel.deleteAll(activeChannel.value)
-  await channelsModel.deleteChannel(activeChannel.value)
-  activeChannel.value = 'general'
-  isShowingMoreChannel.value = false
-}
+const onChannelCreated = async()=> channel.onChannelCreated({activeChannel, tabsModel, $prompt, maybeAddSystemPrompt})
+const onChannelUpdated = async(id)=> channel.onChannelUpdated({id, isShowingChannelModal, isShowingMoreChannel, tabsModel, maybeAddOrUpdateSystemPrompt, $prompt})
+const changeCurrentChannel = async(focusPrompt = false)=> channel.changeCurrentChannel({activeChannel, channelsModel, scrollBottom, focusPrompt, $prompt})
 
-/**
- * Close channel modal
- */
-const closeChannelModal = () => {
-  isShowingChannelModal.value = false
-  tabsModel.adjustZIndex()
-}
+const deleteChannel =()=> channel.deleteChannel({messagesModel, channelsModel, activeChannel, isShowingMoreChannel, isShowingChannelModal, tabsModel, $prompt, scrollBottom})
+const closeChannelModal =()=> channel.closeChannelModal({isShowingChannelModal, tabsModel})
+
 
 /**
  * Add system prompt
@@ -274,9 +243,8 @@ const runPrompt = async () => {
   })
   prompt.value = ''
 
-  // Send the messages
   const messages = await messagesModel.getPreparedMessages(activeChannel.value)
-  sendToLLM(messages)
+  await sendToLLM(messages)
 }
 
 /**
@@ -374,7 +342,7 @@ const editMessage = async (ev, stopBubble = false) => {
 /**
  * Cancel editing
  */
-const cancelEditing = () => {
+const cancelEditing =()=> {
   isEditing.value = false
   prompt.value = ''
   const $messagesEl = $messages.value.querySelectorAll('.message')
@@ -490,7 +458,7 @@ const regenerateMessage = async () => {
  * Show more panel
  */
 const isShowingMore = ref(false)
-const showMore = () => {
+const showMore =()=> {
   isShowingMore.value = !isShowingMore.value
 }
 

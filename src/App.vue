@@ -8,7 +8,7 @@
         <Skills />
       </template>
       <template v-slot:prompt>
-        <Prompt />
+        <PromptLayout />
       </template>
     </Tabs>
   </Window>
@@ -25,7 +25,7 @@
 <script setup>
 import Window from './components/Window.vue'
 import Tabs from './components/Tabs.vue'
-import Prompt from './layouts/Prompt.vue'
+import PromptLayout from './layouts/prompt/PromptLayout.vue'
 import Skills from './layouts/Skills.vue'
 import Connections from './layouts/Connections.vue'
 import { useConnectionsModel } from './model/connections'
