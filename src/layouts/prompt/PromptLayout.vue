@@ -129,6 +129,7 @@ import WindowChannel from '../../components/WindowChannel.vue'
 import helpers from './helpers'
 import channel from './channel'
 import prompt from './prompt'
+import keyboard from './keyboard'
 
 
 /**
@@ -228,113 +229,16 @@ onMounted(() => {
     $promptEl.value?.focus()
   }, 10)
   
-  // New channel
-  Mousetrap.bindGlobal('ctrl+shift+n', (ev) => {
-    ev.preventDefault()
-    ev.stopPropagation()
-    showNewChannelModal()
-  })
-
-  // Edit channel
-  Mousetrap.bindGlobal('ctrl+shift+e', (ev) => {
-    ev.preventDefault()
-    ev.stopPropagation()
-    showEditChannelModal()
-  })
-
-  // Delete messsage
-  Mousetrap.bindGlobal('ctrl+shift+d', (ev) => {
-    ev.preventDefault()
-    ev.stopPropagation()
-    deleteMessage()
-  })
-
-  // Delete channel
-  Mousetrap.bindGlobal('ctrl+shift+r', async (ev) => {
-    ev.preventDefault()
-    ev.stopPropagation()
-    
-    // Delete if not general and not have messages, otherwise just clear
-    if (channelsModel.currentChannel !== 'general' && !sortedMessages.value.length) {
-      await deleteChannel()
-    } else {
-      await clearMessages()
-    }
-
-    $promptEl.value.focus()
-  })
-
-  // Show the dropdown and focus it
-  Mousetrap.bindGlobal('ctrl+shift+l', (ev) => {
-    ev.preventDefault()
-    ev.stopPropagation()
-    $channels.value.focus()
-  })
-
-  // Enter selection mode (or select the prev message)
-  Mousetrap.bindGlobal('ctrl+shift+up', (ev) => {
-    ev.preventDefault()
-    ev.stopPropagation()
-
-    const $messageEls = $messages.value.querySelectorAll('.message')
-    if (!$messageEls.length) {
-      $promptEl.value.focus()
-      return
-    }
-    
-    // If already editing, select the previous message
-    let $message
-    if (isEditing.value) {
-      $message = $messages.value.querySelector(`.message[data-id="${isEditing.value}"]`)
-      const index = [...$messageEls].indexOf($message)
-      if (index > 0) {
-        const $prevMessage = $messageEls[index-1]
-        editMessage({target: $prevMessage})
-      }
-    } else {
-      // Otherwise, get last
-      $message = $messageEls[$messageEls.length-1]
-      editMessage({target: $messageEls[$messageEls.length-1]})
-    }
-
-    // Scroll so top of $messages.value is at top of $message
-    if ($message) {
-      $messages.value.scrollTop = $message.offsetTop - $messages.value.offsetTop - 80
-    }
-    $promptEl.value.focus()
-  })
-
-  Mousetrap.bindGlobal('ctrl+shift+down', (ev) => {
-    ev.preventDefault()
-    ev.stopPropagation()
-
-    const $messageEls = $messages.value.querySelectorAll('.message')
-    
-    // If already editing, select the next message
-    let $message
-    if (isEditing.value) {
-      $message = $messages.value.querySelector(`.message[data-id="${isEditing.value}"]`)
-      const index = [...$messageEls].indexOf($message)
-      if (index < $messageEls.length-1) {
-        const $nextMessage = $messageEls[index+1]
-        editMessage({target: $nextMessage})
-      }
-      $messages.value.scrollTop = $message.offsetTop - $messages.value.offsetTop
-    }
-
-    $promptEl.value.focus()
-  })
-
-  /**
-   * Cancel
-   */
-  Mousetrap.bindGlobal('esc', (ev) => {
-    ev.preventDefault()
-    ev.stopPropagation()
-    cancelEditing()
-    $promptEl.value.focus()
-  })
+  Mousetrap.bindGlobal('ctrl+shift+n', (ev) => keyboard.newChannel({ev, showNewChannelModal}))
+  Mousetrap.bindGlobal('ctrl+shift+e', (ev) => keyboard.editChannel({ev, showEditChannelModal}))
+  Mousetrap.bindGlobal('ctrl+shift+d', (ev) => keyboard.deleteMessage({ev, deleteMessage}))
+  Mousetrap.bindGlobal('ctrl+shift+r', (ev) => keyboard.resetChannel({ev, channelsModel, sortedMessages, deleteChannel, clearMessages, $promptEl}))
+  Mousetrap.bindGlobal('ctrl+shift+l', (ev) => keyboard.selectChannels({ev, $channels}))
+  Mousetrap.bindGlobal('ctrl+shift+up', (ev) => keyboard.prevMessage({ev, $messages, editMessage, isEditing, $promptEl}))
+  Mousetrap.bindGlobal('ctrl+shift+down', (ev) => keyboard.nextMessage({ev, $messages, editMessage, isEditing, $promptEl}))
+  Mousetrap.bindGlobal('esc', (ev) => keyboard.cancelEditing({ev, isEditing, cancelEditing, $promptEl}))
 })
+
 onBeforeUnmount(() => {
   Mousetrap.unbind('ctrl+shift+n')
   Mousetrap.unbind('ctrl+shift+e')
