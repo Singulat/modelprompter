@@ -77,6 +77,7 @@ onBeforeMount(async () => {
   }
 })
 
+// @todo clean this up
 onMounted(async () => {
   const params = new URLSearchParams(window.location.search)
   
@@ -84,6 +85,10 @@ onMounted(async () => {
   height.value = isIframe.value ? '100%' : '450px'
   
   Mousetrap.bindGlobal('ctrl+shift+left', () => {
+    if (isThereAModalVisible()) {
+      return
+    }
+    
     const tabs = Object.keys(mainTabs.value)
     const currentIndex = tabs.indexOf(activeTab.value)
     const nextIndex = currentIndex - 1
@@ -93,6 +98,10 @@ onMounted(async () => {
     activeTab.value = tabs[nextIndex]
   })
   Mousetrap.bindGlobal('ctrl+shift+right', () => {
+    if (isThereAModalVisible()) {
+      return
+    }
+    
     const tabs = Object.keys(mainTabs.value)
     const currentIndex = tabs.indexOf(activeTab.value)
     const nextIndex = currentIndex + 1
@@ -106,6 +115,11 @@ onMounted(async () => {
     chrome.runtime.sendMessage({type: 'maximizePopup'})
   })
 })
+
+// Check if a .window.modal is visible
+const isThereAModalVisible = () => {
+  return document.querySelector('.window.modal') !== null
+}
 
 // Close window
 const onClose = () => {

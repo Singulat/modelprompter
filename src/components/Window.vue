@@ -16,7 +16,7 @@
 </template>
 
 <script setup>
-import {ref, onMounted, onBeforeUnmount} from 'vue'
+import {ref, onMounted} from 'vue'
 import Mousetrap from 'mousetrap'
 
 const props = defineProps({

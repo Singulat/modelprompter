@@ -227,7 +227,7 @@ onMounted(() => {
   setTimeout(() => {
     scrollBottom()
     $promptEl.value?.focus()
-  }, 10)
+  }, 100)
   
   Mousetrap.bindGlobal('ctrl+shift+n', (ev) => keyboard.newChannel({ev, showNewChannelModal}))
   Mousetrap.bindGlobal('ctrl+shift+e', (ev) => keyboard.editChannel({ev, showEditChannelModal}))
