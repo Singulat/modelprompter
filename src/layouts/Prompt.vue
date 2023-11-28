@@ -340,8 +340,8 @@ const isEditing = ref(false)
 const editMessage = async (ev, stopBubble = false) => {
   // Prevent bubbling, otherwise it would select all the text or bring up native context menu
   if (!isEditing.value || stopBubble) {
-    ev.stopPropagation()
-    ev.preventDefault()
+    ev.stopPropagation && ev.stopPropagation()
+    ev.preventDefault && ev.preventDefault()
   }
   isShowingMore.value = false
   
@@ -358,8 +358,8 @@ const editMessage = async (ev, stopBubble = false) => {
   const message = messagesModel.messages[isEditing.value]
 
   // Unhighlight others
-  const $messages = document.querySelectorAll('.message')
-  $messages.forEach($message => {
+  const $messagesEl = $messages.value.querySelectorAll('.message')
+  $messagesEl.forEach($message => {
     $message.classList.remove('highlight')
   })
   
@@ -377,8 +377,8 @@ const editMessage = async (ev, stopBubble = false) => {
 const cancelEditing = () => {
   isEditing.value = false
   prompt.value = ''
-  const $messages = document.querySelectorAll('.message')
-  $messages.forEach($message => {
+  const $messagesEl = $messages.value.querySelectorAll('.message')
+  $messagesEl.forEach($message => {
     $message.classList.remove('highlight')
   })
 }
@@ -403,8 +403,8 @@ const updateMessage = async () => {
   prompt.value = ''
   isEditing.value = false
 
-  const $messages = document.querySelectorAll('.message')
-  $messages.forEach($message => {
+  const $messagesEl = $messages.value.querySelectorAll('.message')
+  $messagesEl.forEach($message => {
     $message.classList.remove('highlight')
   })
 
@@ -419,8 +419,8 @@ const deleteMessage = async () => {
   prompt.value = ''
   isEditing.value = false
 
-  const $messages = document.querySelectorAll('.message')
-  $messages.forEach($message => {
+  const $messagesEl = $messages.value.querySelectorAll('.message')
+  $messagesEl.forEach($message => {
     $message.classList.remove('highlight')
   })
 
@@ -440,8 +440,8 @@ const changeRole = async (role) => {
   isEditing.value = false
   showingChangeRole.value = false
 
-  const $messages = document.querySelectorAll('.message')
-  $messages.forEach($message => {
+  const $messagesEl = $messages.value.querySelectorAll('.message')
+  $messagesEl.forEach($message => {
     $message.classList.remove('highlight')
   })
   
@@ -477,8 +477,8 @@ const regenerateMessage = async () => {
   }
 
   isEditing.value = false
-  const $messages = document.querySelectorAll('.message')
-  $messages.forEach($message => {
+  const $messagesEl = $messages.value.querySelectorAll('.message')
+  $messagesEl.forEach($message => {
     $message.classList.remove('highlight')
   })
 
@@ -525,6 +525,13 @@ onMounted(() => {
     showEditChannelModal()
   })
 
+  // Delete messsage
+  Mousetrap.bindGlobal('ctrl+shift+d', (ev) => {
+    ev.preventDefault()
+    ev.stopPropagation()
+    deleteMessage()
+  })
+
   // Delete channel
   Mousetrap.bindGlobal('ctrl+shift+r', async (ev) => {
     ev.preventDefault()
@@ -546,11 +553,78 @@ onMounted(() => {
     ev.stopPropagation()
     $channels.value.focus()
   })
+
+  // Enter selection mode (or select the prev message)
+  Mousetrap.bindGlobal('ctrl+shift+up', (ev) => {
+    ev.preventDefault()
+    ev.stopPropagation()
+
+    const $messageEls = $messages.value.querySelectorAll('.message')
+    if (!$messageEls.length) {
+      $prompt.value.focus()
+      return
+    }
+    
+    // If already editing, select the previous message
+    let $message
+    if (isEditing.value) {
+      $message = $messages.value.querySelector(`.message[data-id="${isEditing.value}"]`)
+      const index = [...$messageEls].indexOf($message)
+      if (index > 0) {
+        const $prevMessage = $messageEls[index-1]
+        editMessage({target: $prevMessage})
+      }
+    } else {
+      // Otherwise, get last
+      $message = $messageEls[$messageEls.length-1]
+      editMessage({target: $messageEls[$messageEls.length-1]})
+    }
+
+    // Scroll so top of $messages.value is at top of $message
+    if ($message) {
+      $messages.value.scrollTop = $message.offsetTop - $messages.value.offsetTop - 80
+    }
+    $prompt.value.focus()
+  })
+
+  Mousetrap.bindGlobal('ctrl+shift+down', (ev) => {
+    ev.preventDefault()
+    ev.stopPropagation()
+
+    const $messageEls = $messages.value.querySelectorAll('.message')
+    
+    // If already editing, select the next message
+    let $message
+    if (isEditing.value) {
+      $message = $messages.value.querySelector(`.message[data-id="${isEditing.value}"]`)
+      const index = [...$messageEls].indexOf($message)
+      if (index < $messageEls.length-1) {
+        const $nextMessage = $messageEls[index+1]
+        editMessage({target: $nextMessage})
+      }
+      $messages.value.scrollTop = $message.offsetTop - $messages.value.offsetTop
+    }
+
+    $prompt.value.focus()
+  })
+
+  /**
+   * Cancel
+   */
+  Mousetrap.bindGlobal('esc', (ev) => {
+    ev.preventDefault()
+    ev.stopPropagation()
+    cancelEditing()
+    $prompt.value.focus()
+  })
 })
 onBeforeUnmount(() => {
   Mousetrap.unbind('ctrl+shift+n')
   Mousetrap.unbind('ctrl+shift+e')
+  Mousetrap.unbind('ctrl+shift+d')
   Mousetrap.unbind('ctrl+shift+r')
   Mousetrap.unbind('ctrl+shift+l')
+  Mousetrap.unbind('ctrl+shift+up')
+  Mousetrap.unbind('ctrl+shift+down')
 })
 </script>

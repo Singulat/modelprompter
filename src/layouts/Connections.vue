@@ -40,7 +40,7 @@ const connectionsModel = useConnectionsModel()
 const connectionForm = ref(connectDefaults)
 
 const validateForm = (record) => {
-  return !!record.value?.name && !!record.value?.baseurl && !!record.value?.temp
+  return !!record?.name && !!record?.baseurl && !!record?.temp
 }
 
 

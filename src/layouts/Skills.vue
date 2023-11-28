@@ -28,7 +28,7 @@ const skillDefaults = {
 
 const headings = [
   {key: 'name', content: 'Name'},
-  {key: 'triggers', content: 'Triggers', field: {type: 'textarea'}},
+  {key: 'triggers', content: 'Triggers', class: 'gt-md', field: {type: 'textarea'}},
   {key: 'response', content: 'Response', class: 'gt-md', field: {type: 'textarea'}},
 ]
 

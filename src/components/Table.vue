@@ -99,7 +99,11 @@ const toggleModal = (val) => {
   // Focus the first input when the modal opens
   if (val) {
     setTimeout(() => {
-      curForm.value = Object.assign({}, props.data[props.highlightedRow] || props.defaults)
+      if (isEditMode.value) {
+        curForm.value = Object.assign({}, props.data[props.highlightedRow] || props.defaults)
+      } else {
+        curForm.value = Object.assign({}, props.defaults)
+      }
       $form.value.querySelector('input').focus()
     }, 0)
   }
