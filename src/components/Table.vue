@@ -10,7 +10,7 @@
         </slot>
       </thead>
       <tbody>
-        <tr @click="clickedRow" v-for="(record, dataKey) in data" :key=dataKey :class="{'highlighted': dataKey == props.highlightedRow}" :data-id="dataKey">
+        <tr @click="clickedRow" @dblclick="showEditModal" @contextmenu="ev => clickedRow(ev) | showEditModal(ev)" v-for="(record, dataKey) in data" :key=dataKey :class="{'highlighted': dataKey == props.highlightedRow}" :data-id="dataKey">
           <td v-for="heading in props.headings" :class="heading.class" :key="heading.key">
             {{ record[heading.key] }}
           </td>
@@ -155,7 +155,12 @@ const showAddModal = () => {
 /**
  * Edit
  */
-const showEditModal = () => {
+const showEditModal = (ev) => {
+  if (ev) {
+    ev.preventDefault()
+    ev.stopPropagation()
+  }
+  
   isEditMode.value = true
   curForm.value = Object.assign({}, props.highlightedRow)
   toggleModal(true)

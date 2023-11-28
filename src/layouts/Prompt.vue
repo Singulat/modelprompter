@@ -509,7 +509,7 @@ onMounted(() => {
   setTimeout(() => {
     scrollBottom()
     $prompt.value?.focus()
-  }, 100)
+  }, 10)
   
   // New channel
   Mousetrap.bindGlobal('ctrl+shift+n', (ev) => {
