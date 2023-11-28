@@ -75,9 +75,8 @@ npm install
 # Developing
 This project comes with a live reload server, so you can write code without having to manually refresh anything. Sometimes it crashes spectacularly though. If you suddenly start getting strange errors and bugs while you're developing, try manually reloading the extension.
 
-## Building
 ```bash
-# Start a local server with live reload
+# Start a local dev server
 npm start
 
 # Stop the server
