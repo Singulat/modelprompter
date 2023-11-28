@@ -57,4 +57,51 @@ export default {
     isShowingChannelModal.value = false
     tabsModel.adjustZIndex()
   },
+
+  /**
+   * Clear messages
+   */
+  async clearMessages ({isShowingMore, activeChannel, messagesModel, maybeAddSystemPrompt, $promptEl}) {
+    isShowingMore.value = false
+    await messagesModel.deleteAll(activeChannel.value)
+    await maybeAddSystemPrompt()
+    $promptEl.value.focus()
+  },
+
+  /**
+   * Edit message
+   */
+  async editMessage ({ev, stopBubble, isEditing, isShowingMore, messagesModel, curPrompt, $messages, $promptEl}) {
+    // Prevent bubbling, otherwise it would select all the text or bring up native context menu
+    if (!isEditing.value || stopBubble) {
+      ev.stopPropagation && ev.stopPropagation()
+      ev.preventDefault && ev.preventDefault()
+    }
+    isShowingMore.value = false
+    
+    // Get message
+    const $message = ev.target.closest('.message')
+    const id = $message.getAttribute('data-id')
+
+    // If already editing, cancel
+    if (isEditing.value && id === isEditing.value) {
+      cancelEditing()
+      return
+    }
+    isEditing.value = id
+    const message = messagesModel.messages[isEditing.value]
+
+    // Unhighlight others
+    const $messagesEl = $messages.value.querySelectorAll('.message')
+    $messagesEl.forEach($message => {
+      $message.classList.remove('highlight')
+    })
+    
+    // Highlight current one
+    $message.classList.add('highlight')
+
+    // Update prompt with message
+    curPrompt.value = message.text
+    $promptEl.value.focus()
+  }  
 }

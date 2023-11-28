@@ -47,7 +47,7 @@
     <div class="spacer"></div>
     <div style="flex: 0">
       <div class="mb1">
-        <textarea ref="$prompt" id="prompt" v-model="prompt" autofocus multiline placeholder="Prompt..." @keydown.ctrl.exact.enter="runPrompt"></textarea>
+        <textarea ref="$promptEl" id="prompt" v-model="curPrompt" autofocus multiline placeholder="Prompt..." @keydown.ctrl.exact.enter="runPrompt"></textarea>
       </div>
 
       <div v-if="isShowingMore" class="mb1">
@@ -62,7 +62,7 @@
           </div>
         </div>
         <div>
-          <button v-if="!isThinking" class="fullwidth" :disabled="!prompt" @click="runPrompt">Run prompt</button>
+          <button v-if="!isThinking" class="fullwidth" :disabled="!curPrompt" @click="runPrompt">Run prompt</button>
           <button v-else class="fullwidth" disabled>Thinking...</button>
         </div>
       </div>
@@ -92,7 +92,7 @@
             <button class="fullwidth" @click="deleteMessage">Delete</button>
           </div>
           <div>
-            <button class="fullwidth" :disabled="!prompt" @click="updateMessage">Update</button>
+            <button class="fullwidth" :disabled="!curPrompt" @click="updateMessage">Update</button>
           </div>
         </div>
       </div>
@@ -108,7 +108,6 @@
  * Dependencies
  */
 import {ref, onMounted, onBeforeUnmount, computed} from 'vue'
-import OpenAI from 'openai'
 import MarkdownIt from 'markdown-it'
 import Mousetrap from 'mousetrap'
 
@@ -129,17 +128,18 @@ import WindowChannel from '../../components/WindowChannel.vue'
  */
 import helpers from './helpers'
 import channel from './channel'
+import prompt from './prompt'
 
 
 /**
  * Refs
  */
-const prompt = ref('')
+const curPrompt = ref('')
 const isThinking = ref(false)
 const roleToChangeTo = ref('user')
 const showingChangeRole = ref(false)
 const $messages = ref(null)
-const $prompt = ref(null)
+const $promptEl = ref(null)
 
 
 /**
@@ -182,169 +182,38 @@ const toggleShowMoreChannel =()=> channel.toggleShowMoreChannel({isShowingMoreCh
 const showNewChannelModal =()=> channel.showNewChannelModal({channelBeingEdited, isShowingChannelModal})
 const showEditChannelModal =()=> channel.showEditChannelModal({isShowingChannelModal, channelBeingEdited, activeChannel})
 
-const onChannelCreated = async()=> channel.onChannelCreated({activeChannel, tabsModel, $prompt, maybeAddSystemPrompt})
-const onChannelUpdated = async(id)=> channel.onChannelUpdated({id, isShowingChannelModal, isShowingMoreChannel, tabsModel, maybeAddOrUpdateSystemPrompt, $prompt})
-const changeCurrentChannel = async(focusPrompt = false)=> channel.changeCurrentChannel({activeChannel, channelsModel, scrollBottom, focusPrompt, $prompt})
+const onChannelCreated = async()=> channel.onChannelCreated({activeChannel, tabsModel, $promptEl, maybeAddSystemPrompt})
+const onChannelUpdated = async(id)=> channel.onChannelUpdated({id, isShowingChannelModal, isShowingMoreChannel, tabsModel, maybeAddOrUpdateSystemPrompt, $promptEl})
+const changeCurrentChannel = async(focusPrompt = false)=> channel.changeCurrentChannel({activeChannel, channelsModel, scrollBottom, focusPrompt, $promptEl})
 
-const deleteChannel =()=> channel.deleteChannel({messagesModel, channelsModel, activeChannel, isShowingMoreChannel, isShowingChannelModal, tabsModel, $prompt, scrollBottom})
+const deleteChannel =()=> channel.deleteChannel({messagesModel, channelsModel, activeChannel, isShowingMoreChannel, isShowingChannelModal, tabsModel, $promptEl, scrollBottom})
 const closeChannelModal =()=> channel.closeChannelModal({isShowingChannelModal, tabsModel})
 
 
 /**
- * Add system prompt
+ * Prompting
  */
-const maybeAddSystemPrompt = async () => {
-  const channel = channelsModel.channels[activeChannel.value]
-  if (channel.systemPrompt) {
-    await messagesModel.addMessage({
-      role: 'system',
-      text: channel.systemPrompt,
-      channel: activeChannel.value
-    })
-  }
-}
-
-const maybeAddOrUpdateSystemPrompt = async () => {
-  const channel = channelsModel.channels[activeChannel.value]
-  // Check if the first sorted message is a system prompt, if so update. if not, add a new one with the date a bit before the first
-  const sortedClone = [...sortedMessages.value]
-  const firstMessage = sortedClone.shift()
-  if (firstMessage.role === 'system') {
-    await messagesModel.updateMessage(firstMessage.id, {
-      text: channel.systemPrompt,
-      updated_at: Date.now()
-    })
-  } else {
-    await messagesModel.addMessage({
-      role: 'system',
-      text: channel.systemPrompt,
-      channel: activeChannel.value,
-      created_at: firstMessage.created_at - 10
-    })
-  }
-}
-
+const maybeAddSystemPrompt = async()=> await prompt.maybeAddSystemPrompt({channelsModel, activeChannel, messagesModel})
+const maybeAddOrUpdateSystemPrompt = async()=> await prompt.maybeAddOrUpdateSystemPrompt({channelsModel, activeChannel, messagesModel, sortedMessages})
+const runPrompt = async()=> await prompt.runPrompt({isEditing, curPrompt, messagesModel, activeChannel, sendToLLM, scrollBottom})
+const sendToLLM = async(messages, assistantDefaults = {}) => await prompt.sendToLLM({messages, assistantDefaults, isThinking, connectionsModel, activeChannel, messagesModel, $promptEl, scrollBottom})
 
 
 /**
- * Run prompt
- */
-const runPrompt = async () => {
-  if (isEditing.value) {
-    updateMessage()
-    return
-  }
-  
-  // Add the users message
-  await messagesModel.addMessage({
-    role: 'user',
-    text: prompt.value,
-    channel: activeChannel.value
-  })
-  prompt.value = ''
-
-  const messages = await messagesModel.getPreparedMessages(activeChannel.value)
-  await sendToLLM(messages)
-}
-
-/**
- * Send to the llm for inference
- */
- const sendToLLM = async (messages, assistantDefaults = {}) => {
-  isThinking.value = true
-  
-  let defaultConnection = connectionsModel.defaultConnection
-  defaultConnection = connectionsModel.connections[defaultConnection]
-
-  // Create openai instance
-  const openai = new OpenAI({
-    baseURL: defaultConnection.baseurl,
-    apiKey: defaultConnection.apiKey,
-    organization: defaultConnection.organization,
-    dangerouslyAllowBrowser: true
-  })
-
-  // Send to openai
-  const completion = await openai.chat.completions.create({
-    messages,
-    model: defaultConnection.model,
-    temperature: +defaultConnection.temp,
-    stream: true
-  })
-
-  // Add an empty message to start updating
-  const assistantId = await messagesModel.addMessage(Object.assign(assistantDefaults, {
-    channel: activeChannel.value,
-    role: 'assistant',
-    text: '',
-  }))
-  $prompt.value.focus()
-
-  let combinedMessage = ''
-  for await (const chunk of completion) {
-    combinedMessage += chunk.choices?.[0]?.delta?.content || ''
-    messagesModel.updateMessage(assistantId, {
-      text: combinedMessage
-    })
-    
-    scrollBottom()
-  }
-
-  isThinking.value = false  
-}
-
-// Clear messages
-const clearMessages = async () => {
-  isShowingMore.value = false
-  await messagesModel.deleteAll(activeChannel.value)
-  await maybeAddSystemPrompt()
-  $prompt.value.focus()
-}
-
-/**
- * Edit message
+ * Message management
  */
 const isEditing = ref(false)
-const editMessage = async (ev, stopBubble = false) => {
-  // Prevent bubbling, otherwise it would select all the text or bring up native context menu
-  if (!isEditing.value || stopBubble) {
-    ev.stopPropagation && ev.stopPropagation()
-    ev.preventDefault && ev.preventDefault()
-  }
-  isShowingMore.value = false
-  
-  // Get message
-  const $message = ev.target.closest('.message')
-  const id = $message.getAttribute('data-id')
+const clearMessages =()=> prompt.clearMessages({isShowingMore, messagesModel, activeChannel, maybeAddSystemPrompt, $promptEl})
+const editMessage = (ev, stopBubble = false)=> prompt.editMessage({ev, stopBubble, isEditing, isShowingMore, messagesModel, curPrompt, $messages, $promptEl})
 
-  // If already editing, cancel
-  if (isEditing.value && id === isEditing.value) {
-    cancelEditing()
-    return
-  }
-  isEditing.value = id
-  const message = messagesModel.messages[isEditing.value]
 
-  // Unhighlight others
-  const $messagesEl = $messages.value.querySelectorAll('.message')
-  $messagesEl.forEach($message => {
-    $message.classList.remove('highlight')
-  })
-  
-  // Highlight current one
-  $message.classList.add('highlight')
-
-  // Update prompt with message
-  prompt.value = message.text
-  $prompt.value.focus()
-}
 
 /**
  * Cancel editing
  */
 const cancelEditing =()=> {
   isEditing.value = false
-  prompt.value = ''
+  curPrompt.value = ''
   const $messagesEl = $messages.value.querySelectorAll('.message')
   $messagesEl.forEach($message => {
     $message.classList.remove('highlight')
@@ -358,17 +227,17 @@ const updateMessage = async () => {
   const message = messagesModel.messages[isEditing.value]
   await messagesModel.updateMessage(isEditing.value, {
     updated_at: Date.now(),
-    text: prompt.value
+    text: curPrompt.value
   })
 
   // If this is the first message and it's also a system prompt, update the channel system prompt
   if (message.role === 'system' && sortedMessages.value[0].id === message.id) {
     await channelsModel.updateChannel(activeChannel.value, {
-      systemPrompt: prompt.value
+      systemPrompt: curPrompt.value
     })
   }
 
-  prompt.value = ''
+  curPrompt.value = ''
   isEditing.value = false
 
   const $messagesEl = $messages.value.querySelectorAll('.message')
@@ -376,7 +245,7 @@ const updateMessage = async () => {
     $message.classList.remove('highlight')
   })
 
-  $prompt.value.focus()
+  $promptEl.value.focus()
 }
 
 /**
@@ -384,7 +253,7 @@ const updateMessage = async () => {
  */
 const deleteMessage = async () => {
   await messagesModel.deleteMessage(isEditing.value)
-  prompt.value = ''
+  curPrompt.value = ''
   isEditing.value = false
 
   const $messagesEl = $messages.value.querySelectorAll('.message')
@@ -392,8 +261,8 @@ const deleteMessage = async () => {
     $message.classList.remove('highlight')
   })
 
-  prompt.value = ''
-  $prompt.value.focus()
+  curPrompt.value = ''
+  $promptEl.value.focus()
 }
 
 /**
@@ -413,8 +282,8 @@ const changeRole = async (role) => {
     $message.classList.remove('highlight')
   })
   
-  prompt.value = ''
-  $prompt.value.focus()
+  curPrompt.value = ''
+  $promptEl.value.focus()
 }
 
 /**
@@ -450,8 +319,8 @@ const regenerateMessage = async () => {
     $message.classList.remove('highlight')
   })
 
-  prompt.value = ''
-  $prompt.value.focus()
+  curPrompt.value = ''
+  $promptEl.value.focus()
 }
 
 /**
@@ -476,7 +345,7 @@ const renderMarkdown = (text) => {
 onMounted(() => {
   setTimeout(() => {
     scrollBottom()
-    $prompt.value?.focus()
+    $promptEl.value?.focus()
   }, 10)
   
   // New channel
@@ -512,7 +381,7 @@ onMounted(() => {
       await clearMessages()
     }
 
-    $prompt.value.focus()
+    $promptEl.value.focus()
   })
 
   // Show the dropdown and focus it
@@ -529,7 +398,7 @@ onMounted(() => {
 
     const $messageEls = $messages.value.querySelectorAll('.message')
     if (!$messageEls.length) {
-      $prompt.value.focus()
+      $promptEl.value.focus()
       return
     }
     
@@ -552,7 +421,7 @@ onMounted(() => {
     if ($message) {
       $messages.value.scrollTop = $message.offsetTop - $messages.value.offsetTop - 80
     }
-    $prompt.value.focus()
+    $promptEl.value.focus()
   })
 
   Mousetrap.bindGlobal('ctrl+shift+down', (ev) => {
@@ -573,7 +442,7 @@ onMounted(() => {
       $messages.value.scrollTop = $message.offsetTop - $messages.value.offsetTop
     }
 
-    $prompt.value.focus()
+    $promptEl.value.focus()
   })
 
   /**
@@ -583,7 +452,7 @@ onMounted(() => {
     ev.preventDefault()
     ev.stopPropagation()
     cancelEditing()
-    $prompt.value.focus()
+    $promptEl.value.focus()
   })
 })
 onBeforeUnmount(() => {

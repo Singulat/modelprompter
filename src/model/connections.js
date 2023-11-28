@@ -17,19 +17,6 @@ export const useConnectionsModel = defineStore({
       await this.getConnections()
       const data = await chrome.storage.sync.get('defaultConnection') || {}
       this.defaultConnection = data.defaultConnection || ''
-
-      // Live update settings
-      chrome.storage.onChanged.addListener(async (changes, namespace) => {
-        if (namespace !== 'sync') {
-          return
-        }
-        if (changes.connections) {
-          this.connections = changes.connections.newValue
-        }
-        if (changes.defaultConnection) {
-          this.defaultConnection = changes.defaultConnection.newValue
-        }
-      })
     },
 
     async setDefault (id) {
