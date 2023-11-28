@@ -24,7 +24,6 @@
 <!-- Bottom of  form -->
 <div class="flex-auto pt1">
   <div class="flex">
-    {{ props.highlightedRow }}
     <button class="flex-auto mr1" :class="{hidden: !props.highlightedRow}" @click="deleteRecord">Delete</button>
     <button class="mr1" :class="{hidden: !props.highlightedRow}" @click="showEditModal">Edit</button>
     <button @click="showAddModal">New</button>
@@ -70,7 +69,7 @@ const props = defineProps({
   headings: Array,
   data: Object,
   form: Object,
-  highlightedRow: Object,
+  highlightedRow: String,
   defaults: Object,
   validateForm: Function,
 })
@@ -96,12 +95,13 @@ watch(curForm, (val) => {
 const toggleModal = (val) => {
   isModalOpen.value = val
   tabsModel.adjustZIndex()
-
+  
   // Focus the first input when the modal opens
   if (val) {
     setTimeout(() => {
+      curForm.value = Object.assign({}, props.data[props.highlightedRow] || props.defaults)
       $form.value.querySelector('input').focus()
-    }, 100)
+    }, 0)
   }
 }
 
@@ -206,7 +206,7 @@ const deleteRecord = () => {
  * Keyboard shortcuts
  */
 onMounted(() => {
-  // Show new
+// Show new
   Mousetrap.bindGlobal('ctrl+shift+n', (ev) => {
     if (isModalOpen.value) {
       return
@@ -276,22 +276,6 @@ onMounted(() => {
   }
   Mousetrap.bindGlobal('down', selectNext)
   Mousetrap.bindGlobal('ctrl+shift+down', selectNext)
-
-  // Trap the global tab swapping when in modal
-  Mousetrap.bindGlobal('ctrl+shift+left', (ev) => {
-    if (isModalOpen.value) {
-      ev.preventDefault()
-      ev.stopPropagation()
-      return
-    }
-  })
-  Mousetrap.bindGlobal('ctrl+shift+right', (ev) => {
-    if (isModalOpen.value) {
-      ev.preventDefault()
-      ev.stopPropagation()
-      return
-    }
-  })
 })
 
 onBeforeUnmount(() => {

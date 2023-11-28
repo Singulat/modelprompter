@@ -7,7 +7,7 @@ title="Connection"
 :data="connectionsModel.connections"
 :validateForm="validateForm"
 :defaults="connectDefaults"
-:highlightedRow="connectionsModel.connections[connectionsModel.defaultConnection]"
+:highlightedRow="connectionsModel.defaultConnection"
 @updateHighlightedRow="connectionsModel.setDefault"
 @submit="onSubmit"
 @delete="deleteConnection"
@@ -40,7 +40,7 @@ const connectionsModel = useConnectionsModel()
 const connectionForm = ref(connectDefaults)
 
 const validateForm = (record) => {
-  return !!record.value.name && !!record.value.baseurl && !!record.value.temp
+  return !!record.value?.name && !!record.value?.baseurl && !!record.value?.temp
 }
 
 

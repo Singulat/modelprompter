@@ -70,6 +70,7 @@ export const useSkillsModel = defineStore({
     },
     async setDefaultSkill (id) {
       await chrome.storage.sync.set({defaultSkill: id})
+      this.defaultSkill = id
     },
 
     /**

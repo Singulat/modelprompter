@@ -88,7 +88,6 @@ onMounted(async () => {
     const currentIndex = tabs.indexOf(activeTab.value)
     const nextIndex = currentIndex - 1
     if (nextIndex < 0) {
-      activeTab.value = tabs[tabs.length - 1]
       return
     }
     activeTab.value = tabs[nextIndex]
@@ -98,7 +97,6 @@ onMounted(async () => {
     const currentIndex = tabs.indexOf(activeTab.value)
     const nextIndex = currentIndex + 1
     if (nextIndex >= tabs.length) {
-      activeTab.value = tabs[0]
       return
     }
     activeTab.value = tabs[nextIndex]
