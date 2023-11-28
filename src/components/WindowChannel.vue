@@ -50,6 +50,9 @@ onMounted(() => {
 
     if (props.isEditing) {
       const channel = channelsModel.channels[props.isEditing]
+      // Exit if general, because we can't edit it yet
+      if (!channel) return emit('close')
+      
       channelForm.value.name = channel.name
       channelForm.value.systemPrompt = channel.systemPrompt
     }
