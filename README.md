@@ -55,3 +55,6 @@ npm start
 # Stop the server
 # CTRL+C
 ```
+
+## Resources
+- Stylesheet: https://jdan.github.io/98.css/

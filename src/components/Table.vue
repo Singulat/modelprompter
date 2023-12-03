@@ -1,5 +1,5 @@
 <template>
-<div class="sunken-panel fullwidth flex column">
+<div v-bind="$attrs" class="sunken-panel fullwidth flex column">
   <div>
     <table ref="$table" class="interactive fullwidth">
       <thead>
@@ -60,7 +60,6 @@
 import {ref, onMounted, onBeforeUnmount, watch} from 'vue'
 import {useTabsModel} from '../model/tabs.js'
 import Window from '../components/Window.vue'
-import Table from '../components/Table.vue'
 import Mousetrap from 'mousetrap'
 
 // Props

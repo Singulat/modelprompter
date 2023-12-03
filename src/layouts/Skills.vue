@@ -1,17 +1,27 @@
 <template>
-<Table
-ref="$table"
-title="Skill"
-:headings="headings"
-:form="skillForm"
-:data="skillsModel.skills"
-:validateForm="validateForm"
-:defaults="skillDefaults"
-:highlightedRow="skillsModel.defaultSkill"
-@updateHighlightedRow="skillsModel.setDefaultSkill"
-@submit="onSubmit"
-@delete="deleteSkill"
-></Table>
+<div class="flex column">
+  <fieldset class="flex-auto mb1">
+    <legend>Skill Settings</legend>
+    <div class="field-row">
+      <input type="checkbox" id="skills-enabled" @change="toggleAllSkills" :checked="skillsModel.allSkillsDisabled">
+      <label for="skills-enabled">Enabled</label>
+    </div>
+  </fieldset>
+  <Table
+  class="fullheight"
+  ref="$table"
+  title="Skill"
+  :headings="headings"
+  :form="skillForm"
+  :data="skillsModel.skills"
+  :validateForm="validateForm"
+  :defaults="skillDefaults"
+  :highlightedRow="skillsModel.defaultSkill"
+  @updateHighlightedRow="skillsModel.setDefaultSkill"
+  @submit="onSubmit"
+  @delete="deleteSkill"
+  ></Table>
+</div>
 </template>
 
 
@@ -62,6 +72,18 @@ const onSubmit = async (isEditMode, data) => {
  */
 const deleteSkill = () => {
   skillsModel.deleteSkill(skillsModel.defaultSkill)
+}
+
+
+/**
+ * Update settings
+ */
+const toggleAllSkills = (e) => {
+  if (e.target.checked) {
+    skillsModel.disableAllSkills()
+  } else {
+    skillsModel.enableAllSkills()
+  }
 }
 
 

@@ -6,6 +6,7 @@ export const useSkillsModel = defineStore({
   state: () => ({
     skills: {},
     activeSkills: [],
+    allSkillsDisabled: true,
 
     // @todo Rename this to something else...it's now used as the highlighted skill
     defaultSkill: '',
@@ -17,6 +18,7 @@ export const useSkillsModel = defineStore({
       await this.getActiveSkills()
 
       const data = await chrome.storage.sync.get('defaultSkill') || {}
+      this.allSkillsDisabled = !!(await chrome.storage.sync.get('allSkillsDisabled'))?.allSkillsDisabled
       this.defaultSkill = data.defaultSkill || ''
     },
 
@@ -91,6 +93,22 @@ export const useSkillsModel = defineStore({
       })
 
       await chrome.storage.sync.set({skills: this.skills})
-    }
+    },
+
+    /**
+     * Enable all skills
+     */
+    async enableAllSkills () {
+      this.allSkillsDisabled = false
+      await chrome.storage.sync.set({allSkillsDisabled: false})
+    },
+
+    /**
+     * Disable all skills
+     */
+    async disableAllSkills () {
+      this.allSkillsDisabled = true
+      await chrome.storage.sync.set({allSkillsDisabled: true})
+    },
   }
 })
