@@ -221,13 +221,6 @@ const changeRole = async(role)=> channel.changeRole({role, isEditing, messagesMo
 const regenerateMessage = async()=> channel.regenerateMessage({isEditing, messagesModel, sortedMessages, $messages, $promptEl, curPrompt, sendToLLM})
 
 
-/**
- * Bind escape key
- */
-const bindEscape =()=> {
-  Mousetrap.bindGlobal('esc', (ev) => keyboard.cancelEditing({ev, isEditing, cancelEditing, $promptEl}))
-}
-
 
 /**
  * Keyboard shortcuts
@@ -257,4 +250,13 @@ onBeforeUnmount(() => {
   Mousetrap.unbind('ctrl+shift+up')
   Mousetrap.unbind('ctrl+shift+down')
 })
+
+
+
+/**
+ * Bind escape key
+ */
+ const bindEscape =()=> {
+  Mousetrap.bindGlobal('esc', (ev) => keyboard.cancelEditing({ev, isEditing, cancelEditing, $promptEl}))
+}
 </script>

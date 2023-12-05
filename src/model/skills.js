@@ -6,7 +6,7 @@ export const useSkillsModel = defineStore({
   state: () => ({
     skills: {},
     activeSkills: [],
-    allSkillsDisabled: true,
+    allSkillsDisabled: false,
 
     // @todo Rename this to something else...it's now used as the highlighted skill
     defaultSkill: '',

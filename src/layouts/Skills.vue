@@ -20,6 +20,7 @@
   @updateHighlightedRow="skillsModel.setDefaultSkill"
   @submit="onSubmit"
   @delete="deleteSkill"
+  @close="onTableClose"
   ></Table>
 </div>
 </template>
@@ -27,6 +28,7 @@
 
 <script setup>
 import {ref, computed, onMounted} from 'vue'
+import Mousetrap from 'mousetrap'
 import {useSkillsModel} from '../model/skills.js'
 import Table from '../components/Table.vue'
 
@@ -46,7 +48,7 @@ const $table = ref(null)
 const skillsModel = useSkillsModel()
 const skillForm = ref(skillDefaults)
 
-const validateForm = (record) => {
+const validateForm =(record)=> {
   return !!record.name && !!record.response
 }
 
@@ -54,7 +56,7 @@ const validateForm = (record) => {
 /**
  * Submit form
  */
-const onSubmit = async (isEditMode, data) => {
+const onSubmit = async (isEditMode, data)=> {
   let id = skillsModel.defaultSkill
   if (isEditMode) {
     skillsModel.updateSkill(id, data)
@@ -70,7 +72,7 @@ const onSubmit = async (isEditMode, data) => {
 /**
  * Delete a connection
  */
-const deleteSkill = () => {
+const deleteSkill =()=> {
   skillsModel.deleteSkill(skillsModel.defaultSkill)
 }
 
@@ -78,7 +80,7 @@ const deleteSkill = () => {
 /**
  * Update settings
  */
-const toggleAllSkills = (e) => {
+const toggleAllSkills =(e)=> {
   if (e.target.checked) {
     skillsModel.disableAllSkills()
   } else {
@@ -93,11 +95,20 @@ const toggleAllSkills = (e) => {
  * Show modal if no connections,
  * otherwise show default connection
  */
- onMounted(() => {
-  setTimeout(() => {
+ onMounted(()=> {
+  setTimeout(()=> {
     if (Object.keys(skillsModel.skills).length) {
       $table.value.selectRow(skillsModel.defaultSkill)
     }
   }, 0)
+
+  bindEscape()
 })
+
+
+/**
+ * Bind escape key (just let it pass through to close the window)
+ */
+const onTableClose =()=> bindEscape()
+const bindEscape =()=> Mousetrap.bindGlobal('esc', (ev)=> {})
 </script>

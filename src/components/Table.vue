@@ -82,7 +82,7 @@ const isEditMode = ref(false)
 const curForm = ref({})
 const isValidForm = ref(false)
 
-const emit = defineEmits(['submit', 'delete', 'updateHighlightedRow'])
+const emit = defineEmits(['submit', 'delete', 'updateHighlightedRow', 'close'])
 
 watch(curForm, (val) => {
   isValidForm.value = props.validateForm(val)
@@ -105,6 +105,8 @@ const toggleModal = (val) => {
       }
       $form.value.querySelector('input').focus()
     }, 0)
+  } else {
+    emit('close')
   }
 }
 
@@ -122,6 +124,7 @@ const submitForm = () => {
     return
   }
   emit('submit', isEditMode.value, curForm.value)
+  emit('close')
   toggleModal(false)
 }
 
