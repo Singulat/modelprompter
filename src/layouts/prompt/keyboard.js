@@ -115,9 +115,12 @@ export default {
    * Cancel
    */
   cancelEditing ({ev, isEditing, cancelEditing, $promptEl}) {
-    ev.preventDefault()
-    ev.stopPropagation()
+    if (isEditing.value) {
+      ev.preventDefault()
+      ev.stopPropagation()
+    }
     cancelEditing()
+    isEditing.value = false
     $promptEl.value.focus()
   }
 }

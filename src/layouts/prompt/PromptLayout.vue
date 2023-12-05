@@ -30,7 +30,6 @@
       :key="message.id"
       :data-id="message.id"
       @dblclick="$ev => editMessage($ev)"
-      @contextmenu="$ev => editMessage($ev, true)"
       >
         <div class="window">
           <div class="window-body">
@@ -188,7 +187,10 @@ const channelBeingEdited = ref(null)
 const toggleShowMoreChannel =()=> channel.toggleShowMoreChannel({isShowingMoreChannel})
 const showNewChannelModal =()=> channel.showNewChannelModal({channelBeingEdited, isShowingChannelModal})
 const showEditChannelModal =()=> channel.showEditChannelModal({isShowingChannelModal, channelBeingEdited, activeChannel})
-const closeChannelModal =()=> channel.closeChannelModal({isShowingChannelModal, tabsModel})
+const closeChannelModal =()=> {
+  channel.closeChannelModal({isShowingChannelModal, tabsModel})
+  bindEscape()
+}
 
 const onChannelCreated = async(id)=> channel.onChannelCreated({activeChannel, tabsModel, $promptEl, maybeAddSystemPrompt, isShowingMoreChannel, id})
 const onChannelUpdated = async(id)=> channel.onChannelUpdated({id, isShowingChannelModal, isShowingMoreChannel, tabsModel, maybeAddOrUpdateSystemPrompt, $promptEl})
@@ -219,6 +221,13 @@ const changeRole = async(role)=> channel.changeRole({role, isEditing, messagesMo
 const regenerateMessage = async()=> channel.regenerateMessage({isEditing, messagesModel, sortedMessages, $messages, $promptEl, curPrompt, sendToLLM})
 
 
+/**
+ * Bind escape key
+ */
+const bindEscape =()=> {
+  Mousetrap.bindGlobal('esc', (ev) => keyboard.cancelEditing({ev, isEditing, cancelEditing, $promptEl}))
+}
+
 
 /**
  * Keyboard shortcuts
@@ -236,7 +245,7 @@ onMounted(() => {
   Mousetrap.bindGlobal('ctrl+shift+l', (ev) => keyboard.selectChannels({ev, $channels}))
   Mousetrap.bindGlobal('ctrl+shift+up', (ev) => keyboard.prevMessage({ev, $messages, editMessage, isEditing, $promptEl}))
   Mousetrap.bindGlobal('ctrl+shift+down', (ev) => keyboard.nextMessage({ev, $messages, editMessage, isEditing, $promptEl}))
-  Mousetrap.bindGlobal('esc', (ev) => keyboard.cancelEditing({ev, isEditing, cancelEditing, $promptEl}))
+  bindEscape()
 })
 
 onBeforeUnmount(() => {
