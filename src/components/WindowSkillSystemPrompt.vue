@@ -2,7 +2,9 @@
 <Window title="Update Skill System Prompt" class="modal" canClose isModal @close="closeModal">
   <div class="field-row-stacked">
     <label for="skill-system-prompt">System Prompt:</label>
-    <textarea id="skill-system-prompt" ref="skillSystemPrompt" rows="10" autofocus placeholder="Untitled" v-model="skillForm.systemPrompt" @keydown.ctrl.exact.enter.prevent="submitSkillForm" />
+    <textarea id="skill-system-prompt" ref="skillSystemPrompt" rows="7" autofocus placeholder="Untitled" v-model="skillForm.systemPrompt" @keydown.ctrl.exact.enter.prevent="submitSkillForm" />
+    <label for="skill-planning-prompt">Planning Prompt:</label>
+    <textarea id="skill-planning-prompt" ref="skillPlanningPrompt" rows="7" autofocus placeholder="Untitled" v-model="skillForm.planningPrompt" @keydown.ctrl.exact.enter.prevent="submitSkillForm" />
   </div>
 
   <div class="flex pt3">
@@ -35,6 +37,7 @@ onMounted(() => {
   setTimeout(() => {
     tabsModel.adjustZIndex()
     skillForm.value.systemPrompt = skillsModal.systemPrompt
+    skillForm.value.planningPrompt = skillsModal.planningPrompt
     skillSystemPrompt.value.focus()
   }, 0)
 })
@@ -47,6 +50,7 @@ const closeModal = () => {
  */
 const submitSkillForm = async () => {
   await skillsModal.updateSystemPrompt(skillForm.value.systemPrompt)
+  await skillsModal.updatePlanningPrompt(skillForm.value.planningPrompt)
   closeModal()
 }
 </script>

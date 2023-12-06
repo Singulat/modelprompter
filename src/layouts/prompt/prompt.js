@@ -54,26 +54,58 @@ export default {
     curPrompt.value = ''
     
     /**
-     * Extract skills and create a plan of action of necessary
+     * Extract skills
      */
     const skillsToParse = await this.getSkills({skillsModel, messagesModel, prompt})
     const rawSkills = Object.values(skillsModel.skills)
     const passedSkills = []
+    const responses = []
 
     for (let i = 0; i < skillsToParse.length; i++) {
       const response = await sendToLLM(skillsToParse[i], {
         text: `📋 Checking skill: ${rawSkills[i].name}`,
         isGeneratingSkills: true
       })
-
       if (response.skillPassedTest) {
         passedSkills.push(rawSkills[i])
       }
+      responses.push(response)
     }
-    
-    // Finally, send the users prompt
-    // const messages = await messagesModel.getPreparedMessages(activeChannel.value)
-    // await sendToLLM(messages)
+
+    // Send the message through as normal chat if no skills passed
+    if (passedSkills.length === 0) {
+      const messages = await messagesModel.getPreparedMessages(activeChannel.value)
+      await sendToLLM(messages, {text: '🤔 Thinking...', removeResponsesOnFirstToken: responses})
+    } else {
+      const messages = await messagesModel.getPreparedMessages(activeChannel.value)
+
+      /**
+       * Planning stage
+       */
+      // Add the skills
+      for (const skill of passedSkills.reverse()) {
+        messages.unshift({
+          role: 'system',
+          content: `\`\`\`skill_title
+${skill.name}
+\`\`\`
+
+---
+
+\`\`\`skill_response
+${skill.response}
+\`\`\``
+        })
+      }
+
+      // Prepend planning prompt
+      messages.unshift({
+        role: 'system',
+        content: skillsModel.planningPrompt,
+      })
+
+      await sendToLLM(messages, {text: '🤔 Thinking...', removeResponsesOnFirstToken: responses})
+    }
   },
 
   /**
@@ -113,12 +145,6 @@ ${skill.name}
 
 \`\`\`skill_triggers
 ${skill.triggers}
-\`\`\`
-
----
-
-\`\`\`skill_response
-${skill.response}
 \`\`\``,
       })
 
@@ -142,11 +168,14 @@ ${skill.response}
       role: 'assistant',
       text: '',
     }, assistantDefaults))
+    scrollBottom()
     $promptEl.value.focus()
 
     // Extract possible non message
     let isGeneratingSkills = !!assistantDefaults.isGeneratingSkills
     delete assistantDefaults.isGeneratingSkills
+    let removeResponsesOnFirstToken = assistantDefaults.removeResponsesOnFirstToken
+    delete assistantDefaults.removeResponsesOnFirstToken
     
     // Setup connection
     let defaultConnection = connectionsModel.defaultConnection
@@ -160,6 +189,14 @@ ${skill.response}
       dangerouslyAllowBrowser: true
     })
 
+    // Remove previous placeholder responses on first token
+    if (removeResponsesOnFirstToken) {
+      removeResponsesOnFirstToken.forEach(response => {
+        messagesModel.deleteMessage(response.assistantId)
+      })
+      messages.pop()
+    }
+
     // Send to openai
     const completion = await openai.chat.completions.create({
       messages,
@@ -171,16 +208,21 @@ ${skill.response}
     let combinedMessage = isGeneratingSkills ? assistantDefaults.text : ''
     let skillPassedTest = false
     
-    for await (const chunk of completion) {
+    for await (const completionChunk of completion) {
       if (!isGeneratingSkills) {
-        combinedMessage += chunk.choices?.[0]?.delta?.content || ''
-        messagesModel.updateMessage(assistantId, {
-          text: combinedMessage
-        })
+        const chunk = completionChunk.choices?.[0]?.delta?.content || ''
+        
+        if (chunk) {
+          // Concat the chunk
+          combinedMessage += chunk
+          messagesModel.updateMessage(assistantId, {
+            text: combinedMessage
+          })
+        }
       } else {
         // If it's a skill, check if its a good match
-        if (chunk.choices?.[0]?.delta?.content) {
-          if (chunk.choices?.[0]?.delta?.content == '1') {
+        if (completionChunk.choices?.[0]?.delta?.content) {
+          if (completionChunk.choices?.[0]?.delta?.content == '1') {
             messagesModel.updateMessage(assistantId, {
               text: combinedMessage + '\n✅'
             })
@@ -200,7 +242,8 @@ ${skill.response}
 
     return {
       skillPassedTest,
-      combinedMessage
+      combinedMessage,
+      assistantId
     }
   }  
 }
