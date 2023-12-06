@@ -123,6 +123,7 @@ import Mousetrap from 'mousetrap'
 import { useConnectionsModel } from '../../model/connections'
 import {useMessagesModel} from '../../model/messages'
 import {useChannelsModel} from '../../model/channels'
+import { useSkillsModel } from '../../model/skills'
 import {useTabsModel} from '../../model/tabs.js'
 import Menu from '../../components/Menu.vue'
 import WindowChannel from '../../components/WindowChannel.vue'
@@ -159,6 +160,7 @@ const messagesModel = useMessagesModel()
 const connectionsModel = useConnectionsModel()
 const channelsModel = useChannelsModel()
 const tabsModel = useTabsModel()
+const skillsModel = useSkillsModel()
 
 
 /**
@@ -209,7 +211,7 @@ const deleteChannel =()=> channel.deleteChannel({messagesModel, channelsModel, a
  */
 const maybeAddSystemPrompt = async()=> await prompt.maybeAddSystemPrompt({channelsModel, activeChannel, messagesModel})
 const maybeAddOrUpdateSystemPrompt = async()=> await prompt.maybeAddOrUpdateSystemPrompt({channelsModel, activeChannel, messagesModel, sortedMessages})
-const runPrompt = async()=> await prompt.runPrompt({isEditing, curPrompt, messagesModel, activeChannel, sendToLLM, updateMessage})
+const runPrompt = async()=> await prompt.runPrompt({isEditing, curPrompt, skillsModel, messagesModel, activeChannel, sendToLLM, updateMessage})
 const sendToLLM = async(messages, assistantDefaults = {}) => await prompt.sendToLLM({messages, assistantDefaults, isThinking, connectionsModel, activeChannel, messagesModel, $promptEl, scrollBottom})
 
 
@@ -261,7 +263,7 @@ onBeforeUnmount(() => {
 /**
  * Bind escape key
  */
- const bindEscape =()=> {
+const bindEscape =()=> {
   Mousetrap.bindGlobal('esc', (ev) => keyboard.cancelEditing({ev, isEditing, cancelEditing, $promptEl}))
 }
 </script>
