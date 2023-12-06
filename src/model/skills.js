@@ -10,6 +10,19 @@ export const useSkillsModel = defineStore({
 
     // @todo Rename this to something else...it's now used as the highlighted skill
     defaultSkill: '',
+    systemPrompt: `You'll be shown a "Skill" in the form:
+
+\`\`\`json
+{
+  title: 'Skill title',
+  triggers: 'An optional set of conditions that must be met to show this skill',
+  response: 'How you should respond'
+}
+\`\`\`
+
+Your job is simply to respond with 0 or 1 if the skill is a good match for the users prompt.
+
+It's very important that you do not respond with anything other than 0 or 1.`,
   }),
 
   actions: {
@@ -19,6 +32,7 @@ export const useSkillsModel = defineStore({
 
       const data = await chrome.storage.sync.get('defaultSkill') || {}
       this.allSkillsDisabled = !!(await chrome.storage.sync.get('allSkillsDisabled'))?.allSkillsDisabled
+      this.systemPrompt = (await chrome.storage.sync.get('systemPrompt'))?.systemPrompt || this.systemPrompt
       this.defaultSkill = data.defaultSkill || ''
     },
 
@@ -110,5 +124,13 @@ export const useSkillsModel = defineStore({
       this.allSkillsDisabled = true
       await chrome.storage.sync.set({allSkillsDisabled: true})
     },
+
+    /**
+     * Update system prompt
+     */
+    async updateSystemPrompt (systemPrompt) {
+      this.systemPrompt = systemPrompt
+      await chrome.storage.sync.set({systemPrompt: systemPrompt})
+    }
   }
 })

@@ -8,9 +8,10 @@
         <label for="skills-enabled">Enabled</label>
       </div>
       <div style="flex: 0 1 25%"></div>
-      <button class="fill">Skill system prompt</button>
+      <button @click="isShowingSystemPromptModel = true">Skill system prompt</button>
     </div>
   </fieldset>
+  
   <Table
   class="fullheight"
   ref="$table"
@@ -27,14 +28,21 @@
   @close="onTableClose"
   ></Table>
 </div>
+
+<WindowSkillSystemPrompt
+v-if="isShowingSystemPromptModel"
+@close="closeSystemPromptModal"
+></WindowSkillSystemPrompt>
 </template>
 
 
 <script setup>
-import {ref, computed, onMounted} from 'vue'
+import {ref, computed, onMounted, onBeforeUnmount} from 'vue'
 import Mousetrap from 'mousetrap'
 import {useSkillsModel} from '../model/skills.js'
+import {useTabsModel} from '../model/tabs.js'
 import Table from '../components/Table.vue'
+import WindowSkillSystemPrompt from '../components/WindowSkillSystemPrompt.vue'
 
 const skillDefaults = {
   name: 'Untitled',
@@ -50,7 +58,9 @@ const headings = [
 
 const $table = ref(null)
 const skillsModel = useSkillsModel()
+const tabsModel = useTabsModel()
 const skillForm = ref(skillDefaults)
+const isShowingSystemPromptModel = ref(false)
 
 const validateForm =(record)=> {
   return !!record.name && !!record.response
@@ -93,21 +103,43 @@ const toggleAllSkills =(e)=> {
 }
 
 
+/**
+ * Update system prompt
+ */
+const closeSystemPromptModal =()=> {
+  isShowingSystemPromptModel.value = false
+  tabsModel.adjustZIndex()
+  bindEscape()
+}
+
+
 
 
 /**
  * Show modal if no connections,
  * otherwise show default connection
  */
- onMounted(()=> {
+onMounted(()=> {
   setTimeout(()=> {
     if (Object.keys(skillsModel.skills).length) {
       $table.value.selectRow(skillsModel.defaultSkill)
     }
   }, 0)
 
+  Mousetrap.bindGlobal('ctrl+shift+s', showSkillSystemPromptModal)
   bindEscape()
 })
+
+onBeforeUnmount(()=> {
+  Mousetrap.unbind('ctrl+shift+s')
+})
+
+const showSkillSystemPromptModal =(ev)=> {
+  ev.preventDefault()
+  ev.stopPropagation()
+  isShowingSystemPromptModel.value = true
+  bindEscape()
+}
 
 
 /**

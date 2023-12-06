@@ -17,7 +17,13 @@
   </fieldset>
 </div>
 
-<WindowChannel v-if="isShowingChannelModal" @created="onChannelCreated" @updated="onChannelUpdated" @close="closeChannelModal" :isEditing="channelBeingEdited"></WindowChannel>
+<WindowChannel
+v-if="isShowingChannelModal"
+@created="onChannelCreated"
+@updated="onChannelUpdated"
+@close="closeChannelModal"
+:isEditing="channelBeingEdited"
+></WindowChannel>
 
 <div class="overflow fullheight">
   <fieldset ref="$messages" class="messages-wrap overflow fullheight">
