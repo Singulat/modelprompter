@@ -2,9 +2,13 @@
 <div class="flex column">
   <fieldset class="flex-auto mb1">
     <legend>Skill Settings</legend>
-    <div class="field-row">
-      <input type="checkbox" id="skills-enabled" @change="toggleAllSkills" :checked="skillsModel.allSkillsDisabled">
-      <label for="skills-enabled">Enabled</label>
+    <div class="flex">
+      <div class="field-row flex-auto">
+        <input type="checkbox" id="skills-enabled" @change="toggleAllSkills" :checked="skillsModel.allSkillsDisabled">
+        <label for="skills-enabled">Enabled</label>
+      </div>
+      <div style="flex: 0 1 25%"></div>
+      <button class="fill">Skill system prompt</button>
     </div>
   </fieldset>
   <Table
@@ -110,5 +114,5 @@ const toggleAllSkills =(e)=> {
  * Bind escape key (just let it pass through to close the window)
  */
 const onTableClose =()=> bindEscape()
-const bindEscape =()=> Mousetrap.bindGlobal('esc', (ev)=> {})
+const bindEscape =()=> Mousetrap.bindGlobal('esc', ()=> {})
 </script>

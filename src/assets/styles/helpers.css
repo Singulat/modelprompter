@@ -12,6 +12,7 @@
   height: auto !important;
 }
 
+/* White space */
 .overflow {
   overflow: auto;
 }
@@ -29,11 +30,19 @@
   display: inline-block;
 }
 
+.word-break-none {
+  word-break: keep-all;
+}
+
+/* Flex and Grid */
 .flex {
   display: flex;
 }
 .flex-auto {
   flex: auto !important;
+}
+.flex-1 {
+  flex: 1 !important;
 }
 .flex-none {
   flex: none !important;

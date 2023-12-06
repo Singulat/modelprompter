@@ -49,17 +49,16 @@ const onClose = () => {emit('close')}
 const onRestore = () => {emit('restore')}
 
 const onMaximize = () => {
-  if (globalThis.mp.params?.get('context') === 'iframe') {
-    windowHeight.value = '100vh'
-  } else {
-    chrome.runtime.sendMessage({type: 'maximizePopup'})
-  }
+  chrome.runtime.sendMessage({type: 'maximizePopup'})
   emit('maximize')
 }
 
 onMounted(() => {
   setTimeout(() => {
-    globalThis.mp?.params?.get('context') === 'iframe' && onMaximize()
+    if (globalThis.mp?.params?.get('context') === 'iframe') {
+      windowHeight.value = '100vh'
+      emit('maximize')
+    } 
   }, 0)
 
   if (!props.bubbleEsc) {

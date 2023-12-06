@@ -1,5 +1,13 @@
 <template>
-  <Window title="ModelPrompter" :canMax="!isIframe" :bubbleEsc="true" canClose @close="onClose" :style="{height}" bodyClass="flex column overflow-hidden m0 p1 fullwidth fullheight">
+  <Window
+  canClose
+  title="ModelPrompter"
+  :canMax="true"
+  :bubbleEsc="true"
+  @close="onClose"
+  :style="{height}"
+  bodyClass="flex column overflow-hidden m0 p1 fullwidth fullheight"
+  >
     <Tabs ref="tabs" v-model="activeTab" :tabs="mainTabs" @updateTab="$ev => updateTab($ev)">
       <template v-slot:connections>
         <Connections />
