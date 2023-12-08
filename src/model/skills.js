@@ -13,14 +13,14 @@ export const useSkillsModel = defineStore({
     systemPrompt: `You'll be shown a "Skill" in the form:
 
 <pre>
-\`\`\`skill_title
-\${skill.name}
+\`\`\`md {.skill-title}
+
 \`\`\`
 
 ---
 
-\`\`\`skill_triggers
-\${skill.triggers}
+\`\`\` {.skill-trigger}
+
 \`\`\`
 </pre>
 
@@ -32,14 +32,14 @@ It's very important that you do not respond with anything other than 0 or 1.`,
   planningPrompt: `You'll be shown a list of "Skills" that were selected to be used for the users prompt along with how you should use those skills. Only use the skills when they make sense though, these are just a list of what's available to use. The Skills will be shown to you in the form:
 
 <pre>
-\`\`\`skill_title
-\${skill.name}
+\`\`\` {.skill-title}
+
 \`\`\`
 
 ---
 
-\`\`\`skill_response
-\${skill.response}
+\`\`\` {.skill-response}
+
 \`\`\`
 </pre>
 

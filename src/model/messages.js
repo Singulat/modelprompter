@@ -78,7 +78,9 @@ export const useMessagesModel = defineStore({
      */
     updateMessage: throttle(async function (id, message) {
       Object.keys(message).forEach(key => {
-        this.messages[id][key] = message[key]
+        if (message[key]) {
+          this.messages[id][key] = message[key]
+        }
       })
       await chrome.storage.sync.set({messages: this.messages})
 

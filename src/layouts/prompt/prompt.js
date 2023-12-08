@@ -1,4 +1,12 @@
 import OpenAI from 'openai'
+import { debounce } from 'lodash-es'
+import MarkdownIt from 'markdown-it'
+import MarkdownItAttrs from 'markdown-it-attrs'
+
+const md = new MarkdownIt({
+  html: true,
+})
+md.use(MarkdownItAttrs)
 
 export default {
   /**
@@ -38,11 +46,12 @@ export default {
   /**
    * Run prompt
    */
-  async runPrompt ({curPrompt, isEditing, skillsModel, updateMessage, activeChannel, messagesModel, sendToLLM}) {
+  async runPrompt ({$messages, $scriptsContainer, curPrompt, isEditing, skillsModel, updateMessage, activeChannel, messagesModel, sendToLLM}) {
     if (isEditing.value) {
       updateMessage()
       return
     }
+    let response = ''
     
     // Add the users message
     const prompt = curPrompt.value
@@ -87,13 +96,13 @@ export default {
         for (const skill of passedSkills.reverse()) {
           messages.unshift({
             role: 'system',
-            content: `\`\`\`skill_title
+            content: `\`\`\` {.skill-title}
 ${skill.name}
 \`\`\`
 
 ---
 
-\`\`\`skill_response
+\`\`\` {.skill-response}
 ${skill.response}
 \`\`\``
           })
@@ -105,13 +114,38 @@ ${skill.response}
           content: skillsModel.planningPrompt,
         })
 
-        await sendToLLM(messages, {text: '🤔 Thinking...', removeResponsesOnFirstToken: responses})
+        response = await sendToLLM(messages, {text: '🤔 Thinking...', removeResponsesOnFirstToken: responses})
       }
     } else {
       const messages = await messagesModel.getPreparedMessages(activeChannel.value)
-      await sendToLLM(messages, {text: '🤔 Thinking...'})
+      response = await sendToLLM(messages, {text: '🤔 Thinking...'})
     }
+
+    // Extract scripts from the response and run them
+    this.scanAndRunScripts({response, $scriptsContainer})
   },
+
+    /**
+   * Scan and run scripts
+   */
+  scanAndRunScripts: debounce(({response, $scriptsContainer}) => {
+    $scriptsContainer.value.innerHTML = response.combinedMessage
+
+    // Extract script tags and run them
+    $scriptsContainer.value.querySelectorAll('script').forEach(script => {
+      const scriptEl = document.createElement('script')
+      scriptEl.innerHTML = script.innerHTML
+      scriptEl.setAttribute('unsafe-inline', 'true')
+      $scriptsContainer.value.appendChild(scriptEl)
+    })
+
+    // Wrap <video> tags in a container
+    $scriptsContainer.value.querySelectorAll('video').forEach(video => {
+      if (video.parentElement.classList.contains('video-container')) return
+      video.outerHTML = `<div class="video-container">${video.outerHTML}<div class="video-container-mask"></div><i class="q-icon notranslate material-icons">play_circle_filled</i></div>`
+    })
+  }, 100),
+
 
   /**
    * Get skills
@@ -134,7 +168,7 @@ ${skill.response}
       // User Prompt
       skillMessages.push({
         role: 'user',
-        text: `\`\`\`user
+        text: `\`\`\` {.user-prompt}
 ${prompt}
 \`\`\``
       })
@@ -142,13 +176,13 @@ ${prompt}
       // Skill compare against
       skillMessages.push({
         role: 'user',
-        text: `\`\`\`skill_title
+        text: `\`\`\` {.skill-title}
 ${skill.name}
 \`\`\`
 
 ---
 
-\`\`\`skill_triggers
+\`\`\` {.skill-triggers}
 ${skill.triggers}
 \`\`\``,
       })

@@ -17,6 +17,10 @@
   </fieldset>
 </div>
 
+<div class="hidden">
+  <div ref="$scriptsContainer"></div>
+</div>
+
 <WindowChannel
 v-if="isShowingChannelModal"
 @created="onChannelCreated"
@@ -112,9 +116,11 @@ v-if="isShowingChannelModal"
 /**
  * Dependencies
  */
-import {ref, onMounted, onBeforeUnmount, computed} from 'vue'
+import {ref, onMounted, onBeforeUnmount, computed, nextTick} from 'vue'
 import MarkdownIt from 'markdown-it'
+import MarkdownItAttrs from 'markdown-it-attrs'
 import Mousetrap from 'mousetrap'
+import DOMPurify from 'dompurify'
 
 
 /**
@@ -141,7 +147,10 @@ import keyboard from './keyboard'
 /**
  * Refs
  */
-const md = new MarkdownIt()
+const md = new MarkdownIt({
+  html: true,
+})
+md.use(MarkdownItAttrs)
 
 const curPrompt = ref('')
 const isThinking = ref(false)
@@ -151,6 +160,7 @@ const showingChangeRole = ref(false)
 
 const $messages = ref(null)
 const $promptEl = ref(null)
+const $scriptsContainer = ref(null)
 
 
 /**
@@ -180,7 +190,11 @@ onMounted(() => {
 const scrollBottom =()=> helpers.scrollBottom({$messages})
 const sortedMessages = computed(() => helpers.sortedMessages({messagesModel, activeChannel}))
 const showMore =()=> {isShowingMore.value = !isShowingMore.value}
-const renderMarkdown = (text) => md.render(text)
+const renderMarkdown = (text) => {
+  text = DOMPurify.sanitize(md.render(text), { ADD_TAGS: ['iframe'], ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'scrolling'] })
+  return md.render(text)
+}
+
 
 
 /**
@@ -211,7 +225,7 @@ const deleteChannel =()=> channel.deleteChannel({messagesModel, channelsModel, a
  */
 const maybeAddSystemPrompt = async()=> await prompt.maybeAddSystemPrompt({channelsModel, activeChannel, messagesModel})
 const maybeAddOrUpdateSystemPrompt = async()=> await prompt.maybeAddOrUpdateSystemPrompt({channelsModel, activeChannel, messagesModel, sortedMessages})
-const runPrompt = async()=> await prompt.runPrompt({isEditing, curPrompt, skillsModel, messagesModel, activeChannel, sendToLLM, updateMessage})
+const runPrompt = async()=> await prompt.runPrompt({$messages, $scriptsContainer, isEditing, curPrompt, skillsModel, messagesModel, activeChannel, sendToLLM, updateMessage})
 const sendToLLM = async(messages, assistantDefaults = {}) => await prompt.sendToLLM({messages, assistantDefaults, isThinking, connectionsModel, activeChannel, messagesModel, $promptEl, scrollBottom})
 
 
