@@ -56,37 +56,38 @@ export default {
     /**
      * Extract skills
      */
-    const skillsToParse = await this.getSkills({skillsModel, messagesModel, prompt})
-    const rawSkills = Object.values(skillsModel.skills)
-    const passedSkills = []
-    const responses = []
+    if (!skillsModel.allSkillsDisabled) {
+      const skillsToParse = await this.getSkills({skillsModel, messagesModel, prompt})
+      const rawSkills = Object.values(skillsModel.skills)
+      const passedSkills = []
+      const responses = []
 
-    for (let i = 0; i < skillsToParse.length; i++) {
-      const response = await sendToLLM(skillsToParse[i], {
-        text: `📋 Checking skill: ${rawSkills[i].name}`,
-        isGeneratingSkills: true
-      })
-      if (response.skillPassedTest) {
-        passedSkills.push(rawSkills[i])
+      for (let i = 0; i < skillsToParse.length; i++) {
+        const response = await sendToLLM(skillsToParse[i], {
+          text: `📋 Checking skill: ${rawSkills[i].name}`,
+          isGeneratingSkills: true
+        })
+        if (response.skillPassedTest) {
+          passedSkills.push(rawSkills[i])
+        }
+        responses.push(response)
       }
-      responses.push(response)
-    }
 
-    // Send the message through as normal chat if no skills passed
-    if (passedSkills.length === 0) {
-      const messages = await messagesModel.getPreparedMessages(activeChannel.value)
-      await sendToLLM(messages, {text: '🤔 Thinking...', removeResponsesOnFirstToken: responses})
-    } else {
-      const messages = await messagesModel.getPreparedMessages(activeChannel.value)
+      // Send the message through as normal chat if no skills passed
+      if (passedSkills.length === 0) {
+        const messages = await messagesModel.getPreparedMessages(activeChannel.value)
+        await sendToLLM(messages, {text: '🤔 Thinking...', removeResponsesOnFirstToken: responses})
+      } else {
+        const messages = await messagesModel.getPreparedMessages(activeChannel.value)
 
-      /**
-       * Planning stage
-       */
-      // Add the skills
-      for (const skill of passedSkills.reverse()) {
-        messages.unshift({
-          role: 'system',
-          content: `\`\`\`skill_title
+        /**
+         * Planning stage
+         */
+        // Add the skills
+        for (const skill of passedSkills.reverse()) {
+          messages.unshift({
+            role: 'system',
+            content: `\`\`\`skill_title
 ${skill.name}
 \`\`\`
 
@@ -95,16 +96,20 @@ ${skill.name}
 \`\`\`skill_response
 ${skill.response}
 \`\`\``
+          })
+        }
+
+        // Prepend planning prompt
+        messages.unshift({
+          role: 'system',
+          content: skillsModel.planningPrompt,
         })
+
+        await sendToLLM(messages, {text: '🤔 Thinking...', removeResponsesOnFirstToken: responses})
       }
-
-      // Prepend planning prompt
-      messages.unshift({
-        role: 'system',
-        content: skillsModel.planningPrompt,
-      })
-
-      await sendToLLM(messages, {text: '🤔 Thinking...', removeResponsesOnFirstToken: responses})
+    } else {
+      const messages = await messagesModel.getPreparedMessages(activeChannel.value)
+      await sendToLLM(messages, {text: '🤔 Thinking...'})
     }
   },
 

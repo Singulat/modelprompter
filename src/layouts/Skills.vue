@@ -4,7 +4,7 @@
     <legend>Skill Settings</legend>
     <div class="flex">
       <div class="field-row flex-auto">
-        <input type="checkbox" id="skills-enabled" @change="toggleAllSkills" :checked="skillsModel.allSkillsDisabled">
+        <input type="checkbox" id="skills-enabled" @change="toggleAllSkills" :checked="!skillsModel.allSkillsDisabled">
         <label for="skills-enabled">Enabled</label>
       </div>
       <div style="flex: 0 1 25%"></div>
@@ -96,9 +96,9 @@ const deleteSkill =()=> {
  */
 const toggleAllSkills =(e)=> {
   if (e.target.checked) {
-    skillsModel.disableAllSkills()
-  } else {
     skillsModel.enableAllSkills()
+  } else {
+    skillsModel.disableAllSkills()
   }
 }
 
