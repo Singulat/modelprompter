@@ -43,7 +43,7 @@ It's very important that you do not respond with anything other than 0 or 1.`,
 \`\`\`
 </pre>
 
-If no Skills make sense for the latest Prompt in the message history, then just reply to the users message as usual.`
+If no Skills make sense for the latest Prompt in the message history, then just reply to the users message as usual. You're able and expected to output script tags as part of some responses.`
   }),
 
   actions: {

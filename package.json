@@ -4,8 +4,7 @@
   "description": "A prompt manager for browser agents",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon --watch start.js start.js",
-    "dev": "nodemon --watch start.js start.js",
+    "start": "nodemon --watch src --watch manifest.json --watch sandbox.html --exec vite build",
     "build": "vite build",
     "preview": "vite preview"
   },

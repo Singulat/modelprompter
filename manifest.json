@@ -6,6 +6,7 @@
   "icons": {
     "128": "public/favicon.png"
   },
+
   "action": { "default_popup": "index.html" },
   "_execute_action": {
     "suggested_key": {
@@ -16,6 +17,10 @@
       "linux": "Ctrl+Shift+Space"
     },
     "global": true
+  },
+
+  "sandbox": {
+    "pages": ["sandbox.html"]
   },
 
   "background": {

@@ -1,5 +1,4 @@
 import OpenAI from 'openai'
-import { debounce } from 'lodash-es'
 import MarkdownIt from 'markdown-it'
 import MarkdownItAttrs from 'markdown-it-attrs'
 
@@ -128,15 +127,17 @@ ${skill.response}
     /**
    * Scan and run scripts
    */
-  scanAndRunScripts: debounce(({response, $scriptsContainer}) => {
+  async scanAndRunScripts ({response, $scriptsContainer}) {
     $scriptsContainer.value.innerHTML = response.combinedMessage
 
     // Extract script tags and run them
-    $scriptsContainer.value.querySelectorAll('script').forEach(script => {
-      const scriptEl = document.createElement('script')
-      scriptEl.innerHTML = script.innerHTML
-      scriptEl.setAttribute('unsafe-inline', 'true')
-      $scriptsContainer.value.appendChild(scriptEl)
+    $scriptsContainer.value.querySelectorAll('script').forEach(async script => {
+      const $sandbox = document.querySelector('#sandbox')
+      // post message to all
+      $sandbox.contentWindow.postMessage({
+        type: 'evalCode',
+        code: script.innerText
+      }, '*')
     })
 
     // Wrap <video> tags in a container
@@ -144,7 +145,7 @@ ${skill.response}
       if (video.parentElement.classList.contains('video-container')) return
       video.outerHTML = `<div class="video-container">${video.outerHTML}<div class="video-container-mask"></div><i class="q-icon notranslate material-icons">play_circle_filled</i></div>`
     })
-  }, 100),
+  },
 
 
   /**
@@ -228,14 +229,6 @@ ${skill.triggers}
       dangerouslyAllowBrowser: true
     })
 
-    // Remove previous placeholder responses on first token
-    if (removeResponsesOnFirstToken) {
-      removeResponsesOnFirstToken.forEach(response => {
-        messagesModel.deleteMessage(response.assistantId)
-      })
-      messages.pop()
-    }
-
     // Send to openai
     const completion = await openai.chat.completions.create({
       messages,
@@ -275,6 +268,14 @@ ${skill.triggers}
       }
       
       scrollBottom()
+    }
+
+    // Remove previous placeholder responses on first token
+    if (removeResponsesOnFirstToken) {
+      removeResponsesOnFirstToken.forEach(response => {
+        messagesModel.deleteMessage(response.assistantId)
+      })
+      messages.pop()
     }
 
     isThinking.value = false  
