@@ -46,6 +46,7 @@ import { useSkillsModel } from './model/skills'
 import {ref, onMounted, onBeforeMount, watch} from 'vue'
 import Mousetrap from 'mousetrap'
 import 'mousetrap/plugins/global-bind/mousetrap-global-bind.js'
+import hotkeys from 'hotkeys-js'
 
 const activeTab = ref('prompt')
 const height = ref('')
@@ -95,9 +96,16 @@ onMounted(async () => {
   isIframe.value = params.get('context') === 'iframe'
   height.value = isIframe.value ? '100%' : '450px'
   
-  Mousetrap.bindGlobal('ctrl+shift+left', () => {
+  // CTRL+M to create a new window
+  hotkeys.filter =()=> true
+  hotkeys('ctrl+shift+m', {useCapture: true}, () => {
+    chrome.runtime.sendMessage({type: 'maximizePopup'})
+  })
+
+  // Select previous tab
+  hotkeys('ctrl+shift+left', {useCapture: true}, () => {
     if (isThereAModalVisible()) {
-      return
+      return false
     }
     
     const tabs = Object.keys(mainTabs.value)
@@ -108,9 +116,11 @@ onMounted(async () => {
     }
     activeTab.value = tabs[nextIndex]
   })
-  Mousetrap.bindGlobal('ctrl+shift+right', () => {
+
+  // Select next tab
+  hotkeys('ctrl+shift+right', {useCapture: true}, () => {
     if (isThereAModalVisible()) {
-      return
+      return false
     }
     
     const tabs = Object.keys(mainTabs.value)
@@ -120,10 +130,6 @@ onMounted(async () => {
       return
     }
     activeTab.value = tabs[nextIndex]
-  })
-  // Maximize
-  Mousetrap.bindGlobal('ctrl+shift+m', () => {
-    chrome.runtime.sendMessage({type: 'maximizePopup'})
   })
 })
 
