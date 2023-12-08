@@ -1,25 +1,27 @@
-<template>
-  <Window
-  canClose
-  title="ModelPrompter"
-  :canMax="true"
-  :bubbleEsc="true"
-  @close="onClose"
-  :style="{height}"
-  bodyClass="flex column overflow-hidden m0 p1 fullwidth fullheight"
-  >
-    <Tabs ref="tabs" v-model="activeTab" :tabs="mainTabs" @updateTab="$ev => updateTab($ev)">
-      <template v-slot:connections>
-        <Connections />
-      </template>
-      <template v-slot:skills>
-        <Skills />
-      </template>
-      <template v-slot:prompt>
-        <PromptLayout />
-      </template>
-    </Tabs>
-  </Window>
+<template lang="pug">
+Window(
+canClose
+title="ModelPrompter"
+:canMax="true"
+:bubbleEsc="true"
+@close="onClose"
+:style="{height}"
+bodyClass="flex column overflow-hidden m0 p1 fullwidth fullheight"
+)
+  Tabs(
+  ref="tabs"
+  v-model="activeTab"
+  :tabs="mainTabs"
+  @updateTab="$ev => updateTab($ev)"
+  )
+    template(v-slot:settings)
+      Settings
+    template(v-slot:connections)
+      Connections
+    template(v-slot:skills)
+      Skills
+    template(v-slot:prompt)
+      PromptLayout
 </template>
 
 <style>
@@ -34,6 +36,7 @@
 import Window from './components/Window.vue'
 import Tabs from './components/Tabs.vue'
 import PromptLayout from './layouts/prompt/PromptLayout.vue'
+import Settings from './layouts/Settings.vue'
 import Skills from './layouts/Skills.vue'
 import Connections from './layouts/Connections.vue'
 import { useConnectionsModel } from './model/connections'
@@ -47,7 +50,7 @@ import 'mousetrap/plugins/global-bind/mousetrap-global-bind.js'
 const activeTab = ref('prompt')
 const height = ref('')
 const isIframe = ref(false)
-const mainTabs = ref({connections: 'Connections', prompt: 'Prompt', skills: 'Skills'})
+const mainTabs = ref({settings: 'Settings', connections: 'Connections', prompt: 'Prompt', skills: 'Skills'})
 
 const messagesModel = useMessagesModel()
 const connectionsModel = useConnectionsModel()

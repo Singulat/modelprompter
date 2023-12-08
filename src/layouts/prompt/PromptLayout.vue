@@ -1,113 +1,66 @@
-<template>
-<div class="flex-auto">
-  <fieldset class="overflow fullheight">
-    <legend>Channel</legend>
-    <div class="flex">
-      <select ref="$channels" class="mr1" name="channel" v-model="activeChannel" @change="changeCurrentChannel(false)" @keydown.enter="changeCurrentChannel(true)">
-        <option value="general">Scratchpad</option>
-        <option v-for="channel in channelsModel.channels" :key="channel.id" :value="channel.id">{{channel.name}}</option>
-      </select>
-      <button :class="{'flex-auto': true, active: isShowingMoreChannel}" @click="toggleShowMoreChannel">More</button>
-    </div>
-    <div v-if="isShowingMoreChannel" class="flex pt1">
-      <button :disabled="activeChannel == 'general'" class="flex-auto mr1" @click="deleteChannel">Delete</button>
-      <button :disabled="activeChannel == 'general'" class="flex-auto mr1" @click="showEditChannelModal">Edit</button>
-      <button class="flex-auto" @click="showNewChannelModal">New</button>
-    </div>
-  </fieldset>
-</div>
+<template lang="pug">
+.flex-auto
+  fieldset.overflow.fullheight
+    legend Channel
+    .flex
+      select.mr1(ref='$channels' name='channel' v-model='activeChannel' @change='changeCurrentChannel(false)' @keydown.enter='changeCurrentChannel(true)')
+        option(value='general') Scratchpad
+        option(v-for='channel in channelsModel.channels' :key='channel.id' :value='channel.id') {{channel.name}}
+      button(:class="{'flex-auto': true, active: isShowingMoreChannel}" @click='toggleShowMoreChannel') More
+    .flex.pt1(v-if='isShowingMoreChannel')
+      button.flex-auto.mr1(:disabled="activeChannel == 'general'" @click='deleteChannel') Delete
+      button.flex-auto.mr1(:disabled="activeChannel == 'general'" @click='showEditChannelModal') Edit
+      button.flex-auto(@click='showNewChannelModal') New
 
-<div class="hidden">
-  <div ref="$scriptsContainer"></div>
-</div>
+.hidden
+  div(ref='$scriptsContainer')
 
-<WindowChannel
-v-if="isShowingChannelModal"
-@created="onChannelCreated"
-@updated="onChannelUpdated"
-@close="closeChannelModal"
-:isEditing="channelBeingEdited"
-></WindowChannel>
+windowchannel(v-if='isShowingChannelModal' @created='onChannelCreated' @updated='onChannelUpdated' @close='closeChannelModal' :isediting='channelBeingEdited')
 
-<div class="overflow fullheight">
-  <fieldset ref="$messages" class="messages-wrap overflow fullheight">
-    <legend>Messages</legend>
-    <div class="messages">
-      <div
-      v-for="message in sortedMessages"
-      class="message"
-      :data-role="message.role"
-      :key="message.id"
-      :data-id="message.id"
-      @dblclick="$ev => editMessage($ev)"
-      >
-        <div class="window">
-          <div class="window-body">
-            <div v-html="renderMarkdown(message.text)"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </fieldset>
-</div>
+.overflow.fullheight
+  fieldset.messages-wrap.overflow.fullheight(ref='$messages')
+    legend Messages
+    .messages
+      .message(v-for='message in sortedMessages' :data-role='message.role' :key='message.id' :data-id='message.id' @dblclick='$ev => editMessage($ev)')
+        .window
+          .window-body
+            div(v-html='renderMarkdown(message.text)')
 
-<div style="flex: 0;">
-  <div class="flex column fullheight pt1 pb1">
-    <div class="spacer"></div>
-    <div style="flex: 0">
-      <div class="mb1">
-        <textarea ref="$promptEl" id="prompt" v-model="curPrompt" autofocus multiline placeholder="Prompt..." @keydown.ctrl.exact.enter="runPrompt"></textarea>
-      </div>
-
-      <div v-if="isShowingMore" class="mb1">
-        <button class="fullwidth" @click="clearMessages">Clear messages</button>
-      </div>
-
-      <!-- Prompting -->
-      <div v-if="!isEditing" class="flex">
-        <div class="flex-auto mr1">
-          <div style="display: flex; position: relative">
-            <button @click="showMore" :class="{active: isShowingMore}">More</button>
-          </div>
-        </div>
-        <div>
-          <button v-if="!isThinking" class="fullwidth" :disabled="!curPrompt" @click="runPrompt">Run prompt</button>
-          <button v-else class="fullwidth" disabled>Thinking...</button>
-        </div>
-      </div>
-
-      <!-- Editing -->
-      <div v-else>
-        <div class="flex">
-          <div class="mr1">
-            <button @click="showingChangeRole = !showingChangeRole" :class="{fullwidth: true, active: showingChangeRole}">
-              Change role
-              <Menu v-model="roleToChangeTo" dir="n">
-                <li class="hoverable" @click="changeRole('system')">System</li>
-                <li class="hoverable" @click="changeRole('user')">User</li>
-                <li class="hoverable" @click="changeRole('assistant')">Assistant</li>
-              </Menu>
-            </button>
-          </div>
-          <div>
-            <button @click="regenerateMessage" class="fullwidth">Regenerate</button>
-          </div>
-        </div>
-        <div class="flex pt1">
-          <div class="mr1">
-            <button class="fullwidth" @click="cancelEditing">Cancel</button>
-          </div>
-          <div class="mr1">
-            <button class="fullwidth" @click="deleteMessage">Delete</button>
-          </div>
-          <div>
-            <button class="fullwidth" :disabled="!curPrompt" @click="updateMessage">Update</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+div(style='flex: 0;')
+  .flex.column.fullheight.pt1.pb1
+    .spacer
+    div(style='flex: 0')
+      .mb1
+        textarea#prompt(ref='$promptEl' v-model='curPrompt' autofocus='' multiline='' placeholder='Prompt...' @keydown.ctrl.exact.enter='runPrompt')
+      .mb1(v-if='isShowingMore')
+        button.fullwidth(@click='clearMessages') Clear messages
+      // Prompting
+      .flex(v-if='!isEditing')
+        .flex-auto.mr1
+          div(style='display: flex; position: relative')
+            button(@click='showMore' :class='{active: isShowingMore}') More
+        div
+          button.fullwidth(v-if='!isThinking' :disabled='!curPrompt' @click='runPrompt') Run prompt
+          button.fullwidth(v-else='' disabled='') Thinking...
+      // Editing
+      div(v-else='')
+        .flex
+          .mr1
+            button(@click='showingChangeRole = !showingChangeRole' :class='{fullwidth: true, active: showingChangeRole}')
+              | Change role
+              Menu(v-model='roleToChangeTo' dir='n')
+                li.hoverable(@click="changeRole('system')") System
+                li.hoverable(@click="changeRole('user')") User
+                li.hoverable(@click="changeRole('assistant')") Assistant
+          div
+            button.fullwidth(@click='regenerateMessage') Regenerate
+        .flex.pt1
+          .mr1
+            button.fullwidth(@click='cancelEditing') Cancel
+          .mr1
+            button.fullwidth(@click='deleteMessage') Delete
+          div
+            button.fullwidth(:disabled='!curPrompt' @click='updateMessage') Update
 </template>
 
 

@@ -1,5 +1,5 @@
-<template>
-<Table
+<template lang="pug">
+Table(
 ref="$table"
 title="Connection"
 :headings="headings"
@@ -12,7 +12,7 @@ title="Connection"
 @submit="onSubmit"
 @delete="deleteConnection"
 @close="onTableClose"
-></Table>
+)
 </template>
 
 

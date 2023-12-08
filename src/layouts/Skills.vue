@@ -1,38 +1,16 @@
-<template>
-<div class="flex column">
-  <fieldset class="flex-auto mb1">
-    <legend>Skill Settings</legend>
-    <div class="flex">
-      <div class="field-row flex-auto">
-        <input type="checkbox" id="skills-enabled" @change="toggleAllSkills" :checked="!skillsModel.allSkillsDisabled">
-        <label for="skills-enabled">Enabled</label>
-      </div>
-      <div style="flex: 0 1 25%"></div>
-      <button @click="isShowingSystemPromptModel = true">Skill system prompt</button>
-    </div>
-  </fieldset>
-  
-  <Table
-  class="fullheight"
-  ref="$table"
-  title="Skill"
-  :headings="headings"
-  :form="skillForm"
-  :data="skillsModel.skills"
-  :validateForm="validateForm"
-  :defaults="skillDefaults"
-  :highlightedRow="skillsModel.defaultSkill"
-  @updateHighlightedRow="skillsModel.setDefaultSkill"
-  @submit="onSubmit"
-  @delete="deleteSkill"
-  @close="onTableClose"
-  ></Table>
-</div>
+<template lang="pug">
+.flex.column
+  fieldset.flex-auto.mb1
+    legend Skill Settings
+    .flex
+      .field-row.flex-auto
+        input#skills-enabled(type='checkbox' @change='toggleAllSkills' :checked='!skillsModel.allSkillsDisabled')
+        label(for='skills-enabled') Enabled
+      div(style='flex: 0 1 25%')
+      button(@click='isShowingSystemPromptModel = true') Skill system prompt
+  Table.fullheight(ref='$table' title='Skill' :headings='headings' :form='skillForm' :data='skillsModel.skills' :validateform='validateForm' :defaults='skillDefaults' :highlightedrow='skillsModel.defaultSkill' @updatehighlightedrow='skillsModel.setDefaultSkill' @submit='onSubmit' @delete='deleteSkill' @close='onTableClose')
 
-<WindowSkillSystemPrompt
-v-if="isShowingSystemPromptModel"
-@close="closeSystemPromptModal"
-></WindowSkillSystemPrompt>
+WindowSkillSystemPrompt(v-if='isShowingSystemPromptModel' @close='closeSystemPromptModal')
 </template>
 
 
