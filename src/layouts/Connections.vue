@@ -20,7 +20,7 @@ title="Connection"
 import {ref, computed, onMounted} from 'vue'
 import {useConnectionsModel} from '../model/connections.js'
 import Table from '../components/Table.vue'
-import Mousetrap from 'mousetrap'
+import hotkeys from 'hotkeys-js'
 
 const connectDefaults = {
   name: 'GPT4 Turbo',
@@ -90,5 +90,5 @@ onMounted(() => {
  * Bind escape key (just let it pass through to close the window)
  */
 const onTableClose =()=> bindEscape()
-const bindEscape =()=> Mousetrap.bindGlobal('esc', (ev)=> {})
+const bindEscape =()=> hotkeys('esc', (ev)=> {})
 </script>

@@ -72,7 +72,6 @@ div(style='flex: 0;')
 import {ref, onMounted, onBeforeUnmount, computed, nextTick} from 'vue'
 import MarkdownIt from 'markdown-it'
 import MarkdownItAttrs from 'markdown-it-attrs'
-import Mousetrap from 'mousetrap'
 import DOMPurify from 'dompurify'
 
 
@@ -86,7 +85,7 @@ import { useSkillsModel } from '../../model/skills'
 import {useTabsModel} from '../../model/tabs.js'
 import Menu from '../../components/Menu.vue'
 import WindowChannel from '../../components/WindowChannel.vue'
-
+import hotkeys from 'hotkeys-js'
 
 /**
  * Helpers
@@ -205,24 +204,26 @@ onMounted(() => {
     $promptEl.value?.focus()
   }, 100)
   
-  Mousetrap.bindGlobal('ctrl+shift+n', (ev) => keyboard.newChannel({ev, showNewChannelModal}))
-  Mousetrap.bindGlobal('ctrl+shift+e', (ev) => keyboard.editChannel({ev, showEditChannelModal}))
-  Mousetrap.bindGlobal('ctrl+shift+d', (ev) => keyboard.deleteMessage({ev, deleteMessage}))
-  Mousetrap.bindGlobal('ctrl+shift+r', (ev) => keyboard.resetChannel({ev, channelsModel, sortedMessages, deleteChannel, clearMessages, $promptEl}))
-  Mousetrap.bindGlobal('ctrl+shift+l', (ev) => keyboard.selectChannels({ev, $channels}))
-  Mousetrap.bindGlobal('ctrl+shift+up', (ev) => keyboard.prevMessage({ev, $messages, editMessage, isEditing, $promptEl}))
-  Mousetrap.bindGlobal('ctrl+shift+down', (ev) => keyboard.nextMessage({ev, $messages, editMessage, isEditing, $promptEl}))
+  hotkeys('ctrl+shift+n', 'PromptLayout', (ev) => keyboard.newChannel({ev, showNewChannelModal}))
+  hotkeys('ctrl+shift+e', 'PromptLayout', (ev) => keyboard.editChannel({ev, showEditChannelModal}))
+  hotkeys('ctrl+shift+d', 'PromptLayout', (ev) => keyboard.deleteMessage({ev, deleteMessage}))
+  hotkeys('ctrl+shift+r', 'PromptLayout', (ev) => keyboard.resetChannel({ev, channelsModel, sortedMessages, deleteChannel, clearMessages, $promptEl}))
+  hotkeys('ctrl+shift+l', 'PromptLayout', (ev) => keyboard.selectChannels({ev, $channels}))
+  hotkeys('ctrl+shift+up', 'PromptLayout', (ev) => keyboard.prevMessage({ev, $messages, editMessage, isEditing, $promptEl}))
+  hotkeys('ctrl+shift+down', 'PromptLayout', (ev) => keyboard.nextMessage({ev, $messages, editMessage, isEditing, $promptEl}))
+  hotkeys.setScope('PromptLayout')
   bindEscape()
 })
 
 onBeforeUnmount(() => {
-  Mousetrap.unbind('ctrl+shift+n')
-  Mousetrap.unbind('ctrl+shift+e')
-  Mousetrap.unbind('ctrl+shift+d')
-  Mousetrap.unbind('ctrl+shift+r')
-  Mousetrap.unbind('ctrl+shift+l')
-  Mousetrap.unbind('ctrl+shift+up')
-  Mousetrap.unbind('ctrl+shift+down')
+  hotkeys('ctrl+shift+n', 'PromptLayout')
+  hotkeys('ctrl+shift+e', 'PromptLayout')
+  hotkeys('ctrl+shift+d', 'PromptLayout')
+  hotkeys('ctrl+shift+r', 'PromptLayout')
+  hotkeys('ctrl+shift+l', 'PromptLayout')
+  hotkeys('ctrl+shift+up', 'PromptLayout')
+  hotkeys('ctrl+shift+down', 'PromptLayout')
+  hotkeys.deleteScope('PromptLayout')
 })
 
 
@@ -231,6 +232,6 @@ onBeforeUnmount(() => {
  * Bind escape key
  */
 const bindEscape =()=> {
-  Mousetrap.bindGlobal('esc', (ev) => keyboard.cancelEditing({ev, isEditing, cancelEditing, $promptEl}))
+  hotkeys('esc', 'PromptLayout', (ev) => keyboard.cancelEditing({ev, isEditing, cancelEditing, $promptEl}))
 }
 </script>

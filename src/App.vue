@@ -44,7 +44,6 @@ import { useMessagesModel } from './model/messages'
 import { useChannelsModel } from './model/channels'
 import { useSkillsModel } from './model/skills'
 import {ref, onMounted, onBeforeMount, watch} from 'vue'
-import Mousetrap from 'mousetrap'
 import 'mousetrap/plugins/global-bind/mousetrap-global-bind.js'
 import hotkeys from 'hotkeys-js'
 
@@ -98,12 +97,12 @@ onMounted(async () => {
   
   // CTRL+M to create a new window
   hotkeys.filter =()=> true
-  hotkeys('ctrl+shift+m', {useCapture: true}, () => {
+  hotkeys('ctrl+shift+m', () => {
     chrome.runtime.sendMessage({type: 'maximizePopup'})
   })
 
   // Select previous tab
-  hotkeys('ctrl+shift+left', {useCapture: true}, () => {
+  hotkeys('ctrl+shift+left', () => {
     if (isThereAModalVisible()) {
       return false
     }
@@ -118,7 +117,7 @@ onMounted(async () => {
   })
 
   // Select next tab
-  hotkeys('ctrl+shift+right', {useCapture: true}, () => {
+  hotkeys('ctrl+shift+right', () => {
     if (isThereAModalVisible()) {
       return false
     }

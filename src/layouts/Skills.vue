@@ -16,7 +16,7 @@ WindowSkillSystemPrompt(v-if='isShowingSystemPromptModel' @close='closeSystemPro
 
 <script setup>
 import {ref, computed, onMounted, onBeforeUnmount} from 'vue'
-import Mousetrap from 'mousetrap'
+import hotkeys from 'hotkeys-js'
 import {useSkillsModel} from '../model/skills.js'
 import {useTabsModel} from '../model/tabs.js'
 import Table from '../components/Table.vue'
@@ -104,12 +104,14 @@ onMounted(()=> {
     }
   }, 0)
 
-  Mousetrap.bindGlobal('ctrl+shift+s', showSkillSystemPromptModal)
+  hotkeys('ctrl+shift+s', 'SkillsModal', showSkillSystemPromptModal)
+  hotkeys.setScope('SkillsModal')
   bindEscape()
 })
 
 onBeforeUnmount(()=> {
-  Mousetrap.unbind('ctrl+shift+s')
+  hotkeys.unbind('ctrl+shift+s', 'SkillsModal')
+  hotkeys.deleteScope('SkillsModal')
 })
 
 const showSkillSystemPromptModal =(ev)=> {
@@ -124,5 +126,5 @@ const showSkillSystemPromptModal =(ev)=> {
  * Bind escape key (just let it pass through to close the window)
  */
 const onTableClose =()=> bindEscape()
-const bindEscape =()=> Mousetrap.bindGlobal('esc', ()=> {})
+const bindEscape =()=> hotkeys('esc', ()=> {})
 </script>
