@@ -1,22 +1,16 @@
-<template>
-<Window :title="props.isEditing ? 'Update channel' : 'Add new channel'" class="modal" canClose isModal @close="closeModal">
-  <div class="field-row-stacked">
-    <label for="channel-name">Channel:</label>
-    <input type="text" id="channel-name" ref="channelName" autofocus placeholder="Untitled" v-model="channelForm.name" @keydown.ctrl.exact.enter.prevent="submitChannelForm" />
-  </div>
-  <div class="field-row-stacked">
-    <label for="channel-name">System Prompt:</label>
-    <textarea id="channel-system-prompt" ref="channelSystemPrompt" autofocus placeholder="Untitled" v-model="channelForm.systemPrompt" @keydown.ctrl.exact.enter.prevent="submitChannelForm" />
-  </div>
-
-  <div class="flex pt3">
-    <button class="flex-auto mr2" @click="closeModal">Cancel</button>
-    <button ref="addChannelButton" :disabled="!isValidForm" @click="submitChannelForm">
-      <span v-if="isEditing">Update channel</span>
-      <span v-else>Add channel</span>
-    </button>
-  </div>
-</Window>
+<template lang="pug">
+window.modal(:title="props.isEditing ? 'Update channel' : 'Add new channel'" canclose='' ismodal='' @close='closeModal')
+  .field-row-stacked
+    label(for='channel-name') Channel:
+    input#channel-name(type='text' ref='channelName' autofocus='' placeholder='Untitled' v-model='channelForm.name' @keydown.ctrl.exact.enter.prevent='submitChannelForm')
+  .field-row-stacked
+    label(for='channel-name') System Prompt:
+    textarea#channel-system-prompt(ref='channelSystemPrompt' autofocus='' placeholder='Untitled' v-model='channelForm.systemPrompt' @keydown.ctrl.exact.enter.prevent='submitChannelForm')
+  .flex.pt3
+    button.flex-auto.mr2(@click='closeModal') Cancel
+    button(ref='addChannelButton' :disabled='!isValidForm' @click='submitChannelForm')
+      span(v-if='isEditing') Update channel
+      span(v-else='') Add channel
 </template>
 
 <script setup>

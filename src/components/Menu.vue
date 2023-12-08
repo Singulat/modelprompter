@@ -1,11 +1,8 @@
-<template>
-<div ref="$menu" v-if="modelValue" class="window menu" @click="stopBubble">
-  <div class="window-body">
-    <menu>
-      <slot></slot>
-    </menu>
-  </div>
-</div>
+<template lang="pug">
+.window.menu(ref='$menu' v-if='modelValue' @click='stopBubble')
+  .window-body
+    menu
+      slot
 </template>
 
 <script setup>

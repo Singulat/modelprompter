@@ -1,18 +1,14 @@
-<template>
-<div :class="{'window': true, 'modal': isModal}" :style="{...props.style, height: windowHeight}" role="tabpanel">
-  <div class="title-bar">
-    <div class="title-bar-text">{{title}}</div>
-    <div class="title-bar-controls">
-      <button v-if="canRestore" aria-label="Restore" @click="onRestore"></button>
-      <button v-if="canMin" aria-label="Minimize" @click="onMinimize"></button>
-      <button v-if="canMax" aria-label="Maximize" @click="onMaximize"></button>
-      <button v-if="canClose" aria-label="Close" @click="onClose"></button>
-    </div>
-  </div>
-  <div :class="'window-body ' + bodyClass" :style="bodyStyle">
-    <slot></slot>
-  </div>
-</div>  
+<template lang="pug">
+div(:class="{'window': true, 'modal': isModal}" :style='{...props.style, height: windowHeight}' role='tabpanel')
+  .title-bar
+    .title-bar-text {{title}}
+    .title-bar-controls
+      button(v-if='canRestore' aria-label='Restore' @click='onRestore')
+      button(v-if='canMin' aria-label='Minimize' @click='onMinimize')
+      button(v-if='canMax' aria-label='Maximize' @click='onMaximize')
+      button(v-if='canClose' aria-label='Close' @click='onClose')
+  div(:class="'window-body ' + bodyClass" :style='bodyStyle')
+    slot
 </template>
 
 <script setup>

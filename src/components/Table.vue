@@ -1,59 +1,40 @@
-<template>
-<div v-bind="$attrs" class="sunken-panel fullwidth flex column">
-  <div>
-    <table ref="$table" class="interactive fullwidth">
-      <thead>
-        <slot name="theader">
-          <tr style="flex: 0">
-            <th v-for="heading in props.headings" :class="heading.class">{{ heading.content }}</th>
-          </tr>
-        </slot>
-      </thead>
-      <tbody>
-        <tr @click="clickedRow" @dblclick="showEditModal" @contextmenu="ev => clickedRow(ev) | showEditModal(ev)" v-for="(record, dataKey) in data" :key=dataKey :class="{'highlighted': dataKey == props.highlightedRow}" :data-id="dataKey">
-          <td v-for="heading in props.headings" :class="heading.class" :key="heading.key">
-            {{ record[heading.key] }}
-          </td>
-        </tr>
-        <slot name="tbody"></slot>
-      </tbody>
-    </table>
-  </div>
-</div>
+<template lang="pug">
+.sunken-panel.fullwidth.flex.column(v-bind='$attrs')
+  div
+    table.interactive.fullwidth(ref='$table')
+      thead
+        slot(name='theader')
+          tr(style='flex: 0')
+            th(v-for='heading in props.headings' :class='heading.class') {{ heading.content }}
+      tbody
+        tr(@click='clickedRow' @dblclick='showEditModal' @contextmenu='ev => clickedRow(ev) | showEditModal(ev)' v-for='(record, dataKey) in data' :key='dataKey' :class="{'highlighted': dataKey == props.highlightedRow}" :data-id='dataKey')
+          td(v-for='heading in props.headings' :class='heading.class' :key='heading.key')
+            | {{ record[heading.key] }}
+        slot(name='tbody')
 
-<!-- Bottom of  form -->
-<div class="flex-auto pt1">
-  <div class="flex">
-    <button class="flex-auto mr1" :class="{hidden: !props.highlightedRow}" @click="deleteRecord">Delete</button>
-    <button class="mr1" :class="{hidden: !props.highlightedRow}" @click="showEditModal">Edit</button>
-    <button @click="showAddModal">New</button>
-  </div>
-</div>
+// Bottom of  form
+.flex-auto.pt1
+  .flex
+    button.flex-auto.mr1(:class='{hidden: !props.highlightedRow}' @click='deleteRecord') Delete
+    button.mr1(:class='{hidden: !props.highlightedRow}' @click='showEditModal') Edit
+    button(@click='showAddModal') New
 
-<!-- Modal -->
-<Window v-if="isModalOpen" :title="isEditMode ? 'Update ' + props.title.toLowerCase() : 'Add new ' + props.title.toLowerCase()" class="modal" canClose isModal @close="toggleModal(false)">
-  <div class="autoscroll">
-    <div class="flex column fullheight">
-      <div ref="$form">
-        <!-- Loop for each root form field -->
-        <div v-for="key, n in Object.keys(defaults)" class="field-row-stacked">
-          <label :for="`field-${key}`">{{ key }}:</label>
-          <input v-if="!headings[n]?.field?.type || headings[n]?.field?.type == 'text'" @keydown.ctrl.exact.enter.prevent="submitForm" :id="`field-${key}`" type="text" v-model="curForm[key]">
-          <textarea v-else-if="headings[n]?.field?.type == 'textarea'" @keydown.ctrl.exact.enter.prevent="submitForm" :id="`field-${key}`" :rows="headings[n]?.field?.rows || 3" v-model="curForm[key]"></textarea>
-        </div>
-      </div>
-      <div>
-        <div class="flex pt3">
-          <button class="flex-auto mr2" @click="closeModal">Cancel</button>
-          <button ref="addButton" :disabled="!isValidForm" @click="submitForm">
-            <span v-if="isEditMode">Update {{ props.title }}</span>
-            <span v-else>Add {{ props.title }}</span>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-</Window>
+// Modal
+window.modal(v-if='isModalOpen' :title="isEditMode ? 'Update ' + props.title.toLowerCase() : 'Add new ' + props.title.toLowerCase()" canclose='' ismodal='' @close='toggleModal(false)')
+  .autoscroll
+    .flex.column.fullheight
+      div(ref='$form')
+        // Loop for each root form field
+        .field-row-stacked(v-for='key, n in Object.keys(defaults)')
+          label(:for='`field-${key}`') {{ key }}:
+          input(v-if="!headings[n]?.field?.type || headings[n]?.field?.type == 'text'" @keydown.ctrl.exact.enter.prevent='submitForm' :id='`field-${key}`' type='text' v-model='curForm[key]')
+          textarea(v-else-if="headings[n]?.field?.type == 'textarea'" @keydown.ctrl.exact.enter.prevent='submitForm' :id='`field-${key}`' :rows='headings[n]?.field?.rows || 3' v-model='curForm[key]')
+      div
+        .flex.pt3
+          button.flex-auto.mr2(@click='closeModal') Cancel
+          button(ref='addButton' :disabled='!isValidForm' @click='submitForm')
+            span(v-if='isEditMode') Update {{ props.title }}
+            span(v-else='') Add {{ props.title }}
 </template>
 
 <script setup>

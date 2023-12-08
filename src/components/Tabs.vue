@@ -1,16 +1,11 @@
-<template>
-<menu role="tablist">
-  <li v-for="(label, id) in tabs" :key="id" role="tab" :aria-selected="(id === modelValue) ? 'true' : 'false'">
-    <a :href="'#' + id" @click="emit('updateTab', id)">{{label}}</a>
-  </li>
-</menu>
-<div ref="tabPanel" class="window" role="tabpanel" :style="{zIndex: (hasModals ? 100 : 5)}">
-  <template v-for="(label, id) in tabs" :key="id">
-    <div v-if="id===modelValue" class="window-body flex column overflow-hidden">
-      <slot :name="id"></slot>
-    </div>
-  </template>
-</div>
+<template lang="pug">
+menu(role='tablist')
+  li(v-for='(label, id) in tabs' :key='id' role='tab' :aria-selected="(id === modelValue) ? 'true' : 'false'")
+    a(:href="'#' + id" @click="emit('updateTab', id)") {{label}}
+.window(ref='tabPanel' role='tabpanel' :style='{zIndex: (hasModals ? 100 : 5)}')
+  template(v-for='(label, id) in tabs' :key='id')
+    .window-body.flex.column.overflow-hidden(v-if='id===modelValue')
+      slot(:name='id')
 </template>
 
 <script setup>
