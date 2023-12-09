@@ -83,6 +83,9 @@ export default {
     // Highlight current one
     const $target = target.closest('.message')
     $target.classList.add('highlight')
+
+    // Scroll to it
+    $target.scrollIntoView({behavior: 'smooth', block: 'center'})
   },
 
   /**

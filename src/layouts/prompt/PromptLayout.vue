@@ -35,8 +35,8 @@ restoreHotkeysScope='PromptLayout'
 div(style='flex: 0;')
   .flex.column.fullheight.pt1.pb1
     .spacer
-    div(style='flex: 0' v-if='!isSelecting')
-      .mb1
+    div(style='flex: 0')
+      .mb1(v-if='!isSelecting')
         textarea#prompt(
         ref='$promptEl'
         :class='{"bubble-arrow-hotkeys": !curPrompt?.trim()?.length}'
@@ -48,7 +48,7 @@ div(style='flex: 0;')
       .mb1(v-if='isShowingMore')
         button.fullwidth(@click='clearMessages') Clear messages
       // Prompting
-      .flex(v-if='!isEditing')
+      .flex(v-if='!isEditing && !isSelecting')
         .flex-auto.mr1
           div(style='display: flex; position: relative')
             button(@click='showMore' :class='{active: isShowingMore}') More
@@ -56,7 +56,7 @@ div(style='flex: 0;')
           button.fullwidth(v-if='!isThinking' :disabled='!curPrompt' @click='runPrompt') Run prompt
           button.fullwidth(v-else='' disabled='') Thinking...
       // Editing
-      div(v-else)
+      div(v-if='isEditing || isSelecting')
         .flex
           .mr1
             button(@click='showingChangeRole = !showingChangeRole' :class='{fullwidth: true, active: showingChangeRole}')
