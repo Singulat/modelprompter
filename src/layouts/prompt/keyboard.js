@@ -134,8 +134,8 @@ export default {
    */
   onEsc ({ev, isEditing, isSelecting, $promptEl, curPrompt, $messages}) {
     if (isEditing.value || isSelecting.value) {
-      ev.preventDefault()
-      ev.stopPropagation()
+      ev?.preventDefault()
+      ev?.stopPropagation()
     }
     curPrompt.value = ''
 
@@ -157,8 +157,8 @@ export default {
    */
   cancelEditing ({ev, isEditing, isSelecting, $promptEl}) {
     if (isEditing.value) {
-      ev.preventDefault()
-      ev.stopPropagation()
+      ev?.preventDefault()
+      ev?.stopPropagation()
     }
     isEditing.value = false
     isSelecting.value = false

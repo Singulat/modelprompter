@@ -208,7 +208,14 @@ const isSelecting = ref(false)
 const selectMessage = (ev)=> channel.selectMessage(ev)
 const clearMessages =()=> channel.clearMessages({isShowingMore, messagesModel, activeChannel, maybeAddSystemPrompt, $promptEl})
 const onMessageEdit = (ev)=> channel.onMessageEdit({ev, selectMessage, editSelectedMessage: keyboard.editSelectedMessage, isEditing, isSelecting, $messages, isEditing, curPrompt, isSelecting, $promptEl, messagesModel})
-const cancelEditing =()=> channel.cancelEditing({isEditing, isSelecting, $promptEl})
+const cancelEditing =()=> {
+  hotkeys.trigger('esc', 'PromptLayout')
+  isEditing.value = false
+  isSelecting.value = false
+  curPrompt.value = ''
+  $promptEl.value?.focus()
+  $messages.value?.querySelector('.highlight')?.classList.remove('highlight')
+}
 const updateMessage = async()=> channel.updateMessage({isEditing, messagesModel, curPrompt, activeChannel, channelsModel, sortedMessages, $messages, $promptEl})
 const deleteMessage = async()=> channel.deleteMessage({isEditing, messagesModel, curPrompt, $messages, $promptEl})
 const changeRole = async(role)=> channel.changeRole({role, isEditing, messagesModel, $messages, $promptEl})
