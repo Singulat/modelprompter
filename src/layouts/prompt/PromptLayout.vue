@@ -37,7 +37,7 @@ div(style='flex: 0;')
     .spacer
     div(style='flex: 0')
       .mb1
-        textarea#prompt(ref='$promptEl' v-model='curPrompt' autofocus='' multiline='' placeholder='Prompt...' @keydown.ctrl.exact.enter='runPrompt')
+        textarea#prompt(ref='$promptEl' :class='{"bubble-arrow-hotkeys": !curPrompt?.trim()?.length}' v-model='curPrompt' autofocus='' multiline='' placeholder='Prompt...' @keydown.ctrl.exact.enter='runPrompt')
       .mb1(v-if='isShowingMore')
         button.fullwidth(@click='clearMessages') Clear messages
       // Prompting
@@ -215,8 +215,12 @@ onMounted(() => {
   hotkeys('ctrl+shift+d', 'PromptLayout', (ev) => keyboard.deleteMessage({ev, deleteMessage}))
   hotkeys('ctrl+shift+r', 'PromptLayout', (ev) => keyboard.resetChannel({ev, channelsModel, sortedMessages, deleteChannel, clearMessages, $promptEl}))
   hotkeys('ctrl+shift+l', 'PromptLayout', (ev) => keyboard.selectChannels({ev, $channels}))
+  
   hotkeys('ctrl+shift+up', 'PromptLayout', (ev) => keyboard.prevMessage({ev, $messages, editMessage, isEditing, $promptEl}))
   hotkeys('ctrl+shift+down', 'PromptLayout', (ev) => keyboard.nextMessage({ev, $messages, editMessage, isEditing, $promptEl}))
+  hotkeys('up', 'PromptLayout', (ev) => keyboard.prevMessage({ev, $messages, editMessage, isEditing, $promptEl}))
+  hotkeys('down', 'PromptLayout', (ev) => keyboard.nextMessage({ev, $messages, editMessage, isEditing, $promptEl}))
+  
   hotkeys.setScope('PromptLayout')
 })
 

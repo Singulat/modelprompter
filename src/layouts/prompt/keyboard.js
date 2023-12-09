@@ -56,8 +56,14 @@ export default {
    * Enter selection mode (or select the prev message)
    */
   prevMessage ({ev, $messages, editMessage, isEditing, $promptEl}) {
-    ev.preventDefault()
-    ev.stopPropagation()
+    // Ignore naked arrows if in an input without bubbling
+    if (!ev.shiftKey && !ev.ctrlKey && ['INPUT', 'TEXTAREA'].includes(ev.target.tagName) && !ev.target.classList.contains('bubble-arrow-hotkeys')) {
+      return
+    }
+    if (!ev.shiftKey || !ev.ctrlKey) {
+      ev.preventDefault()
+      ev.stopPropagation()
+    }
 
     const $messageEls = $messages.value.querySelectorAll('.message')
     if (!$messageEls.length) {
@@ -91,12 +97,18 @@ export default {
    * Next message
    */
   nextMessage ({ev, $messages, editMessage, isEditing, $promptEl}) {
-    ev.preventDefault()
-    ev.stopPropagation()
-
-    const $messageEls = $messages.value.querySelectorAll('.message')
+    // Ignore naked arrows if in an input without bubbling
+    if (!ev.shiftKey && !ev.ctrlKey && ['INPUT', 'TEXTAREA'].includes(ev.target.tagName) && !ev.target.classList.contains('bubble-arrow-hotkeys')) {
+      return
+    }
+    if (!ev.shiftKey || !ev.ctrlKey) {
+      ev.preventDefault()
+      ev.stopPropagation()
+    }
+    
     
     // If already editing, select the next message
+    const $messageEls = $messages.value.querySelectorAll('.message')
     let $message
     if (isEditing.value) {
       $message = $messages.value.querySelector(`.message[data-id="${isEditing.value}"]`)

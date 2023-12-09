@@ -70,12 +70,12 @@ onMounted(() => {
   }, 0)
 
   if (!props.bubbleEsc) {
-    hotkeys('esc', 'Window', (ev) => {
+    hotkeys('esc', props.hotkeysScope, (ev) => {
       ev.preventDefault()
       ev.stopPropagation()
       onClose()
     })
   }
-  hotkeys.setScope(props.hotkeysScope)
+  props.hotkeysScope && hotkeys.setScope(props.hotkeysScope)
 })
 </script>

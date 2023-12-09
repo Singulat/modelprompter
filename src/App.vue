@@ -6,6 +6,7 @@ title="ModelPrompter"
 :bubbleEsc="true"
 @close="onClose"
 :style="{height}"
+hotkeysScope=""
 bodyClass="flex column overflow-hidden m0 p1 fullwidth fullheight"
 )
   Tabs(
@@ -101,9 +102,12 @@ onMounted(async () => {
   })
 
   // Select previous tab
-  hotkeys('ctrl+shift+left', () => {
+  const prevTab =(ev)=> {
     if (isThereAModalVisible()) {
       return false
+    }
+    if (!ev.shiftKey && !ev.ctrlKey && ['INPUT', 'TEXTAREA'].includes(ev.target.tagName) && !ev.target.classList.contains('bubble-arrow-hotkeys')) {
+      return
     }
     
     const tabs = Object.keys(mainTabs.value)
@@ -113,12 +117,17 @@ onMounted(async () => {
       return
     }
     activeTab.value = tabs[nextIndex]
-  })
+  }
+  hotkeys('ctrl+shift+left', prevTab)
+  hotkeys('left', prevTab)
 
   // Select next tab
-  hotkeys('ctrl+shift+right', () => {
+  const nextTab =(ev)=> {
     if (isThereAModalVisible()) {
       return false
+    }
+    if (!ev.shiftKey && !ev.ctrlKey && ['INPUT', 'TEXTAREA'].includes(ev.target.tagName) && !ev.target.classList.contains('bubble-arrow-hotkeys')) {
+      return
     }
     
     const tabs = Object.keys(mainTabs.value)
@@ -128,7 +137,9 @@ onMounted(async () => {
       return
     }
     activeTab.value = tabs[nextIndex]
-  })
+  }
+  hotkeys('ctrl+shift+right', nextTab)
+  hotkeys('right', nextTab)
 })
 
 // Check if a .window.modal is visible

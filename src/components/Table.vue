@@ -58,6 +58,10 @@ const props = defineProps({
     type: String,
     default: 'Table'
   },
+  deleteHotkeysScope: {
+    type: Boolean,
+    default: true
+  },
   restoreHotkeysScope: String
 })
 
@@ -96,6 +100,9 @@ const toggleModal = (val) => {
   } else {
     if (props.restoreHotkeysScope) {
       hotkeys.setScope(props.restoreHotkeysScope)
+    }
+    if (props.deleteHotkeysScope) {
+      hotkeys.deleteScope(props.deleteHotkeysScope)
     }
     emit('close')
   }
@@ -243,7 +250,7 @@ onMounted(() => {
 
   // Select prev
   const selectPrev = (ev) => {
-    if (isModalOpen.value) {
+    if (isModalOpen.value || !$table.value) {
       return
     }
     ev.preventDefault()
@@ -262,7 +269,7 @@ onMounted(() => {
   
   // Select next
   const selectNext = (ev) => {
-    if (isModalOpen.value) {
+    if (isModalOpen.value || !$table.value) {
       return
     }
     ev.preventDefault()
