@@ -8,7 +8,7 @@
         label(for='skills-enabled') Enabled
       div(style='flex: 0 1 25%')
       button(@click='isShowingSystemPromptModel = true') Skill system prompt
-  Table.fullheight(ref='$table' title='Skill' :headings='headings' :form='skillForm' :data='skillsModel.skills' :validateform='validateForm' :defaults='skillDefaults' :highlightedrow='skillsModel.defaultSkill' @updatehighlightedrow='skillsModel.setDefaultSkill' @submit='onSubmit' @delete='deleteSkill' @close='onTableClose')
+  Table.fullheight(ref='$table' hotkeysScope="Skills" title='Skill' :headings='headings' :form='skillForm' :data='skillsModel.skills' :validateform='validateForm' :defaults='skillDefaults' :highlightedrow='skillsModel.defaultSkill' @updatehighlightedrow='skillsModel.setDefaultSkill' @submit='onSubmit' @delete='deleteSkill' @close='onTableClose')
 
 WindowSkillSystemPrompt(v-if='isShowingSystemPromptModel' @close='closeSystemPromptModal')
 </template>
@@ -104,14 +104,13 @@ onMounted(()=> {
     }
   }, 0)
 
-  hotkeys('ctrl+shift+s', 'SkillsModal', showSkillSystemPromptModal)
-  hotkeys.setScope('SkillsModal')
+  hotkeys('ctrl+shift+s', 'Skills', showSkillSystemPromptModal)
+  hotkeys.setScope('Skills')
   bindEscape()
 })
 
 onBeforeUnmount(()=> {
-  hotkeys.unbind('ctrl+shift+s', 'SkillsModal')
-  hotkeys.deleteScope('SkillsModal')
+  hotkeys.deleteScope('Skills')
 })
 
 const showSkillSystemPromptModal =(ev)=> {

@@ -20,7 +20,7 @@
     button(@click='showAddModal') New
 
 // Modal
-window.modal(v-if='isModalOpen' :title="isEditMode ? 'Update ' + props.title.toLowerCase() : 'Add new ' + props.title.toLowerCase()" canclose='' ismodal='' @close='toggleModal(false)')
+Window.modal(v-if='isModalOpen' :title="isEditMode ? 'Update ' + props.title.toLowerCase() : 'Add new ' + props.title.toLowerCase()" canClose='' isModal='' @close='toggleModal(false)')
   .autoscroll
     .flex.column.fullheight
       div(ref='$form')
@@ -41,7 +41,7 @@ window.modal(v-if='isModalOpen' :title="isEditMode ? 'Update ' + props.title.toL
 import {ref, onMounted, onBeforeUnmount, watch} from 'vue'
 import {useTabsModel} from '../model/tabs.js'
 import Window from '../components/Window.vue'
-import Mousetrap from 'mousetrap'
+import hotkeys from 'hotkeys-js'
 
 // Props
 const props = defineProps({
@@ -52,6 +52,13 @@ const props = defineProps({
   highlightedRow: String,
   defaults: Object,
   validateForm: Function,
+  
+  // shortcut namespaces
+  hotkeysScope: {
+    type: String,
+    default: 'Table'
+  },
+  restoreHotkeysScope: String
 })
 
 const $table = ref(null)
@@ -87,6 +94,9 @@ const toggleModal = (val) => {
       $form.value.querySelector('input').focus()
     }, 0)
   } else {
+    if (props.restoreHotkeysScope) {
+      hotkeys.setScope(props.restoreHotkeysScope)
+    }
     emit('close')
   }
 }
@@ -199,7 +209,7 @@ const deleteRecord = () => {
  */
 onMounted(() => {
 // Show new
-  Mousetrap.bindGlobal('ctrl+shift+n', (ev) => {
+  hotkeys('ctrl+shift+n', props.hotkeysScope, (ev) => {
     if (isModalOpen.value) {
       return
     }
@@ -208,7 +218,7 @@ onMounted(() => {
     showAddModal()
   })
   // Edit
-  Mousetrap.bindGlobal('ctrl+shift+e', (ev) => {
+  hotkeys('ctrl+shift+e', props.hotkeysScope, (ev) => {
     if (isModalOpen.value) {
       return
     }
@@ -220,7 +230,7 @@ onMounted(() => {
   })
   
   // Delete
-  Mousetrap.bindGlobal('ctrl+shift+d', (ev) => {
+  hotkeys('ctrl+shift+d', props.hotkeysScope, (ev) => {
     if (isModalOpen.value) {
       return
     }
@@ -247,9 +257,9 @@ onMounted(() => {
       }
     }
   }
-  Mousetrap.bindGlobal('up', selectPrev)
-  Mousetrap.bindGlobal('ctrl+shift+up', selectPrev)
-
+  hotkeys('up', props.hotkeysScope, selectPrev)
+  hotkeys('ctrl+shift+up', props.hotkeysScope, selectPrev)
+  
   // Select next
   const selectNext = (ev) => {
     if (isModalOpen.value) {
@@ -266,17 +276,8 @@ onMounted(() => {
       }
     }
   }
-  Mousetrap.bindGlobal('down', selectNext)
-  Mousetrap.bindGlobal('ctrl+shift+down', selectNext)
-})
-
-onBeforeUnmount(() => {
-  Mousetrap.unbind('ctrl+shift+n')
-  Mousetrap.unbind('ctrl+shift+e')
-  Mousetrap.unbind('ctrl+shift+d')
-  Mousetrap.unbind('ctrl+shift+up')
-  Mousetrap.unbind('ctrl+shift+down')
-  Mousetrap.unbind('up')
-  Mousetrap.unbind('down')
+  hotkeys('down', props.hotkeysScope, selectNext)
+  hotkeys('ctrl+shift+down', props.hotkeysScope, selectNext)
+  hotkeys.setScope(props.hotkeysScope)
 })
 </script>

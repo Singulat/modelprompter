@@ -13,7 +13,7 @@ div(:class="{'window': true, 'modal': isModal}" :style='{...props.style, height:
 
 <script setup>
 import {ref, onMounted} from 'vue'
-import Mousetrap from 'mousetrap'
+import hotkeys from 'hotkeys-js'
 
 const props = defineProps({
   title: String,
@@ -34,14 +34,26 @@ const props = defineProps({
   isModal: {
     type: Boolean,
     default: false
-  }
+  },
+
+  // shortcut namespaces
+  hotkeysScope: {
+    type: String,
+    default: 'Window'
+  },
+  restoreHotkeysScope: String
 })
 
 const windowHeight = ref(props.style?.height || '450px')
 
 const emit = defineEmits(['minimize', 'maximize', 'close'])
 const onMinimize = () => {emit('minimize')}
-const onClose = () => {emit('close')}
+const onClose = () => {
+  if (props.restoreHotkeysScope) {
+    hotkeys.setScope(props.restoreHotkeysScope)
+  }
+  emit('close')
+}
 const onRestore = () => {emit('restore')}
 
 const onMaximize = () => {
@@ -58,11 +70,12 @@ onMounted(() => {
   }, 0)
 
   if (!props.bubbleEsc) {
-    Mousetrap.bindGlobal('esc', (ev) => {
+    hotkeys('esc', 'Window', (ev) => {
       ev.preventDefault()
       ev.stopPropagation()
       onClose()
     })
   }
+  hotkeys.setScope(props.hotkeysScope)
 })
 </script>

@@ -1,10 +1,10 @@
 <template lang="pug">
-window.modal(title='Update Skill System Prompt' canclose='' ismodal='' @close='closeModal')
+Window.modal(title='Update Skill System Prompt' canClose isModal @close='closeModal')
   .field-row-stacked
     label(for='skill-system-prompt') System Prompt:
-    textarea#skill-system-prompt(ref='skillSystemPrompt' rows='7' autofocus='' placeholder='Untitled' v-model='skillForm.systemPrompt' @keydown.ctrl.exact.enter.prevent='submitSkillForm')
+    textarea#skill-system-prompt(ref='skillSystemPrompt' rows='7' autofocus placeholder='Untitled' v-model='skillForm.systemPrompt' @keydown.ctrl.exact.enter.prevent='submitSkillForm')
       label(for='skill-planning-prompt') Planning Prompt:
-    textarea#skill-planning-prompt(ref='skillPlanningPrompt' rows='7' autofocus='' placeholder='Untitled' v-model='skillForm.planningPrompt' @keydown.ctrl.exact.enter.prevent='submitSkillForm')
+    textarea#skill-planning-prompt(ref='skillPlanningPrompt' rows='7' autofocus placeholder='Untitled' v-model='skillForm.planningPrompt' @keydown.ctrl.exact.enter.prevent='submitSkillForm')
   .flex.pt3
     button.flex-auto.mr2(@click='closeModal') Cancel
     button(@click='submitSkillForm') Update prompt

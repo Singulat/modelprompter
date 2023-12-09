@@ -4,7 +4,7 @@
   "description": "A prompt manager for browser agents",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon --watch src --watch manifest.json --watch sandbox.html --ext js,json,vue,css --exec vite build",
+    "start": "nodemon --watch src --watch manifest.json --watch sandbox.html --watch vite.config.js --ext js,json,vue,css --exec vite build",
     "build": "vite build",
     "preview": "vite preview"
   },
@@ -35,7 +35,6 @@
     "lodash-es": "^4.17.21",
     "markdown-it": "^13.0.2",
     "markdown-it-attrs": "^4.1.6",
-    "mousetrap": "^1.6.5",
     "openai": "^4.20.0",
     "pinia": "^2.1.7",
     "vue": "^3.2.25"

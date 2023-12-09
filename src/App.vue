@@ -44,7 +44,6 @@ import { useMessagesModel } from './model/messages'
 import { useChannelsModel } from './model/channels'
 import { useSkillsModel } from './model/skills'
 import {ref, onMounted, onBeforeMount, watch} from 'vue'
-import 'mousetrap/plugins/global-bind/mousetrap-global-bind.js'
 import hotkeys from 'hotkeys-js'
 
 const activeTab = ref('prompt')

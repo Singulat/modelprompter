@@ -15,7 +15,13 @@
 .hidden
   div(ref='$scriptsContainer')
 
-windowchannel(v-if='isShowingChannelModal' @created='onChannelCreated' @updated='onChannelUpdated' @close='closeChannelModal' :isediting='channelBeingEdited')
+WindowChannel(
+v-if='isShowingChannelModal'
+@created='onChannelCreated'
+@updated='onChannelUpdated'
+@close='closeChannelModal'
+restoreHotkeysScope='PromptLayout'
+:isediting='channelBeingEdited')
 
 .overflow.fullheight
   fieldset.messages-wrap.overflow.fullheight(ref='$messages')
@@ -163,7 +169,7 @@ const showNewChannelModal =()=> channel.showNewChannelModal({channelBeingEdited,
 const showEditChannelModal =()=> channel.showEditChannelModal({isShowingChannelModal, channelBeingEdited, activeChannel})
 const closeChannelModal =()=> {
   channel.closeChannelModal({isShowingChannelModal, tabsModel})
-  bindEscape()
+  hotkeys.setScope('PromptLayout')
 }
 
 const onChannelCreated = async(id)=> channel.onChannelCreated({activeChannel, tabsModel, $promptEl, maybeAddSystemPrompt, isShowingMoreChannel, id})
@@ -203,7 +209,7 @@ onMounted(() => {
     scrollBottom()
     $promptEl.value?.focus()
   }, 100)
-  
+
   hotkeys('ctrl+shift+n', 'PromptLayout', (ev) => keyboard.newChannel({ev, showNewChannelModal}))
   hotkeys('ctrl+shift+e', 'PromptLayout', (ev) => keyboard.editChannel({ev, showEditChannelModal}))
   hotkeys('ctrl+shift+d', 'PromptLayout', (ev) => keyboard.deleteMessage({ev, deleteMessage}))
@@ -212,26 +218,9 @@ onMounted(() => {
   hotkeys('ctrl+shift+up', 'PromptLayout', (ev) => keyboard.prevMessage({ev, $messages, editMessage, isEditing, $promptEl}))
   hotkeys('ctrl+shift+down', 'PromptLayout', (ev) => keyboard.nextMessage({ev, $messages, editMessage, isEditing, $promptEl}))
   hotkeys.setScope('PromptLayout')
-  bindEscape()
 })
 
 onBeforeUnmount(() => {
-  hotkeys('ctrl+shift+n', 'PromptLayout')
-  hotkeys('ctrl+shift+e', 'PromptLayout')
-  hotkeys('ctrl+shift+d', 'PromptLayout')
-  hotkeys('ctrl+shift+r', 'PromptLayout')
-  hotkeys('ctrl+shift+l', 'PromptLayout')
-  hotkeys('ctrl+shift+up', 'PromptLayout')
-  hotkeys('ctrl+shift+down', 'PromptLayout')
   hotkeys.deleteScope('PromptLayout')
 })
-
-
-
-/**
- * Bind escape key
- */
-const bindEscape =()=> {
-  hotkeys('esc', 'PromptLayout', (ev) => keyboard.cancelEditing({ev, isEditing, cancelEditing, $promptEl}))
-}
 </script>
