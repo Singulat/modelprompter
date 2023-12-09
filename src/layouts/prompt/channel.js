@@ -1,3 +1,5 @@
+import hotkeys from "hotkeys-js"
+
 export default {
   toggleShowMoreChannel ({isShowingMoreChannel}) {
     isShowingMoreChannel.value = !isShowingMoreChannel.value
@@ -72,8 +74,6 @@ export default {
    * Select message
    */
   selectMessage ({target, isSelecting, $messages}) {
-    if (isSelecting?.value) isSelecting.value = true
-    
     // Unhighlight others
     const $messagesEl = $messages.value.querySelectorAll('.message')
     $messagesEl.forEach($message => {
@@ -83,6 +83,7 @@ export default {
     // Highlight current one
     const $target = target.closest('.message')
     $target.classList.add('highlight')
+    isSelecting.value = $target.getAttribute('data-id')
 
     // Scroll to it
     $target.scrollIntoView({behavior: 'smooth', block: 'center'})
@@ -91,24 +92,12 @@ export default {
   /**
    * Edit message
    */
-  async editMessage ({ev, stopBubble, isEditing, isShowingMore, messagesModel, curPrompt, $messages, $promptEl}) {
-    isShowingMore.value = false
-    await this.selectMessage({ev, stopBubble, isEditing, isShowingMore, messagesModel, curPrompt, $messages, $promptEl})
-
-    // Get message
-    const $message = ev.target.closest('.message')
-    const id = $message.getAttribute('data-id')
-
-    // If already editing, cancel
-    if (isEditing.value && id === isEditing.value) {
-      cancelEditing()
-      return
+  onMessageEdit ({ev, editSelectedMessage, selectMessage, isEditing, isSelecting, $messages, curPrompt, $promptEl, messagesModel}) {
+    if (ev.target?.closest('.message')) {
+      const $message = ev.target.closest('.message')
+      selectMessage({target: $message, isSelecting, $messages})
+      editSelectedMessage({$messages, isEditing, curPrompt, isSelecting, $promptEl, messagesModel})
     }
-    isEditing.value = id
-    
-    // Update prompt with message
-    curPrompt.value = message.text
-    $promptEl.value.focus()
   },
 
   /**

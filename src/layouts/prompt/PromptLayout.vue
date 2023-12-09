@@ -27,7 +27,7 @@ restoreHotkeysScope='PromptLayout'
   fieldset.messages-wrap.overflow.fullheight(ref='$messages')
     legend Messages
     .messages
-      .message(v-for='message in sortedMessages' :data-role='message.role' :key='message.id' :data-id='message.id' @dblclick='$ev => editMessage($ev)')
+      .message(v-for='message in sortedMessages' :data-role='message.role' :key='message.id' :data-id='message.id' @dblclick='$ev => onMessageEdit($ev)')
         .window
           .window-body
             div(v-html='renderMarkdown(message.text)')
@@ -202,12 +202,12 @@ const sendToLLM = async(messages, assistantDefaults = {}) => await prompt.sendTo
 const isEditing = ref(false)
 const isSelecting = ref(false)
 
-// @note Update below to look more like this
-const selectMessage = (ev)=> channel.selectMessage(ev)
 
-// @todo these are kinda goofy
+
+// @todo is there a better way to split this massive view?
+const selectMessage = (ev)=> channel.selectMessage(ev)
 const clearMessages =()=> channel.clearMessages({isShowingMore, messagesModel, activeChannel, maybeAddSystemPrompt, $promptEl})
-const editMessage = (ev, stopBubble = false)=> channel.editMessage({ev, stopBubble, isSelecting, isEditing, isShowingMore, messagesModel, curPrompt, $messages, $promptEl})
+const onMessageEdit = (ev)=> channel.onMessageEdit({ev, selectMessage, editSelectedMessage: keyboard.editSelectedMessage, isEditing, isSelecting, $messages, isEditing, curPrompt, isSelecting, $promptEl, messagesModel})
 const cancelEditing =()=> channel.cancelEditing({isEditing, isSelecting, $promptEl})
 const updateMessage = async()=> channel.updateMessage({isEditing, messagesModel, curPrompt, activeChannel, channelsModel, sortedMessages, $messages, $promptEl})
 const deleteMessage = async()=> channel.deleteMessage({isEditing, messagesModel, curPrompt, $messages, $promptEl})
@@ -230,11 +230,11 @@ onMounted(() => {
   hotkeys('ctrl+shift+r', 'PromptLayout', (ev) => keyboard.resetChannel({ev, channelsModel, sortedMessages, deleteChannel, clearMessages, $promptEl}))
   hotkeys('ctrl+shift+n', 'PromptLayout', (ev) => keyboard.newChannel({ev, showNewChannelModal}))
   hotkeys('ctrl+shift+e', 'PromptLayout', (ev) => keyboard.editChannel({ev, showEditChannelModal}))
-  hotkeys('ctrl+shift+d', 'PromptLayout', (ev) => keyboard.deleteMessage({ev, deleteMessage}))
   hotkeys('ctrl+shift+l', 'PromptLayout', (ev) => keyboard.selectChannels({ev, $channels}))
   
   // Message management
   hotkeys('enter', 'PromptLayout', (ev) => keyboard.editSelectedMessage({ev, isEditing, isSelecting, messagesModel, $promptEl, $messages, curPrompt}))
+  hotkeys('delete', 'PromptLayout', (ev) => keyboard.onDelete({ev, isEditing, isSelecting, messagesModel, $promptEl, $messages, curPrompt, deleteMessage}))
 
   // Navigation
   hotkeys('ctrl+shift+up', 'PromptLayout', (ev) => keyboard.prevMessage({ev, $messages, selectMessage, isSelecting}))
@@ -243,7 +243,7 @@ onMounted(() => {
   hotkeys('down', 'PromptLayout', (ev) => keyboard.nextMessage({ev, $messages, selectMessage, isSelecting, $promptEl}))
 
   // Escaping
-  hotkeys('esc', 'PromptLayout', (ev)=> keyboard.onEsc({ev, isEditing, isSelecting, $promptEl}))
+  hotkeys('esc', 'PromptLayout', (ev)=> keyboard.onEsc({ev, curPrompt, isEditing, isSelecting, $promptEl}))
   hotkeys.setScope('PromptLayout')
 })
 

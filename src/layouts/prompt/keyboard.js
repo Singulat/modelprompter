@@ -82,7 +82,7 @@ export default {
     // Select
     if ($message) {
       selectMessage({target: $message, isSelecting, $messages})
-      isSelecting.value = true
+      isSelecting.value = $message.getAttribute('data-id')
     }
   },
 
@@ -132,12 +132,24 @@ export default {
   /**
    * onEsc
    */
-  onEsc ({ev, isEditing, isSelecting, $promptEl, $messages}) {
+  onEsc ({ev, isEditing, isSelecting, $promptEl, curPrompt, $messages}) {
     if (isEditing.value || isSelecting.value) {
       ev.preventDefault()
       ev.stopPropagation()
     }
-    this.cancelEditing({ev, isEditing, isSelecting, $promptEl})
+    curPrompt.value = ''
+
+    if (isSelecting.value) {
+      isSelecting.value = false
+
+      this.cancelEditing({ev, isEditing, isSelecting, $promptEl})
+      return
+    }
+    
+    if (isEditing.value) {
+      isSelecting.value = isEditing.value
+      isEditing.value = false
+    }
   },
 
   /**
@@ -158,23 +170,32 @@ export default {
   },
 
   editSelectedMessage ({ev, isEditing, curPrompt, isSelecting, $promptEl, messagesModel, $messages}) {
-    if (!isEditing.value && isSelecting.value) {
-      // Get the current message
-      const $highlight = $messages.value.querySelector(`.highlight`)
-
-      if ($highlight) {
-        const id = $highlight.getAttribute('data-id')
-        const message = messagesModel.messages[id]
-        isSelecting.value = false
-        isEditing.value = id
-  
-        if (message) {
-          setTimeout(() => {
-            curPrompt.value = message.text
-            $promptEl.value.focus()
-          }, 0)
-        }
-      }
+    // Get the current message
+    const message = messagesModel.messages[isSelecting.value]
+    isEditing.value = isSelecting.value
+    isSelecting.value = false
+    
+    // highlight the message with id
+    const $highlight = $messages.value.querySelector(`.highlight`)
+    if (!$highlight) {
+      $messages.value.querySelector(`[data-id="${isEditing.value}"]`)?.classList?.add('highlight')
     }
+
+    setTimeout(() => {
+      curPrompt.value = message.text
+      $promptEl.value.focus()
+    }, 0)
+  },
+
+  /**
+   * On Delete
+   */
+  onDelete ({ev, isEditing, isSelecting, messagesModel, $promptEl, $messages, curPrompt, deleteMessage}) {
+    if (!isEditing.value || isSelecting.value) {
+      ev.preventDefault()
+      ev.stopPropagation()
+    }
+
+    console.log('delete')
   }
 }
