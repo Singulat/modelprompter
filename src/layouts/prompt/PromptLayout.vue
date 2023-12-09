@@ -73,7 +73,9 @@ div(style='flex: 0;')
           .mr1
             button.fullwidth(@click='deleteMessage') Delete
           div
-            button.fullwidth(:disabled='!curPrompt' @click='updateMessage') Update
+            button.fullwidth(@click='updateMessage')
+              span(v-if='isSelecting') Edit 
+              span(v-else) Update
 </template>
 
 
@@ -206,7 +208,7 @@ const selectMessage = (ev)=> channel.selectMessage(ev)
 // @todo these are kinda goofy
 const clearMessages =()=> channel.clearMessages({isShowingMore, messagesModel, activeChannel, maybeAddSystemPrompt, $promptEl})
 const editMessage = (ev, stopBubble = false)=> channel.editMessage({ev, stopBubble, isSelecting, isEditing, isShowingMore, messagesModel, curPrompt, $messages, $promptEl})
-const cancelEditing =()=> channel.cancelEditing({isEditing, curPrompt, $messages, $promptEl})
+const cancelEditing =()=> channel.cancelEditing({isEditing, isSelecting, $promptEl})
 const updateMessage = async()=> channel.updateMessage({isEditing, messagesModel, curPrompt, activeChannel, channelsModel, sortedMessages, $messages, $promptEl})
 const deleteMessage = async()=> channel.deleteMessage({isEditing, messagesModel, curPrompt, $messages, $promptEl})
 const changeRole = async(role)=> channel.changeRole({role, isEditing, messagesModel, $messages, $promptEl})
@@ -223,17 +225,25 @@ onMounted(() => {
     $promptEl.value?.focus()
   }, 100)
 
+  
+  // Channel Management
+  hotkeys('ctrl+shift+r', 'PromptLayout', (ev) => keyboard.resetChannel({ev, channelsModel, sortedMessages, deleteChannel, clearMessages, $promptEl}))
   hotkeys('ctrl+shift+n', 'PromptLayout', (ev) => keyboard.newChannel({ev, showNewChannelModal}))
   hotkeys('ctrl+shift+e', 'PromptLayout', (ev) => keyboard.editChannel({ev, showEditChannelModal}))
   hotkeys('ctrl+shift+d', 'PromptLayout', (ev) => keyboard.deleteMessage({ev, deleteMessage}))
-  hotkeys('ctrl+shift+r', 'PromptLayout', (ev) => keyboard.resetChannel({ev, channelsModel, sortedMessages, deleteChannel, clearMessages, $promptEl}))
   hotkeys('ctrl+shift+l', 'PromptLayout', (ev) => keyboard.selectChannels({ev, $channels}))
   
+  // Message management
+  hotkeys('enter', 'PromptLayout', (ev) => keyboard.editSelectedMessage({ev, isEditing, isSelecting, messagesModel, $promptEl, $messages, curPrompt}))
+
+  // Navigation
   hotkeys('ctrl+shift+up', 'PromptLayout', (ev) => keyboard.prevMessage({ev, $messages, selectMessage, isSelecting}))
   hotkeys('ctrl+shift+down', 'PromptLayout', (ev) => keyboard.nextMessage({ev, $messages, selectMessage, isSelecting, $promptEl}))
   hotkeys('up', 'PromptLayout', (ev) => keyboard.prevMessage({ev, $messages, selectMessage, isSelecting}))
   hotkeys('down', 'PromptLayout', (ev) => keyboard.nextMessage({ev, $messages, selectMessage, isSelecting, $promptEl}))
-  
+
+  // Escaping
+  hotkeys('esc', 'PromptLayout', (ev)=> keyboard.onEsc({ev, isEditing, isSelecting, $promptEl}))
   hotkeys.setScope('PromptLayout')
 })
 

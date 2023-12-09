@@ -123,7 +123,6 @@ export default {
       if ($highlight) {
         $highlight.classList.remove('highlight')
       }
-      
       setTimeout(() => {
         $promptEl.value.focus()
       }, 0)
@@ -131,15 +130,51 @@ export default {
   },
 
   /**
+   * onEsc
+   */
+  onEsc ({ev, isEditing, isSelecting, $promptEl, $messages}) {
+    if (isEditing.value || isSelecting.value) {
+      ev.preventDefault()
+      ev.stopPropagation()
+    }
+    this.cancelEditing({ev, isEditing, isSelecting, $promptEl})
+  },
+
+  /**
    * Cancel
    */
-  cancelEditing ({ev, isEditing, cancelEditing, $promptEl}) {
+  cancelEditing ({ev, isEditing, isSelecting, $promptEl}) {
     if (isEditing.value) {
       ev.preventDefault()
       ev.stopPropagation()
     }
-    cancelEditing()
     isEditing.value = false
-    $promptEl.value.focus()
+    isSelecting.value = false
+    document.querySelector('.messages .highlight')?.classList.remove('highlight')
+
+    setTimeout(() => {
+      $promptEl.value.focus()
+    }, 0)
+  },
+
+  editSelectedMessage ({ev, isEditing, curPrompt, isSelecting, $promptEl, messagesModel, $messages}) {
+    if (!isEditing.value && isSelecting.value) {
+      // Get the current message
+      const $highlight = $messages.value.querySelector(`.highlight`)
+
+      if ($highlight) {
+        const id = $highlight.getAttribute('data-id')
+        const message = messagesModel.messages[id]
+        isSelecting.value = false
+        isEditing.value = id
+  
+        if (message) {
+          setTimeout(() => {
+            curPrompt.value = message.text
+            $promptEl.value.focus()
+          }, 0)
+        }
+      }
+    }
   }
 }
