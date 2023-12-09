@@ -1,6 +1,7 @@
 <template lang="pug">
 Window.modal(
 title='Update Skill System Prompt'
+hotkeysScope="SkillsWindow"
 canClose
 isModal
 @close='closeModal')
