@@ -69,16 +69,29 @@ export default {
   },
 
   /**
+   * Select message
+   */
+  selectMessage ({target, isSelecting, $messages}) {
+    if (isSelecting?.value) isSelecting.value = true
+    
+    // Unhighlight others
+    const $messagesEl = $messages.value.querySelectorAll('.message')
+    $messagesEl.forEach($message => {
+      $message.classList.remove('highlight')
+    })
+    
+    // Highlight current one
+    const $target = target.closest('.message')
+    $target.classList.add('highlight')
+  },
+
+  /**
    * Edit message
    */
   async editMessage ({ev, stopBubble, isEditing, isShowingMore, messagesModel, curPrompt, $messages, $promptEl}) {
-    // Prevent bubbling, otherwise it would select all the text or bring up native context menu
-    if (!isEditing.value || stopBubble) {
-      ev.stopPropagation && ev.stopPropagation()
-      ev.preventDefault && ev.preventDefault()
-    }
     isShowingMore.value = false
-    
+    await this.selectMessage({ev, stopBubble, isEditing, isShowingMore, messagesModel, curPrompt, $messages, $promptEl})
+
     // Get message
     const $message = ev.target.closest('.message')
     const id = $message.getAttribute('data-id')
@@ -89,17 +102,7 @@ export default {
       return
     }
     isEditing.value = id
-    const message = messagesModel.messages[isEditing.value]
-
-    // Unhighlight others
-    const $messagesEl = $messages.value.querySelectorAll('.message')
-    $messagesEl.forEach($message => {
-      $message.classList.remove('highlight')
-    })
     
-    // Highlight current one
-    $message.classList.add('highlight')
-
     // Update prompt with message
     curPrompt.value = message.text
     $promptEl.value.focus()

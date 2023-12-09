@@ -55,72 +55,79 @@ export default {
   /**
    * Enter selection mode (or select the prev message)
    */
-  prevMessage ({ev, $messages, editMessage, isEditing, $promptEl}) {
+  prevMessage ({ev, $messages, selectMessage, isSelecting}) {
     // Ignore naked arrows if in an input without bubbling
     if (!ev.shiftKey && !ev.ctrlKey && ['INPUT', 'TEXTAREA'].includes(ev.target.tagName) && !ev.target.classList.contains('bubble-arrow-hotkeys')) {
       return
     }
-    if (!ev.shiftKey || !ev.ctrlKey) {
-      ev.preventDefault()
-      ev.stopPropagation()
-    }
 
+    // Exit if no messages
     const $messageEls = $messages.value.querySelectorAll('.message')
     if (!$messageEls.length) {
-      $promptEl.value.focus()
       return
     }
     
-    // If already editing, select the previous message
+    // Find previous
+    let $highlight = $messages.value.querySelector(`.highlight`)
     let $message
-    if (isEditing.value) {
-      $message = $messages.value.querySelector(`.message[data-id="${isEditing.value}"]`)
-      const index = [...$messageEls].indexOf($message)
-      if (index > 0) {
-        const $prevMessage = $messageEls[index-1]
-        editMessage({target: $prevMessage})
-      }
-    } else {
-      // Otherwise, get last
+    if (!$highlight) {
       $message = $messageEls[$messageEls.length-1]
-      editMessage({target: $messageEls[$messageEls.length-1]})
+    } else {
+      const index = [...$messageEls].indexOf($highlight)
+      if (index > 0) {
+        $message = $messageEls[index-1]
+      }
     }
 
-    // Scroll so top of $messages.value is at top of $message
+    // Select
     if ($message) {
-      $messages.value.scrollTop = $message.offsetTop - $messages.value.offsetTop - 80
+      selectMessage({target: $message, isSelecting, $messages})
+      isSelecting.value = true
     }
-    $promptEl.value.focus()
   },
 
   /**
    * Next message
    */
-  nextMessage ({ev, $messages, editMessage, isEditing, $promptEl}) {
+  nextMessage ({ev, $promptEl, $messages, selectMessage, isSelecting}) {
+    if (!isSelecting.value) return
+    
     // Ignore naked arrows if in an input without bubbling
     if (!ev.shiftKey && !ev.ctrlKey && ['INPUT', 'TEXTAREA'].includes(ev.target.tagName) && !ev.target.classList.contains('bubble-arrow-hotkeys')) {
       return
     }
-    if (!ev.shiftKey || !ev.ctrlKey) {
-      ev.preventDefault()
-      ev.stopPropagation()
-    }
-    
-    
-    // If already editing, select the next message
+
+    // Exit if no messages
     const $messageEls = $messages.value.querySelectorAll('.message')
-    let $message
-    if (isEditing.value) {
-      $message = $messages.value.querySelector(`.message[data-id="${isEditing.value}"]`)
-      const index = [...$messageEls].indexOf($message)
-      if (index < $messageEls.length-1) {
-        const $nextMessage = $messageEls[index+1]
-        editMessage({target: $nextMessage})
-      }
-      $messages.value.scrollTop = $message.offsetTop - $messages.value.offsetTop
+    if (!$messageEls.length) {
+      return
     }
 
-    $promptEl.value.focus()
+    // Find next
+    let $highlight = $messages.value.querySelector(`.highlight`)
+    let $message
+    if (!$highlight) {
+      $message = $messageEls[0]
+    } else {
+      const index = [...$messageEls].indexOf($highlight)
+      if (index < $messageEls.length-1) {
+        $message = $messageEls[index+1]
+      }
+    }
+
+    // Select
+    if ($message) {
+      selectMessage({target: $message, isSelecting, $messages})
+    } else {
+      isSelecting.value = false
+      if ($highlight) {
+        $highlight.classList.remove('highlight')
+      }
+      
+      setTimeout(() => {
+        $promptEl.value.focus()
+      }, 0)
+    }
   },
 
   /**

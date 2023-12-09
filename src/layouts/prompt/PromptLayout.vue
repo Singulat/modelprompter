@@ -35,9 +35,16 @@ restoreHotkeysScope='PromptLayout'
 div(style='flex: 0;')
   .flex.column.fullheight.pt1.pb1
     .spacer
-    div(style='flex: 0')
+    div(style='flex: 0' v-if='!isSelecting')
       .mb1
-        textarea#prompt(ref='$promptEl' :class='{"bubble-arrow-hotkeys": !curPrompt?.trim()?.length}' v-model='curPrompt' autofocus='' multiline='' placeholder='Prompt...' @keydown.ctrl.exact.enter='runPrompt')
+        textarea#prompt(
+        ref='$promptEl'
+        :class='{"bubble-arrow-hotkeys": !curPrompt?.trim()?.length}'
+        :disabled='isSelecting'
+        v-model='curPrompt'
+        autofocus=''
+        multiline=''
+        placeholder='Prompt...' @keydown.ctrl.exact.enter='runPrompt')
       .mb1(v-if='isShowingMore')
         button.fullwidth(@click='clearMessages') Clear messages
       // Prompting
@@ -49,7 +56,7 @@ div(style='flex: 0;')
           button.fullwidth(v-if='!isThinking' :disabled='!curPrompt' @click='runPrompt') Run prompt
           button.fullwidth(v-else='' disabled='') Thinking...
       // Editing
-      div(v-else='')
+      div(v-else)
         .flex
           .mr1
             button(@click='showingChangeRole = !showingChangeRole' :class='{fullwidth: true, active: showingChangeRole}')
@@ -191,8 +198,14 @@ const sendToLLM = async(messages, assistantDefaults = {}) => await prompt.sendTo
  * Message management
  */
 const isEditing = ref(false)
+const isSelecting = ref(false)
+
+// @note Update below to look more like this
+const selectMessage = (ev)=> channel.selectMessage(ev)
+
+// @todo these are kinda goofy
 const clearMessages =()=> channel.clearMessages({isShowingMore, messagesModel, activeChannel, maybeAddSystemPrompt, $promptEl})
-const editMessage = (ev, stopBubble = false)=> channel.editMessage({ev, stopBubble, isEditing, isShowingMore, messagesModel, curPrompt, $messages, $promptEl})
+const editMessage = (ev, stopBubble = false)=> channel.editMessage({ev, stopBubble, isSelecting, isEditing, isShowingMore, messagesModel, curPrompt, $messages, $promptEl})
 const cancelEditing =()=> channel.cancelEditing({isEditing, curPrompt, $messages, $promptEl})
 const updateMessage = async()=> channel.updateMessage({isEditing, messagesModel, curPrompt, activeChannel, channelsModel, sortedMessages, $messages, $promptEl})
 const deleteMessage = async()=> channel.deleteMessage({isEditing, messagesModel, curPrompt, $messages, $promptEl})
@@ -216,10 +229,10 @@ onMounted(() => {
   hotkeys('ctrl+shift+r', 'PromptLayout', (ev) => keyboard.resetChannel({ev, channelsModel, sortedMessages, deleteChannel, clearMessages, $promptEl}))
   hotkeys('ctrl+shift+l', 'PromptLayout', (ev) => keyboard.selectChannels({ev, $channels}))
   
-  hotkeys('ctrl+shift+up', 'PromptLayout', (ev) => keyboard.prevMessage({ev, $messages, editMessage, isEditing, $promptEl}))
-  hotkeys('ctrl+shift+down', 'PromptLayout', (ev) => keyboard.nextMessage({ev, $messages, editMessage, isEditing, $promptEl}))
-  hotkeys('up', 'PromptLayout', (ev) => keyboard.prevMessage({ev, $messages, editMessage, isEditing, $promptEl}))
-  hotkeys('down', 'PromptLayout', (ev) => keyboard.nextMessage({ev, $messages, editMessage, isEditing, $promptEl}))
+  hotkeys('ctrl+shift+up', 'PromptLayout', (ev) => keyboard.prevMessage({ev, $messages, selectMessage, isSelecting}))
+  hotkeys('ctrl+shift+down', 'PromptLayout', (ev) => keyboard.nextMessage({ev, $messages, selectMessage, isSelecting, $promptEl}))
+  hotkeys('up', 'PromptLayout', (ev) => keyboard.prevMessage({ev, $messages, selectMessage, isSelecting}))
+  hotkeys('down', 'PromptLayout', (ev) => keyboard.nextMessage({ev, $messages, selectMessage, isSelecting, $promptEl}))
   
   hotkeys.setScope('PromptLayout')
 })
