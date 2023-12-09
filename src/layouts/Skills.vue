@@ -8,7 +8,20 @@
         label(for='skills-enabled') Enabled
       div(style='flex: 0 1 25%')
       button(@click='isShowingSystemPromptModel = true') Skill system prompt
-  Table.fullheight(ref='$table' hotkeysScope="Skills" title='Skill' :headings='headings' :form='skillForm' :data='skillsModel.skills' :validateform='validateForm' :defaults='skillDefaults' :highlightedrow='skillsModel.defaultSkill' @updatehighlightedrow='skillsModel.setDefaultSkill' @submit='onSubmit' @delete='deleteSkill' @close='onTableClose')
+  Table.fullheight(
+  ref='$table'
+  hotkeysScope="Skills"
+  title='Skill'
+  :headings='headings'
+  :form='skillForm'
+  :data='skillsModel.skills'
+  :validateForm='validateForm'
+  :defaults='skillDefaults'
+  :highlightedRow='skillsModel.defaultSkill'
+  @updateHighlightedRow='id => skillsModel.setDefaultSkill(id)'
+  @submit='onSubmit'
+  @delete='deleteSkill'
+  @close='onTableClose')
 
 WindowSkillSystemPrompt(v-if='isShowingSystemPromptModel' @close='closeSystemPromptModal')
 </template>
@@ -41,7 +54,7 @@ const skillForm = ref(skillDefaults)
 const isShowingSystemPromptModel = ref(false)
 
 const validateForm =(record)=> {
-  return !!record.name && !!record.response
+  return !!record.name
 }
 
 

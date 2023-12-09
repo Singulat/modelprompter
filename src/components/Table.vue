@@ -32,7 +32,7 @@ Window.modal(v-if='isModalOpen' :title="isEditMode ? 'Update ' + props.title.toL
       div
         .flex.pt3
           button.flex-auto.mr2(@click='closeModal') Cancel
-          button(ref='addButton' :disabled='!isValidForm' @click='submitForm')
+          button(ref='addButton' @click='submitForm')
             span(v-if='isEditMode') Update {{ props.title }}
             span(v-else='') Add {{ props.title }}
 </template>
@@ -174,7 +174,7 @@ defineExpose({
   selectRow: (rowToSelect) => {
     // Select the defaults if one exists
     if (rowToSelect) {
-      const $row = document.querySelector(`[data-id="${rowToSelect}"]`)
+      const $row = $table.value.querySelector(`[data-id="${rowToSelect}"]`)
       if ($row) {
         $table.value.querySelectorAll('tr').forEach(($row) => {
           $row.classList.remove('highlighted')

@@ -106,7 +106,10 @@ onMounted(async () => {
     if (isThereAModalVisible()) {
       return false
     }
-    if (!ev.shiftKey && !ev.ctrlKey && ['INPUT', 'TEXTAREA'].includes(ev.target.tagName) && !ev.target.classList.contains('bubble-arrow-hotkeys')) {
+
+    if (!(ev.shiftKey && ev.ctrlKey && ev.altKey)
+    && ['INPUT', 'TEXTAREA'].includes(ev.target.tagName)
+    && !ev.target.classList.contains('bubble-arrow-hotkeys')) {
       return
     }
     
@@ -118,7 +121,7 @@ onMounted(async () => {
     }
     activeTab.value = tabs[nextIndex]
   }
-  hotkeys('ctrl+shift+left', prevTab)
+  hotkeys('ctrl+alt+shift+left', prevTab)
   hotkeys('left', prevTab)
 
   // Select next tab
@@ -126,7 +129,10 @@ onMounted(async () => {
     if (isThereAModalVisible()) {
       return false
     }
-    if (!ev.shiftKey && !ev.ctrlKey && ['INPUT', 'TEXTAREA'].includes(ev.target.tagName) && !ev.target.classList.contains('bubble-arrow-hotkeys')) {
+
+    if (!(ev.shiftKey && ev.ctrlKey && ev.altKey)
+    && ['INPUT', 'TEXTAREA'].includes(ev.target.tagName)
+    && !ev.target.classList.contains('bubble-arrow-hotkeys')) {
       return
     }
     
@@ -138,7 +144,7 @@ onMounted(async () => {
     }
     activeTab.value = tabs[nextIndex]
   }
-  hotkeys('ctrl+shift+right', nextTab)
+  hotkeys('ctrl+alt+shift+right', nextTab)
   hotkeys('right', nextTab)
 })
 

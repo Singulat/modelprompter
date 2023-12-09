@@ -39,11 +39,12 @@ div(style='flex: 0;')
       .mb1(v-if='!isSelecting')
         textarea#prompt(
         ref='$promptEl'
-        :class='{"bubble-arrow-hotkeys": !curPrompt?.trim()?.length}'
+        :class='{"bubble-arrow-hotkeys": !isEditing && !curPrompt?.trim()?.length}'
         :disabled='isSelecting'
         v-model='curPrompt'
         autofocus=''
         multiline=''
+        :rows="isEditing ? 7 : 3"
         placeholder='Prompt...' @keydown.ctrl.exact.enter='runPrompt')
       .mb1(v-if='isShowingMore')
         button.fullwidth(@click='clearMessages') Clear messages
