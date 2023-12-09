@@ -67,6 +67,8 @@ onMounted(() => {
       windowHeight.value = '100vh'
       emit('maximize')
     } 
+
+    props.hotkeysScope && hotkeys.setScope(props.hotkeysScope)
   }, 0)
 
   if (!props.bubbleEsc) {

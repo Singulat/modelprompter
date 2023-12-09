@@ -1,5 +1,9 @@
 <template lang="pug">
-Window.modal(title='Update Skill System Prompt' canClose isModal @close='closeModal')
+Window.modal(
+title='Update Skill System Prompt'
+canClose
+isModal
+@close='closeModal')
   .field-row-stacked
     label(for='skill-system-prompt') System Prompt:
     textarea#skill-system-prompt(ref='skillSystemPrompt' rows='7' autofocus placeholder='Untitled' v-model='skillForm.systemPrompt' @keydown.ctrl.exact.enter.prevent='submitSkillForm')

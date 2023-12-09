@@ -103,8 +103,8 @@ onMounted(async () => {
 
   // Select previous tab
   const prevTab =(ev)=> {
-    if (isThereAModalVisible()) {
-      return false
+    if (isThereAModalVisible() && ['INPUT', 'TEXTAREA'].includes(ev.target.tagName)) {
+      return
     }
 
     if (!(ev.shiftKey && ev.ctrlKey && ev.altKey)
@@ -126,8 +126,8 @@ onMounted(async () => {
 
   // Select next tab
   const nextTab =(ev)=> {
-    if (isThereAModalVisible()) {
-      return false
+    if (isThereAModalVisible() && ['INPUT', 'TEXTAREA'].includes(ev.target.tagName)) {
+      return
     }
 
     if (!(ev.shiftKey && ev.ctrlKey && ev.altKey)

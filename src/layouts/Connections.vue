@@ -2,14 +2,14 @@
 Table(
 ref="$table"
 title="Connection"
+hotkeysScope="Connections"
 :headings="headings"
 :form="connectionForm"
 :data="connectionsModel.connections"
 :validateForm="validateForm"
 :defaults="connectDefaults"
 :highlightedRow="connectionsModel.defaultConnection"
-hotkeysScope="Skills"
-@updateHighlightedRow="connectionsModel.setDefault"
+@updateHighlightedRow='id => connectionsModel.setDefault(id)'
 @submit="onSubmit"
 @delete="deleteConnection"
 @close="onTableClose"
@@ -18,7 +18,7 @@ hotkeysScope="Skills"
 
 
 <script setup>
-import {ref, computed, onMounted} from 'vue'
+import {ref, computed, onBeforeUnmount, onMounted} from 'vue'
 import {useConnectionsModel} from '../model/connections.js'
 import Table from '../components/Table.vue'
 import hotkeys from 'hotkeys-js'
@@ -83,13 +83,22 @@ onMounted(() => {
       $table.value.selectRow(connectionsModel.defaultConnection)
     }
   }, 0)
-
+  hotkeys('enter', 'Connections', ()=> {
+    if ($table.value.isModalOpen) {
+      return
+    }
+    $table.value.showEditModal()
+  })
+  hotkeys.setScope('Connections')
   bindEscape()
+})
+onBeforeUnmount(()=> {
+  hotkeys.deleteScope('Connections')
 })
 
 /**
  * Bind escape key (just let it pass through to close the window)
  */
 const onTableClose =()=> bindEscape()
-const bindEscape =()=> hotkeys('esc', (ev)=> {})
+const bindEscape =()=> hotkeys('esc', 'Connections', (ev)=> {})
 </script>

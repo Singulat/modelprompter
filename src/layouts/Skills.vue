@@ -118,6 +118,12 @@ onMounted(()=> {
   }, 0)
 
   hotkeys('ctrl+shift+s', 'Skills', showSkillSystemPromptModal)
+  hotkeys('enter', 'Skills', ()=> {
+    if ($table.value.isModalOpen) {
+      return
+    }
+    $table.value.showEditModal()
+  })
   hotkeys.setScope('Skills')
   bindEscape()
 })
@@ -138,5 +144,5 @@ const showSkillSystemPromptModal =(ev)=> {
  * Bind escape key (just let it pass through to close the window)
  */
 const onTableClose =()=> bindEscape()
-const bindEscape =()=> hotkeys('esc', ()=> {})
+const bindEscape =()=> hotkeys('esc', 'Skills', ()=> {})
 </script>

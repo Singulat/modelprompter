@@ -1,5 +1,11 @@
 <template lang="pug">
-window.modal(:title="props.isEditing ? 'Update channel' : 'Add new channel'" canclose='' ismodal='' @close='closeModal')
+Window.modal(
+:title="props.isEditing ? 'Update channel' : 'Add new channel'"
+canclose
+ismodal
+hotkeysScope="ConnectionsModal"
+restoreHotkeysScope="Connections"
+@close='closeModal')
   .field-row-stacked
     label(for='channel-name') Channel:
     input#channel-name(type='text' ref='channelName' autofocus='' placeholder='Untitled' v-model='channelForm.name' @keydown.ctrl.exact.enter.prevent='submitChannelForm')

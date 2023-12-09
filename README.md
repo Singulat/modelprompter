@@ -138,6 +138,11 @@ npm start
 ```
 
 
+## Markdown extensions
+- [Markdown Attributes](https://github.com/arve0/markdown-it-attrs)
+- [Mermaid](https://mermaid.js.org/intro/getting-started.html)
+  - See here for extras: https://github.com/wekan/markdown-it-mermaid#readme
+
 <br>
 <br>
 <br>

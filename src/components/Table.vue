@@ -20,7 +20,14 @@
     button(@click='showAddModal') New
 
 // Modal
-Window.modal(v-if='isModalOpen' :title="isEditMode ? 'Update ' + props.title.toLowerCase() : 'Add new ' + props.title.toLowerCase()" canClose='' isModal='' @close='toggleModal(false)')
+Window.modal(
+v-if='isModalOpen'
+:title="isEditMode ? 'Update ' + props.title.toLowerCase() : 'Add new ' + props.title.toLowerCase()"
+canClose
+isModal
+:hotkeysScope='props.hotkeysScope + "Modal"'
+:restoreHotkeysScope='props.hotkeysScope'
+@close='toggleModal(false)')
   .autoscroll
     .flex.column.fullheight
       div(ref='$form')
@@ -78,6 +85,7 @@ const emit = defineEmits(['submit', 'delete', 'updateHighlightedRow', 'close'])
 
 watch(curForm, (val) => {
   isValidForm.value = props.validateForm(val)
+  props.hotkeysScope && hotkeys.setScope(props.hotkeysScope)
 }, {deep: true})
 
 /**
@@ -171,6 +179,10 @@ const showEditModal = (ev) => {
  * Expose methods
  */
 defineExpose({
+  showEditModal,
+
+  isModalOpen,
+  
   selectRow: (rowToSelect) => {
     // Select the defaults if one exists
     if (rowToSelect) {
