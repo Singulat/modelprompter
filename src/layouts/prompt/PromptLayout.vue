@@ -233,7 +233,7 @@ onMounted(() => {
   hotkeys('ctrl+shift+l', 'PromptLayout', (ev) => keyboard.selectChannels({ev, $channels}))
   
   // Message management
-  hotkeys('enter', 'PromptLayout', (ev) => keyboard.editSelectedMessage({ev, isEditing, isSelecting, messagesModel, $promptEl, $messages, curPrompt}))
+  hotkeys('enter', 'PromptLayout', (ev) => keyboard.editSelectedMessage({ev, isEditing, isSelecting, isKey: true, messagesModel, $promptEl, $messages, curPrompt}))
   hotkeys('delete', 'PromptLayout', (ev) => keyboard.onDelete({ev, isEditing, isSelecting, messagesModel, $promptEl, $messages, curPrompt, deleteMessage}))
 
   // Navigation

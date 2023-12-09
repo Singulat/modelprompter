@@ -169,7 +169,9 @@ export default {
     }, 0)
   },
 
-  editSelectedMessage ({ev, isEditing, curPrompt, isSelecting, $promptEl, messagesModel, $messages}) {
+  editSelectedMessage ({ev, isKey, isEditing, curPrompt, isSelecting, $promptEl, messagesModel, $messages}) {
+    if ((isKey && isEditing.value) || (isKey && !isEditing.value && !isSelecting.value)) return
+    
     // Get the current message
     const message = messagesModel.messages[isSelecting.value]
     isEditing.value = isSelecting.value
@@ -182,6 +184,7 @@ export default {
     }
 
     setTimeout(() => {
+      const message = messagesModel.messages[isEditing.value]
       curPrompt.value = message.text
       $promptEl.value.focus()
     }, 0)
