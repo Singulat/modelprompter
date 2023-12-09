@@ -131,8 +131,20 @@ export default {
   /**
    * Delete message
    */
-  async deleteMessage ({isEditing, messagesModel, curPrompt, $messages, $promptEl}) {
-    await messagesModel.deleteMessage(isEditing.value)
+  async deleteMessage ({isKey, selectMessage, isEditing={}, isSelecting={}, messagesModel, curPrompt, $messages, $promptEl}) {
+    if ((isKey && isEditing.value) || (isKey && !isEditing.value && !isSelecting.value)) return
+
+    // Get the next message to focus on
+    const $highlight = $messages.value.querySelector(`.highlight`)
+    const $nextMessage = $highlight?.nextElementSibling || $highlight?.previousElementSibling
+    const nextMessageID = $nextMessage?.getAttribute('data-id')
+    
+    // Delete based on mode
+    if (isSelecting.value) {
+      await messagesModel.deleteMessage(isSelecting.value)
+    } else if (isEditing.value) {
+      await messagesModel.deleteMessage(isEditing.value)
+    }
     curPrompt.value = ''
     isEditing.value = false
 
@@ -142,7 +154,14 @@ export default {
     })
 
     curPrompt.value = ''
-    $promptEl.value.focus()
+    setTimeout(() => {
+      // Select the next message
+      if ($nextMessage) {
+        selectMessage({target: $nextMessage, isSelecting, $messages})
+      } else {
+        hotkeys.trigger('esc', 'PromptLayout')
+      }
+    }, 0)
   },
 
   /**

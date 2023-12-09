@@ -55,9 +55,9 @@ export default {
   /**
    * Enter selection mode (or select the prev message)
    */
-  prevMessage ({ev, $messages, selectMessage, isSelecting}) {
+  prevMessage ({ev={}, $messages, selectMessage, isSelecting}) {
     // Ignore naked arrows if in an input without bubbling
-    if (!ev.shiftKey && !ev.ctrlKey && ['INPUT', 'TEXTAREA'].includes(ev.target.tagName) && !ev.target.classList.contains('bubble-arrow-hotkeys')) {
+    if (!ev?.shiftKey && !ev?.ctrlKey && ['INPUT', 'TEXTAREA'].includes(ev?.target?.tagName) && !ev?.target?.classList?.contains('bubble-arrow-hotkeys')) {
       return
     }
 
@@ -188,17 +188,5 @@ export default {
       curPrompt.value = message.text
       $promptEl.value.focus()
     }, 0)
-  },
-
-  /**
-   * On Delete
-   */
-  onDelete ({ev, isEditing, isSelecting, messagesModel, $promptEl, $messages, curPrompt, deleteMessage}) {
-    if (!isEditing.value || isSelecting.value) {
-      ev.preventDefault()
-      ev.stopPropagation()
-    }
-
-    console.log('delete')
   }
 }

@@ -73,9 +73,8 @@ div(style='flex: 0;')
           .mr1
             button.fullwidth(@click='deleteMessage') Delete
           div
-            button.fullwidth(@click='updateMessage')
-              span(v-if='isSelecting') Edit 
-              span(v-else) Update
+            button.fullwidth(v-if='isSelecting' @click='onEditMessage') Edit
+            button.fullwidth(v-if='isEditing' @click='updateMessage') Update
 </template>
 
 
@@ -208,6 +207,7 @@ const isSelecting = ref(false)
 const selectMessage = (ev)=> channel.selectMessage(ev)
 const clearMessages =()=> channel.clearMessages({isShowingMore, messagesModel, activeChannel, maybeAddSystemPrompt, $promptEl})
 const onMessageEdit = (ev)=> channel.onMessageEdit({ev, selectMessage, editSelectedMessage: keyboard.editSelectedMessage, isEditing, isSelecting, $messages, isEditing, curPrompt, isSelecting, $promptEl, messagesModel})
+const onEditMessage = (ev)=> hotkeys.trigger('enter', 'PromptLayout', ev)
 const cancelEditing =()=> {
   hotkeys.trigger('esc', 'PromptLayout')
   isEditing.value = false
@@ -217,7 +217,7 @@ const cancelEditing =()=> {
   $messages.value?.querySelector('.highlight')?.classList.remove('highlight')
 }
 const updateMessage = async()=> channel.updateMessage({isEditing, messagesModel, curPrompt, activeChannel, channelsModel, sortedMessages, $messages, $promptEl})
-const deleteMessage = async()=> channel.deleteMessage({isEditing, messagesModel, curPrompt, $messages, $promptEl})
+const deleteMessage = async()=> channel.deleteMessage({isEditing, isSelecting, messagesModel, curPrompt, $messages, $promptEl, selectMessage})
 const changeRole = async(role)=> channel.changeRole({role, isEditing, messagesModel, $messages, $promptEl})
 const regenerateMessage = async()=> channel.regenerateMessage({isEditing, messagesModel, sortedMessages, $messages, $promptEl, curPrompt, sendToLLM})
 
@@ -241,7 +241,7 @@ onMounted(() => {
   
   // Message management
   hotkeys('enter', 'PromptLayout', (ev) => keyboard.editSelectedMessage({ev, isEditing, isSelecting, isKey: true, messagesModel, $promptEl, $messages, curPrompt}))
-  hotkeys('delete', 'PromptLayout', (ev) => keyboard.onDelete({ev, isEditing, isSelecting, messagesModel, $promptEl, $messages, curPrompt, deleteMessage}))
+  hotkeys('delete', 'PromptLayout', async()=> channel.deleteMessage({isKey: true, selectMessage, isEditing, isSelecting, messagesModel, curPrompt, $messages, $promptEl}))
 
   // Navigation
   hotkeys('ctrl+shift+up', 'PromptLayout', (ev) => keyboard.prevMessage({ev, $messages, selectMessage, isSelecting}))
