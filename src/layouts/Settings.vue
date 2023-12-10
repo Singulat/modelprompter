@@ -64,6 +64,12 @@ const importEverything = async()=> {
       // connectionsModel.defaultConnection = data.connections.defaultConnection
       // skillsModel.defaultSkill = data.skills.defaultSkill
       // skillsModel.allSkillsDisabled = data.skills.allSkillsDisabled
+      const settings = data.settings?.settings || {}
+      if (data.namespace?.namespaceName) {
+        settingsModel.namespaceName = data.namespace.namespaceName
+      } else {
+        settingsModel.namespaceName = ''
+      }
 
       const connections = data.connections.connections
       for (const key in connections) {
@@ -94,6 +100,9 @@ const importEverything = async()=> {
 const exportEverything = async()=> {
   let data = {
     version: pkg.version,
+    namespace: {
+      namespaceName: settingsModel.namespaceName?.namespaceName || settingsModel.namespaceName || ''
+    },
     connections: {
       defaultConnection: connectionsModel.defaultConnection,
       connections: connectionsModel.connections
