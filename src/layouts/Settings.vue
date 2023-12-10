@@ -9,6 +9,7 @@ div.flex.column
 <script setup>
 import {ref, computed, onMounted, onBeforeUnmount} from 'vue'
 import {useConnectionsModel} from '../model/connections.js'
+import { useChannelsModel } from '../model/channels'
 import {useSkillsModel} from '../model/skills.js'
 import {useMessagesModel} from '../model/messages.js'
 import pkg from '../../package.json'
@@ -16,6 +17,48 @@ import pkg from '../../package.json'
 const connectionsModel = useConnectionsModel()
 const skillsModel = useSkillsModel()
 const messagesModel = useMessagesModel()
+const channelsModel = useChannelsModel()
+
+/**
+ * Import everything
+ */
+const importEverything = async()=> {
+  const file = document.createElement('input')
+  file.type = 'file'
+  file.accept = 'application/json'
+  file.onchange = async()=> {
+    const reader = new FileReader()
+    reader.onload = async()=> {
+      const json = reader.result
+      const data = JSON.parse(json)
+
+      // Ignore some data
+      // connectionsModel.defaultConnection = data.connections.defaultConnection
+      // skillsModel.defaultSkill = data.skills.defaultSkill
+      // skillsModel.allSkillsDisabled = data.skills.allSkillsDisabled
+
+      const connections = data.connections.connections
+      for (const key in connections) {
+        delete connections[key].apiKey
+      }
+      connectionsModel.connections = connections
+
+      channelsModel.channels = data.channels?.channels
+      channelsModel.currentChannel = data.channels?.currentChannel
+      messagesModel.messages = data.messages.messages
+      
+      skillsModel.skills = data.skills.skills
+      skillsModel.activeSkills = data.skills.activeSkills
+      skillsModel.systemPrompt = data.skills.systemPrompt
+      skillsModel.planningPrompt = data.skills.planningPrompt
+
+      // Delete elements
+      file.remove()
+    }
+    reader.readAsText(file.files[0])
+  }
+  file.click()
+}
 
 /**
  * Export
@@ -29,6 +72,10 @@ const exportEverything = async()=> {
     },
     messages: {
       messages: messagesModel.messages
+    },
+    channels: {
+      channels: channelsModel.channels,
+      currentChannel: channelsModel.currentChannel
     },
     skills: {
       skills: skillsModel.skills,
