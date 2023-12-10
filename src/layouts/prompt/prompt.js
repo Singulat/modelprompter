@@ -51,6 +51,7 @@ export default {
       return
     }
     let response = ''
+    console.log('\n\n\n---\nNew Prompt:', curPrompt.value)
     
     // Add the users message
     const prompt = curPrompt.value
@@ -71,49 +72,52 @@ export default {
       const responses = []
 
       for (let i = 0; i < skillsToParse.length; i++) {
+        console.log('🧰 Checking skill:', rawSkills[i]?.name)
         const response = await sendToLLM(skillsToParse[i], {
+          role: 'placeholder',
           text: `📋 Checking skill: ${rawSkills[i].name}`,
           isGeneratingSkills: true
         })
         if (response.skillPassedTest) {
           passedSkills.push(rawSkills[i])
         }
-        responses.push(response)
+        responses.push('Skill check response:', response)
       }
 
       // Send the message through as normal chat if no skills passed
       if (passedSkills.length === 0) {
         const messages = await messagesModel.getPreparedMessages(activeChannel.value)
-        await sendToLLM(messages, {text: '🤔 Thinking...', removeResponsesOnFirstToken: responses})
+        await sendToLLM(messages, {text: '🤔 Thinking...', role: 'placeholder'})
       } else {
         const messages = await messagesModel.getPreparedMessages(activeChannel.value)
 
         /**
          * Planning stage
          */
-        // Add the skills
-        for (const skill of passedSkills.reverse()) {
-          messages.unshift({
-            role: 'system',
-            content: `\`\`\` {.skill-title}
-${skill.name}
-\`\`\`
-
----
-
-\`\`\` {.skill-response}
-${skill.response}
-\`\`\``
-          })
-        }
-
-        // Prepend planning prompt
-        messages.unshift({
-          role: 'system',
+        messages.push({
+          role: 'user',
           content: skillsModel.planningPrompt,
         })
+        // Add the skills
+        for (const skill of passedSkills.reverse()) {
+          messages.push({
+            role: 'system',
+            content: `Skill name: ${skill.name}
+Trigger when: ${skill.triggers}
+Reaction: ${skill.response}`
+          })
+        }
+        messages.push(messages.shift())
+        
+        console.log('📋 Sending plan')
+        response = await sendToLLM(messages, {text: '🤔 Thinking...', role: 'placeholder'})
 
-        response = await sendToLLM(messages, {text: '🤔 Thinking...', removeResponsesOnFirstToken: responses})
+        // Remove placeholders
+        messages.forEach(message => {
+          if (message.role === 'placeholder') {
+            messagesModel.deleteMessage(message.id)
+          }
+        })
       }
     } else {
       const messages = await messagesModel.getPreparedMessages(activeChannel.value)
@@ -160,8 +164,8 @@ ${skill.response}
       // System prompt
       let skillMessages = [
         {
-          role: 'system',
-          text: skillsModel.systemPrompt,
+          role: 'user',
+          text: `${skillsModel.systemPrompt}`,
           skill
         }
       ]
@@ -169,24 +173,18 @@ ${skill.response}
       // User Prompt
       skillMessages.push({
         role: 'user',
-        text: `\`\`\` {.user-prompt}
-${prompt}
-\`\`\``
+        text: `${prompt}`
       })
-
+      
       // Skill compare against
       skillMessages.push({
-        role: 'user',
-        text: `\`\`\` {.skill-title}
-${skill.name}
-\`\`\`
-
----
-
-\`\`\` {.skill-triggers}
-${skill.triggers}
-\`\`\``,
+        role: 'system',
+        text: `Skill name: ${skill.name}
+Trigger when: ${skill.triggers}`,
       })
+
+      // Move first to last
+      skillMessages.push(skillMessages.shift())
 
       skills.push(await messagesModel.prepareMessages(skillMessages))
     }
@@ -214,8 +212,6 @@ ${skill.triggers}
     // Extract possible non message
     let isGeneratingSkills = !!assistantDefaults.isGeneratingSkills
     delete assistantDefaults.isGeneratingSkills
-    let removeResponsesOnFirstToken = assistantDefaults.removeResponsesOnFirstToken
-    delete assistantDefaults.removeResponsesOnFirstToken
     
     // Setup connection
     let defaultConnection = connectionsModel.defaultConnection
@@ -229,7 +225,11 @@ ${skill.triggers}
       dangerouslyAllowBrowser: true
     })
 
+    // Remove plaholder roles
+    messages = messages.filter(message => message.role !== 'placeholder')
+
     // Send to openai
+    console.log('sending to openai', messages)
     const completion = await openai.chat.completions.create({
       messages,
       model: defaultConnection.model,
@@ -253,29 +253,25 @@ ${skill.triggers}
         }
       } else {
         // If it's a skill, check if its a good match
-        if (completionChunk.choices?.[0]?.delta?.content) {
-          if (completionChunk.choices?.[0]?.delta?.content == '1') {
-            messagesModel.updateMessage(assistantId, {
+        const chunk = completionChunk.choices?.[0]?.delta?.content?.trim() || ''
+        if (chunk) {
+          if (chunk[0] == '1' || chunk.toLowerCase() == 'yes' || chunk.toLowerCase() == 'true') {
+            console.log('✅ Passed on chunk', chunk)
+            await messagesModel.updateMessage(assistantId, {
               text: combinedMessage + '\n✅'
             })
             skillPassedTest = true
           } else {
-            messagesModel.updateMessage(assistantId, {
+            console.log('❌ Failed on chunk', chunk)
+            await messagesModel.updateMessage(assistantId, {
               text: combinedMessage + '\n❌'
             })
           }
+          break
         }
       }
       
       scrollBottom()
-    }
-
-    // Remove previous placeholder responses on first token
-    if (removeResponsesOnFirstToken) {
-      removeResponsesOnFirstToken.forEach(response => {
-        messagesModel.deleteMessage(response.assistantId)
-      })
-      messages.pop()
     }
 
     isThinking.value = false  

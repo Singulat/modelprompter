@@ -10,40 +10,8 @@ export const useSkillsModel = defineStore({
 
     // @todo Rename this to something else...it's now used as the highlighted skill
     defaultSkill: '',
-    systemPrompt: `You'll be shown a "Skill" in the form:
-
-<pre>
-\`\`\`md {.skill-title}
-
-\`\`\`
-
----
-
-\`\`\` {.skill-trigger}
-
-\`\`\`
-</pre>
-
-Your job is simply to respond with 0 or 1 if the skill is a good match for the users prompt.
-
-It's very important that you do not respond with anything other than 0 or 1.`,
-    
-
-  planningPrompt: `You'll be shown a list of "Skills" that were selected to be used for the users prompt along with how you should use those skills. Only use the skills when they make sense though, these are just a list of what's available to use. The Skills will be shown to you in the form:
-
-<pre>
-\`\`\` {.skill-title}
-
-\`\`\`
-
----
-
-\`\`\` {.skill-response}
-
-\`\`\`
-</pre>
-
-If no Skills make sense for the latest Prompt in the message history, then just reply to the users message as usual. You're able and expected to output script tags as part of some responses.`
+    systemPrompt: ``,
+    planningPrompt: ``
   }),
 
   actions: {
