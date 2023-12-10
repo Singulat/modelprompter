@@ -15,7 +15,7 @@ div.flex.column
     legend Data
     div
       .flex
-        button.mr1 Clear
+        button.mr1(@click='clearEverything') Clear
         button.mr1(@click='importEverything') Import
         button(@click='exportEverything') Export
 </template>
@@ -44,6 +44,14 @@ const $namespaceName = ref(null)
 const onNamespaceNameChange = async(ev)=> {
   const name = ev.target.value
   await settingsModel.setNamespaceName(name)
+}
+
+/**
+ * Clear everything
+ */
+const clearEverything = async()=> {
+  chrome.storage.sync.clear()
+  window.location.reload()
 }
 
 
