@@ -1,23 +1,51 @@
 <template lang="pug">
 div.flex.column
   fieldset.flex-auto.mb1
-    button.mr1 Clear
-    button.mr1(@click='importEverything') Import
-    button(@click='exportEverything') Export
+    legend Namespace
+    .field-row-stacked
+      input#settings-namespace-name(
+      type='text'
+      ref='$namespaceName'
+      :value="typeof settingsModel.namespaceName === 'string' ? settingsModel.namespaceName : settingsModel.namespaceName.namespaceName"
+      autofocus
+      placeholder='Untitled'
+      @change='onNamespaceNameChange')
+
+  fieldset.flex.mb1
+    legend Data
+    div
+      .flex
+        button.mr1 Clear
+        button.mr1(@click='importEverything') Import
+        button(@click='exportEverything') Export
 </template>
 
 <script setup>
 import {ref, computed, onMounted, onBeforeUnmount} from 'vue'
 import {useConnectionsModel} from '../model/connections.js'
 import { useChannelsModel } from '../model/channels'
+import { useSettingsModel } from '../model/settings'
 import {useSkillsModel} from '../model/skills.js'
 import {useMessagesModel} from '../model/messages.js'
 import pkg from '../../package.json'
+import { set } from '@vueuse/core'
 
 const connectionsModel = useConnectionsModel()
 const skillsModel = useSkillsModel()
 const messagesModel = useMessagesModel()
 const channelsModel = useChannelsModel()
+const settingsModel = useSettingsModel()
+
+const $namespaceName = ref(null)
+
+/**
+ * Set the namespace
+ */
+const onNamespaceNameChange = async(ev)=> {
+  const name = ev.target.value
+  await settingsModel.setNamespaceName(name)
+}
+
 
 /**
  * Import everything
@@ -100,7 +128,16 @@ const exportEverything = async()=> {
   const year = date.getFullYear()
   const month = date.getMonth() + 1
   const day = date.getDate()
-  const title = `ModelPrompter ${year}-${month}-${day}`
+  let title = `${year}-${month}-${day}`
+
+  // @fixme this is so much
+  // inscrutable spaghetti code
+  // it could feed me for a week
+  let namespaceName = settingsModel.namespaceName?.namespaceName || settingsModel.namespaceName || ''
+  if (typeof namespaceName === 'object') {
+    namespaceName = ''
+  }
+  title = namespaceName ? `${namespaceName} -- ${title}` : `ModelPrompter -- ${title}`
   
   // Download the json file
   // Convert the data to a JSON string
@@ -113,4 +150,10 @@ const exportEverything = async()=> {
   link.click()
   URL.revokeObjectURL(url)  
 }
+
+onMounted(() => {
+  // setTimeout(() => {
+  //   $namespaceName.value.focus()
+  // }, 0)
+})
 </script>

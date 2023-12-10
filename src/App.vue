@@ -44,6 +44,7 @@ import { useConnectionsModel } from './model/connections'
 import { useMessagesModel } from './model/messages'
 import { useChannelsModel } from './model/channels'
 import { useSkillsModel } from './model/skills'
+import { useSettingsModel } from './model/settings'
 import {ref, onMounted, onBeforeMount, watch} from 'vue'
 import hotkeys from 'hotkeys-js'
 
@@ -56,6 +57,7 @@ const messagesModel = useMessagesModel()
 const connectionsModel = useConnectionsModel()
 const channelsModel = useChannelsModel()
 const skillsModel = useSkillsModel()
+const settingsModel = useSettingsModel()
 
 // Watch for changes to activeTab and persist
 watch(activeTab, async (value) => {
@@ -75,6 +77,7 @@ onBeforeMount(async () => {
   await messagesModel.init()
   await channelsModel.init()
   await skillsModel.init()
+  await settingsModel.init()
 
   let lastTab = await chrome.storage.local.get('activeTab')
   lastTab = lastTab.activeTab
