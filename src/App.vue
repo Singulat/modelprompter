@@ -162,6 +162,6 @@ const isThereAModalVisible = () => {
 
 // Close window
 const onClose = () => {
-  window.close()
+  globalThis.close()
 }
 </script>

@@ -4,7 +4,7 @@
 
 | Connect LLMs to your browser...<br><small>(manage multiple connections)</small> | ...teach them some skills...<br><small>(<small>"when this happens, do that"</small>)</small>  | ...and help them learn!<br><small><b>(they get better over time!)</small> |
 |-|-|-|
-| ![](https://github.com/0xozram/modelprompter/assets/151397270/68ddf351-b9de-481e-821f-abb7494e5448) | ![](https://github.com/0xozram/modelprompter/assets/151397270/9296d533-5130-4a5a-a41e-d9cec4fc15b5) | ![](https://github.com/0xozram/modelprompter/assets/151397270/74876598-bc22-4a96-a43e-76b0fcc21098) |
+| ![](https://github.com/modelprompters/modelprompter/assets/151397270/68ddf351-b9de-481e-821f-abb7494e5448) | ![](https://github.com/modelprompters/modelprompter/assets/151397270/9296d533-5130-4a5a-a41e-d9cec4fc15b5) | ![](https://github.com/modelprompters/modelprompter/assets/151397270/74876598-bc22-4a96-a43e-76b0fcc21098) |
 
 
 <br>
@@ -97,7 +97,7 @@ After setup, press the icon or hold `CTRL+SHIFT` to begin navigating the interfa
 
 ```bash
 # Clone this project locally
-git clone https://github.com/0xozram/modelprompter
+git clone https://github.com/modelprompters/modelprompter
 cd modelprompter
 
 # Install dependencies
@@ -114,7 +114,7 @@ npm install
 5. Click on the ModelPrompter icon or press <kbd>CTRL+SHIFT+SPACE</kbd> to begin
 
 ### Visual guide: Edge Browser
-<img width="906" alt="image" src="https://github.com/0xozram/modelprompter/assets/151397270/7768ff80-5f03-43e8-9f5f-5b3924b1a4e9">
+<img width="906" alt="image" src="https://github.com/modelprompters/modelprompter/assets/151397270/7768ff80-5f03-43e8-9f5f-5b3924b1a4e9">
 
 <br>
 <br>

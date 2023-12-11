@@ -50,7 +50,7 @@ const onNamespaceNameChange = async(ev)=> {
  */
 const clearEverything = async()=> {
   chrome.storage.sync.clear()
-  window.location.reload()
+  globalThis.location.reload()
 }
 
 

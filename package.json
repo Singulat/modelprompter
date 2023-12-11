@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/0xozram/modelprompter.git"
+    "url": "git+https://github.com/modelprompters/modelprompter.git"
   },
   "keywords": [
     "llms",
@@ -20,27 +20,27 @@
     "prompts",
     "userscripts"
   ],
-  "author": "0xozram <0xozram@gmail.com>",
+  "author": "Modelprompter <modelprompter@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/0xozram/modelprompter/issues"
+    "url": "https://github.com/modelprompters/modelprompter/issues"
   },
-  "homepage": "https://github.com/0xozram/modelprompter#readme",
+  "homepage": "https://github.com/modelprompters/modelprompter#readme",
   "dependencies": {
     "@vueuse/core": "^10.2.1",
     "98.css": "^0.1.20",
     "dompurify": "^3.0.6",
     "hotkeys-js": "^3.13.0",
-    "lodash": "^4.17.21",
     "lodash-es": "^4.17.21",
     "markdown-it": "^13.0.2",
     "markdown-it-attrs": "^4.1.6",
+    "monaco-editor": "^0.45.0",
+    "monaco-editor-vue3": "^0.1.10",
     "openai": "^4.20.0",
     "pinia": "^2.1.7",
     "vue": "^3.2.25"
   },
   "devDependencies": {
-    "@crxjs/vite-plugin": "^1.0.14",
     "@vitejs/plugin-vue": "^2.3.0",
     "nodemon": "^3.0.1",
     "pug": "^3.0.2",

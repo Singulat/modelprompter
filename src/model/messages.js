@@ -1,5 +1,5 @@
 import {defineStore} from 'pinia'
-import {throttle} from 'lodash'
+import {throttle} from 'lodash-es'
 
 export const useMessagesModel = defineStore({
   id: 'messages',
