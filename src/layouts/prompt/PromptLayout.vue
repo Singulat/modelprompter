@@ -31,10 +31,7 @@ WindowChannel(
 
 
 //- Display messages and editing area
-Messages(
-  ref='$messages'
-  :messages='messages'
-)
+Messages(ref='$messages' hotkeysScope='PromptLayout')
   template(v-slot:prompting)
   template(v-slot:editing)
 </template>
@@ -45,6 +42,7 @@ Messages(
 import {ref, onMounted, onBeforeUnmount, computed, nextTick} from 'vue'
 import { useConnectionsModel } from '../../model/connections'
 import {useChannelsModel} from '../../model/channels'
+import {useMessagesModel} from '../../model/messages'
 import { useSkillsModel } from '../../model/skills'
 import {useTabsModel} from '../../model/tabs.js'
 import Messages from '../../components/Messages.vue'
@@ -61,18 +59,14 @@ import keyboard from './keyboard'
 
 // Refs
 const $messages = ref(null)
-
-
-
-const isThinking = ref(false)
-const roleToChangeTo = ref('user')
-const showingChangeRole = ref(false)
 const $scriptsContainer = ref(null)
+const isThinking = ref(false)
 
 
 /**
  * Stores
  */
+const messagesModel = useMessagesModel()
 const connectionsModel = useConnectionsModel()
 const channelsModel = useChannelsModel()
 const tabsModel = useTabsModel()
@@ -113,11 +107,6 @@ const sendToLLM = async(messages, assistantDefaults = {}) => await prompt.sendTo
 const cancelThinking =()=> prompt.cancelThinking({isThinking, $promptEl})
 
 
-const deleteMessage = async()=> channel.deleteMessage({isEditing, isSelecting, messagesModel, curPrompt, $messages, $promptEl, selectMessage})
-const changeRole = async(role)=> channel.changeRole({role, isEditing, messagesModel, $messages, $promptEl})
-const regenerateMessage = async()=> channel.regenerateMessage({isEditing, messagesModel, sortedMessages, $messages, $promptEl, curPrompt, sendToLLM})
-
-
 
 /**
  * Keyboard shortcuts
@@ -127,30 +116,13 @@ onMounted(() => {
   setTimeout(async () => {
     activeChannel.value = await channelsModel.getCurrentChannel()
   }, 0)
-
-  // Focus things
-  setTimeout(() => {
-    $messages.value?.scrollBottom()
-    $messages.value.$promptEl?.focus()
-  }, 100)
-
   
   // Channel Management
   hotkeys('ctrl+shift+r', 'PromptLayout', (ev) => keyboard.resetChannel({ev, channelsModel, sortedMessages, deleteChannel, clearMessages, $promptEl, isWorking, isEditing, isSelecting}))
   hotkeys('ctrl+n', 'PromptLayout', (ev) => keyboard.newChannel({ev, showNewChannelModal}))
   hotkeys('ctrl+shift+e', 'PromptLayout', (ev) => keyboard.editChannel({ev, showEditChannelModal}))
   hotkeys('ctrl+shift+l', 'PromptLayout', (ev) => keyboard.selectChannels({ev, $channels}))
-  
-  // Message management
-  hotkeys('enter', 'PromptLayout', (ev) => keyboard.editSelectedMessage({ev, isEditing, isSelecting, isKey: true, messagesModel, $promptEl, $messages, curPrompt}))
-  hotkeys('delete', 'PromptLayout', async()=> channel.deleteMessage({isKey: true, selectMessage, isEditing, isSelecting, messagesModel, curPrompt, $messages, $promptEl}))
 
-  // Navigation
-  hotkeys('up', 'PromptLayout', (ev) => keyboard.prevMessage({ev, $messages, selectMessage, isSelecting}))
-  hotkeys('down', 'PromptLayout', (ev) => keyboard.nextMessage({ev, $messages, selectMessage, isSelecting, $promptEl}))
-
-  // Escaping
-  hotkeys('esc', 'PromptLayout', (ev)=> keyboard.onEsc({ev, isWorking, curPrompt, isEditing, isSelecting, $promptEl}))
   hotkeys.setScope('PromptLayout')
 })
 

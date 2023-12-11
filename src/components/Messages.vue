@@ -82,7 +82,11 @@ md.use(MarkdownItAttrs)
 // Stores and props
 const messagesModel = useMessagesModel()
 const props = defineProps({
-  messages: Array
+  messages: Array,
+  hotkeysScope: {
+    type: String,
+    default: 'Messages'
+  }
 })
 
 // Refs
@@ -93,6 +97,8 @@ const curPrompt = ref('')
 const $promptEl = ref(null)
 const isShowingMore = ref(false)
 const isWorking = ref(false)
+const roleToChangeTo = ref('user')
+const showingChangeRole = ref(false)
 
 
 
@@ -106,7 +112,7 @@ const onMessageEdit =(ev)=> {
     editSelectedMessage()
   }
 }
-const onEditMessage = (ev)=> hotkeys.trigger('enter', 'PromptLayout', ev)
+const onEditMessage = (ev)=> hotkeys.trigger('enter', props.hotkeysScope, ev)
 
 
 
@@ -160,8 +166,12 @@ const selectMessage = (target)=> {
 /**
  * Cancel editing and deselect message
  */
-const cancelEditing =()=> {
-  hotkeys.trigger('esc', 'PromptLayout')
+const cancelEditing =(ev)=> {
+  if (isEditing.value) {
+    ev?.preventDefault()
+    ev?.stopPropagation()
+  }
+
   isEditing.value = false
   isSelecting.value = false
   curPrompt.value = ''
@@ -188,7 +198,7 @@ const cancelPrompt = ()=> {
 /**
  * Clear messages
  */
-const clearMessages = async ({isShowingMore, activeChannel, messagesModel, maybeAddSystemPrompt, $promptEl}) => {
+const clearMessages = async () => {
   isShowingMore.value = false
   await messagesModel.deleteAll(activeChannel.value)
   await maybeAddSystemPrompt()
@@ -257,7 +267,7 @@ const deleteMessage = async (isKey) => {
     if ($nextMessage) {
       selectMessage({target: $nextMessage, isSelecting, $messages})
     } else {
-      hotkeys.trigger('esc', 'PromptLayout')
+      hotkeys.trigger('esc', props.hotkeysScope)
     }
   }, 0)
 }
@@ -335,6 +345,133 @@ const scrollBottom =()=> {
   }  
 }
 
+
+
+/**
+ * Handle onmount
+ */
+onMounted(() => {
+  // Focus things
+  setTimeout(() => {
+    scrollBottom()
+    $promptEl.value?.focus()
+  }, 100)
+
+  // Message management
+  hotkeys('enter', props.hotkeysScope, () => editSelectedMessage(true))
+  hotkeys('delete', props.hotkeysScope, async()=> deleteMessage(true))
+
+  // Navigation
+  hotkeys('up', props.hotkeysScope, prevMessage)
+  hotkeys('down', props.hotkeysScope, nextMessage)
+
+  // Escaping
+  hotkeys('esc', props.hotkeysScope, onEsc)
+})
+
+
+
+/**
+ * Enter selection mode (or select the prev message)
+ */
+const prevMessage = (ev) => {
+  // Ignore naked arrows if in an input without bubbling
+  if (!ev?.shiftKey && !ev?.ctrlKey && ['INPUT', 'TEXTAREA'].includes(ev?.target?.tagName) && !ev?.target?.classList?.contains('bubble-arrow-hotkeys')) {
+    return
+  }
+
+  // Exit if no messages
+  const $messageEls = $messages.value.querySelectorAll('.message')
+  if (!$messageEls.length) {
+    return
+  }
+  
+  // Find previous
+  let $highlight = $messages.value.querySelector(`.highlight`)
+  let $message
+  if (!$highlight) {
+    $message = $messageEls[$messageEls.length-1]
+  } else {
+    const index = [...$messageEls].indexOf($highlight)
+    if (index > 0) {
+      $message = $messageEls[index-1]
+    }
+  }
+
+  // Select
+  if ($message) {
+    selectMessage({target: $message, isSelecting, $messages})
+    isSelecting.value = $message.getAttribute('data-id')
+  }
+}
+
+/**
+ * Next message
+ */
+const nextMessage = (ev) => {
+  if (!isSelecting.value) return
+  
+  // Ignore naked arrows if in an input without bubbling
+  if (!ev.shiftKey && !ev.ctrlKey && ['INPUT', 'TEXTAREA'].includes(ev.target.tagName) && !ev.target.classList.contains('bubble-arrow-hotkeys')) {
+    return
+  }
+
+  // Exit if no messages
+  const $messageEls = $messages.value.querySelectorAll('.message')
+  if (!$messageEls.length) {
+    return
+  }
+
+  // Find next
+  let $highlight = $messages.value.querySelector(`.highlight`)
+  let $message
+  if (!$highlight) {
+    $message = $messageEls[0]
+  } else {
+    const index = [...$messageEls].indexOf($highlight)
+    if (index < $messageEls.length-1) {
+      $message = $messageEls[index+1]
+    }
+  }
+
+  // Select
+  if ($message) {
+    selectMessage({target: $message, isSelecting, $messages})
+  } else {
+    isSelecting.value = false
+    if ($highlight) {
+      $highlight.classList.remove('highlight')
+    }
+    setTimeout(() => {
+      $promptEl.value.focus()
+    }, 0)
+  }
+}
+
+
+/**
+ * onEsc
+ */
+const onEsc = (ev) => {
+  if (isWorking.value || isEditing.value || isSelecting.value) {
+    ev?.preventDefault()
+    ev?.stopPropagation()
+  }
+  curPrompt.value = ''
+  isWorking.value = false
+
+  if (isSelecting.value) {
+    isSelecting.value = false
+
+    cancelEditing(ev)
+    return
+  }
+  
+  if (isEditing.value) {
+    isSelecting.value = isEditing.value
+    isEditing.value = false
+  }
+}
 
 
 /**
