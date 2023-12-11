@@ -176,24 +176,5 @@ export default {
     }, 0)
   },
 
-  editSelectedMessage ({ev, isKey, isEditing, curPrompt, isSelecting, $promptEl, messagesModel, $messages}) {
-    if ((isKey && isEditing.value) || (isKey && !isEditing.value && !isSelecting.value)) return
-    
-    // Get the current message
-    const message = messagesModel.messages[isSelecting.value]
-    isEditing.value = isSelecting.value
-    isSelecting.value = false
-    
-    // highlight the message with id
-    const $highlight = $messages.value.querySelector(`.highlight`)
-    if (!$highlight) {
-      $messages.value.querySelector(`[data-id="${isEditing.value}"]`)?.classList?.add('highlight')
-    }
 
-    setTimeout(() => {
-      const message = messagesModel.messages[isEditing.value]
-      curPrompt.value = message.text
-      $promptEl.value.focus()
-    }, 0)
-  }
 }
