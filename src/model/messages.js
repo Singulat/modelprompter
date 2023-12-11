@@ -13,6 +13,10 @@ export const useMessagesModel = defineStore({
       await this.getMessages()
     },
 
+    async save () {
+      await chrome.storage.sync.set({messages: this.messages})
+    },
+
     /**
      * Get all messages
      * @returns {messages}

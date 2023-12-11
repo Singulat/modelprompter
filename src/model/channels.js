@@ -14,6 +14,11 @@ export const useChannelsModel = defineStore({
       await this.getCurrentChannel()
     },
 
+    async save () {
+      await chrome.storage.sync.set({channels: this.channels})
+      await chrome.storage.sync.set({currentChannel: this.currentChannel})
+    },
+
     async getCurrentChannel () {
       this.currentChannel = await chrome.storage.sync.get('currentChannel')
       return this.currentChannel?.currentChannel || 'general'

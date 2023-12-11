@@ -220,7 +220,7 @@ Trigger when: ${skill.triggers}`,
     // Create openai instance
     const openai = new OpenAI({
       baseURL: defaultConnection.baseurl,
-      apiKey: defaultConnection.apiKey,
+      apiKey: defaultConnection.apiKey || '123',
       organization: defaultConnection.organization,
       dangerouslyAllowBrowser: true
     })

@@ -19,6 +19,11 @@ export const useConnectionsModel = defineStore({
       this.defaultConnection = data.defaultConnection || ''
     },
 
+    async save () {
+      await chrome.storage.sync.set({connections: this.connections})
+      await chrome.storage.sync.set({defaultConnection: this.defaultConnection})
+    },
+
     async setDefault (id) {
       this.defaultConnection = id
       await chrome.storage.sync.set({defaultConnection: id})

@@ -26,6 +26,15 @@ export const useSkillsModel = defineStore({
       this.defaultSkill = data.defaultSkill || ''
     },
 
+    async save () {
+      await chrome.storage.sync.set({skills: this.skills})
+      await chrome.storage.sync.set({activeSkills: this.activeSkills})
+      await chrome.storage.sync.set({allSkillsDisabled: this.allSkillsDisabled})
+      await chrome.storage.sync.set({defaultSkill: this.defaultSkill})
+      await chrome.storage.sync.set({systemPrompt: this.systemPrompt})
+      await chrome.storage.sync.set({planningPrompt: this.planningPrompt})
+    },
+
     async getActiveSkills () {
       this.activeSkills = await chrome.storage.sync.get('activeSkills')
       return this.activeSkills?.activeSkills || []

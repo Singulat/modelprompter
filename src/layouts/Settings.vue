@@ -28,7 +28,6 @@ import { useSettingsModel } from '../model/settings'
 import {useSkillsModel} from '../model/skills.js'
 import {useMessagesModel} from '../model/messages.js'
 import pkg from '../../package.json'
-import { set } from '@vueuse/core'
 
 const connectionsModel = useConnectionsModel()
 const skillsModel = useSkillsModel()
@@ -68,23 +67,21 @@ const importEverything = async()=> {
       const json = reader.result
       const data = JSON.parse(json)
 
-      // Ignore some data
-      // connectionsModel.defaultConnection = data.connections.defaultConnection
-      // skillsModel.defaultSkill = data.skills.defaultSkill
-      // skillsModel.allSkillsDisabled = data.skills.allSkillsDisabled
-      const settings = data.settings?.settings || {}
       if (data.namespace?.namespaceName) {
         settingsModel.namespaceName = data.namespace.namespaceName
       } else {
         settingsModel.namespaceName = ''
       }
 
+      // Remove any API keys
       const connections = data.connections.connections
       for (const key in connections) {
         delete connections[key].apiKey
       }
       connectionsModel.connections = connections
-
+      connectionsModel.defaultConnection = data.defaultConnection
+      
+      // Load everything
       channelsModel.channels = data.channels?.channels
       channelsModel.currentChannel = data.channels?.currentChannel
       messagesModel.messages = data.messages.messages
@@ -93,6 +90,16 @@ const importEverything = async()=> {
       skillsModel.activeSkills = data.skills.activeSkills
       skillsModel.systemPrompt = data.skills.systemPrompt
       skillsModel.planningPrompt = data.skills.planningPrompt
+      skillsModel.defaultSkill = data.skills.defaultSkill
+      skillsModel.allSkillsDisabled = data.skills.allSkillsDisabled
+
+      // Save everything
+      await connectionsModel.save()
+      await channelsModel.save()
+      await messagesModel.save()
+      await skillsModel.save()
+      await settingsModel.save()
+
 
       // Delete elements
       file.remove()
