@@ -237,8 +237,8 @@ onMounted(() => {
 
   
   // Channel Management
-  hotkeys('ctrl+shift+r', 'PromptLayout', (ev) => keyboard.resetChannel({ev, channelsModel, sortedMessages, deleteChannel, clearMessages, $promptEl}))
-  hotkeys('ctrl+shift+n', 'PromptLayout', (ev) => keyboard.newChannel({ev, showNewChannelModal}))
+  hotkeys('ctrl+shift+r', 'PromptLayout', (ev) => keyboard.resetChannel({ev, channelsModel, sortedMessages, deleteChannel, clearMessages, $promptEl, isWorking, isEditing, isSelecting}))
+  hotkeys('ctrl+n', 'PromptLayout', (ev) => keyboard.newChannel({ev, showNewChannelModal}))
   hotkeys('ctrl+shift+e', 'PromptLayout', (ev) => keyboard.editChannel({ev, showEditChannelModal}))
   hotkeys('ctrl+shift+l', 'PromptLayout', (ev) => keyboard.selectChannels({ev, $channels}))
   

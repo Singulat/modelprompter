@@ -82,7 +82,7 @@ export const useMessagesModel = defineStore({
      */
     updateMessage: throttle(async function (id, message) {
       Object.keys(message).forEach(key => {
-        if (message[key]) {
+        if (this.messages[id] && message[key]) {
           this.messages[id][key] = message[key]
         }
       })

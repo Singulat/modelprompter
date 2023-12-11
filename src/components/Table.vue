@@ -228,7 +228,7 @@ const deleteRecord = () => {
  */
 onMounted(() => {
 // Show new
-  hotkeys('ctrl+shift+n', props.hotkeysScope, (ev) => {
+  hotkeys('ctrl+n', props.hotkeysScope, (ev) => {
     if (isModalOpen.value) {
       return
     }

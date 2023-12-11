@@ -29,9 +29,13 @@ export default {
   /**
    * Reset channel
    */
-  async resetChannel ({ev, channelsModel, sortedMessages, deleteChannel, clearMessages, $promptEl}) {
-    ev.preventDefault()
-    ev.stopPropagation()
+  async resetChannel ({ev, channelsModel, sortedMessages, deleteChannel, clearMessages, $promptEl, isSelecting, isEditing, isWorking}) {
+    ev?.preventDefault()
+    ev?.stopPropagation()
+    
+    isSelecting.value = false
+    isEditing.value = false
+    isWorking.value = false    
     
     // Delete if not general and not have messages, otherwise just clear
     if (channelsModel.currentChannel !== 'general' && !sortedMessages.value.length) {
@@ -40,7 +44,9 @@ export default {
       await clearMessages()
     }
 
-    $promptEl.value.focus()
+    setTimeout(() => {
+      $promptEl.value.focus()
+    }, 0)
   },
 
   /**
