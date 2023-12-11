@@ -43,6 +43,23 @@ export default {
   },
 
   /**
+   * Remove placeholder elements
+   * (they already get removed from store)
+   */
+  removePlaceholders ({placeholders, $messages, messagesModel}) {
+    for (const placeholder of placeholders) {
+      // Remove the placeholder from the dom
+      const $placeholder = $messages.value.querySelector(`[data-id="${placeholder.id}"]`)
+      if ($placeholder) {
+        $placeholder.remove()
+      }
+      
+      // Remove from store if it's there too
+      messagesModel.deleteMessage(placeholder.id)
+    }
+  },
+
+  /**
    * Run prompt
    */
   async runPrompt ({$messages, $scriptsContainer, curPrompt, isEditing, skillsModel, updateMessage, activeChannel, messagesModel, sendToLLM}) {
@@ -51,7 +68,8 @@ export default {
       return
     }
     let response = ''
-    console.log('\n\n\n---\nNew Prompt:', curPrompt.value)
+    let neededPlan = false
+    console.log('\n\n\n---\n📜 New Prompt:', curPrompt.value)
     
     // Add the users message
     const prompt = curPrompt.value
@@ -70,9 +88,12 @@ export default {
       const rawSkills = Object.values(skillsModel.skills)
       const passedSkills = []
       const responses = []
+      const placeholders = []
 
+      // Check each skill individually
+      console.log('🤸 Evaluating required skills')
       for (let i = 0; i < skillsToParse.length; i++) {
-        console.log('🧰 Checking skill:', rawSkills[i]?.name)
+        console.log('🤔 Checking skill:', rawSkills[i].name)
         const response = await sendToLLM(skillsToParse[i], {
           role: 'placeholder',
           text: `📋 Checking skill: ${rawSkills[i].name}`,
@@ -81,51 +102,63 @@ export default {
         if (response.skillPassedTest) {
           passedSkills.push(rawSkills[i])
         }
-        responses.push('Skill check response:', response)
+        responses.push(response)
+        placeholders.push({
+          id: response.assistantId,
+        })
       }
+      this.removePlaceholders({placeholders: placeholders, $messages, messagesModel})
 
       // Send the message through as normal chat if no skills passed
       if (passedSkills.length === 0) {
         const messages = await messagesModel.getPreparedMessages(activeChannel.value)
-        await sendToLLM(messages, {text: '🤔 Thinking...', role: 'placeholder'})
+        console.log('💬 No skills needed. Generating response.')
+        const response = await sendToLLM(messages, {text: '🤔 Thinking...', role: 'placeholder'})
+        this.removePlaceholders({placeholders: [response.placeholders], $messages, messagesModel})
       } else {
         const messages = await messagesModel.getPreparedMessages(activeChannel.value)
 
         /**
          * Planning stage
          */
-        messages.push({
-          role: 'user',
-          content: skillsModel.planningPrompt,
-        })
-        // Add the skills
+        // Add skills
         for (const skill of passedSkills.reverse()) {
-          messages.push({
+          messages.unshift({
             role: 'system',
             content: `Skill name: ${skill.name}
 Trigger when: ${skill.triggers}
 Reaction: ${skill.response}`
           })
         }
-        messages.push(messages.shift())
-        
-        console.log('📋 Sending plan')
-        response = await sendToLLM(messages, {text: '🤔 Thinking...', role: 'placeholder'})
 
-        // Remove placeholders
-        messages.forEach(message => {
-          if (message.role === 'placeholder') {
-            messagesModel.deleteMessage(message.id)
-          }
+        // Add planning prompt
+        messages.unshift({
+          role: 'system',
+          content: skillsModel.planningPrompt,
         })
+        
+        // Send it
+        neededPlan = true
+        console.log('📋 Generating plan')
+        const response = await sendToLLM(messages, {text: '🤔 Thinking...', role: 'placeholder'})
+
+        
+        // Remove placeholders
+        console.log('📋 Plan generated:\n', response.combinedMessage)
+        this.removePlaceholders({placeholders: [response.placeholders], $messages, messagesModel})
       }
     } else {
       const messages = await messagesModel.getPreparedMessages(activeChannel.value)
-      response = await sendToLLM(messages, {text: '🤔 Thinking...'})
+      const response = await sendToLLM(messages, {text: '🤔 Thinking...'})
+      this.removePlaceholders({placeholders: [response.placeholders], $messages, messagesModel})
     }
 
     // Extract scripts from the response and run them
-    this.scanAndRunScripts({response, $scriptsContainer})
+    console.log('⚡ Running scripts')
+    await this.scanAndRunScripts({response, $scriptsContainer})
+    neededPlan && console.log('📋 Reviewing plan and results')
+    neededPlan && console.log('🫡 Confirming')
+    console.log('💤 Message round over')
   },
 
     /**
@@ -164,17 +197,11 @@ Reaction: ${skill.response}`
       // System prompt
       let skillMessages = [
         {
-          role: 'user',
+          role: 'system',
           text: `${skillsModel.systemPrompt}`,
           skill
         }
       ]
-
-      // User Prompt
-      skillMessages.push({
-        role: 'user',
-        text: `${prompt}`
-      })
       
       // Skill compare against
       skillMessages.push({
@@ -183,8 +210,14 @@ Reaction: ${skill.response}`
 Trigger when: ${skill.triggers}`,
       })
 
+      // User Prompt
+      skillMessages.push({
+        role: 'user',
+        text: `${prompt}`
+      })
+
       // Move first to last
-      skillMessages.push(skillMessages.shift())
+      // skillMessages.push(skillMessages.shift())
 
       skills.push(await messagesModel.prepareMessages(skillMessages))
     }
@@ -225,11 +258,13 @@ Trigger when: ${skill.triggers}`,
       dangerouslyAllowBrowser: true
     })
 
-    // Remove plaholder roles
+    // Pull out all placeholders into a seperate array
+    // and remove them from the messages
+    const placeholders = [...messages.filter(message => message.role === 'placeholder')]
     messages = messages.filter(message => message.role !== 'placeholder')
 
     // Send to openai
-    console.log('sending to openai', messages)
+    console.log('📦 Sending to LLM', messages)
     const completion = await openai.chat.completions.create({
       messages,
       model: defaultConnection.model,
@@ -244,13 +279,11 @@ Trigger when: ${skill.triggers}`,
       if (!isGeneratingSkills) {
         const chunk = completionChunk.choices?.[0]?.delta?.content || ''
         
-        if (chunk) {
-          // Concat the chunk
-          combinedMessage += chunk
-          messagesModel.updateMessage(assistantId, {
-            text: combinedMessage
-          })
-        }
+        // Concat the chunk
+        combinedMessage += chunk
+        messagesModel.updateMessage(assistantId, {
+          text: combinedMessage
+        })
       } else {
         // If it's a skill, check if its a good match
         const chunk = completionChunk.choices?.[0]?.delta?.content?.trim() || ''
@@ -277,6 +310,7 @@ Trigger when: ${skill.triggers}`,
     isThinking.value = false  
 
     return {
+      placeholders,
       skillPassedTest,
       combinedMessage,
       assistantId
