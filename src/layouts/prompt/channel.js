@@ -203,7 +203,5 @@ export default {
     $messagesEl.forEach($message => {
       $message.classList.remove('highlight')
     })
-
-    set
   }
 }
