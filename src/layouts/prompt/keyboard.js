@@ -132,12 +132,13 @@ export default {
   /**
    * onEsc
    */
-  onEsc ({ev, isEditing, isSelecting, $promptEl, curPrompt, $messages}) {
-    if (isEditing.value || isSelecting.value) {
+  onEsc ({ev, isWorking, isEditing, isSelecting, $promptEl, curPrompt, $messages}) {
+    if (isWorking.value || isEditing.value || isSelecting.value) {
       ev?.preventDefault()
       ev?.stopPropagation()
     }
     curPrompt.value = ''
+    isWorking.value = false
 
     if (isSelecting.value) {
       isSelecting.value = false

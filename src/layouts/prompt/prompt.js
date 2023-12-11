@@ -22,6 +22,15 @@ export default {
     }
   },
 
+  /**
+   * Cancel thinking mode
+   */
+  cancelThinking ({isWorking, $promptEl}) {
+    isWorking.value = false
+    $promptEl.value.focus()
+  },
+  
+  
   async maybeAddOrUpdateSystemPrompt ({activeChannel, channelsModel, messagesModel, sortedMessages}) {
     const channel = channelsModel.channels[activeChannel.value]
     // Check if the first sorted message is a system prompt, if so update. if not, add a new one with the date a bit before the first
@@ -62,11 +71,13 @@ export default {
   /**
    * Run prompt
    */
-  async runPrompt ({$messages, $scriptsContainer, curPrompt, isEditing, skillsModel, updateMessage, activeChannel, messagesModel, sendToLLM}) {
+  async runPrompt ({$messages, isWorking, $scriptsContainer, curPrompt, isEditing, skillsModel, updateMessage, activeChannel, messagesModel, sendToLLM}) {
     if (isEditing.value) {
       updateMessage()
       return
     }
+    
+    isWorking.value = true
     let response = ''
     let neededPlan = false
     console.log('\n\n\n---\n📜 New Prompt:', curPrompt.value)
@@ -93,6 +104,8 @@ export default {
       // Check each skill individually
       console.log('🤸 Evaluating required skills')
       for (let i = 0; i < skillsToParse.length; i++) {
+        if (!isWorking.value) return
+
         console.log('🤔 Checking skill:', rawSkills[i].name)
         const response = await sendToLLM(skillsToParse[i], {
           role: 'placeholder',
@@ -109,56 +122,66 @@ export default {
       }
       this.removePlaceholders({placeholders: placeholders, $messages, messagesModel})
 
+      
+      if (isWorking.value) {
       // Send the message through as normal chat if no skills passed
-      if (passedSkills.length === 0) {
-        const messages = await messagesModel.getPreparedMessages(activeChannel.value)
-        console.log('💬 No skills needed. Generating response.')
-        const response = await sendToLLM(messages, {text: '🤔 Thinking...', role: 'placeholder'})
-        this.removePlaceholders({placeholders: [response.placeholders], $messages, messagesModel})
-      } else {
-        const messages = await messagesModel.getPreparedMessages(activeChannel.value)
+        if (passedSkills.length === 0) {
+          const messages = await messagesModel.getPreparedMessages(activeChannel.value)
+          console.log('💬 No skills needed. Generating response.')
+          const response = await sendToLLM(messages, {text: '🤔 Thinking...', role: 'placeholder'})
+          this.removePlaceholders({placeholders: [response.placeholders], $messages, messagesModel})
+        } else {
+          const messages = await messagesModel.getPreparedMessages(activeChannel.value)
 
-        /**
-         * Planning stage
-         */
-        // Add skills
-        for (const skill of passedSkills.reverse()) {
+          /**
+           * Planning stage
+           */
+          // Add skills
+          for (const skill of passedSkills.reverse()) {
+            messages.unshift({
+              role: 'system',
+              content: `Skill name: ${skill.name}
+    Trigger when: ${skill.triggers}
+    Reaction: ${skill.response}`
+            })
+          }
+
+          // Add planning prompt
           messages.unshift({
             role: 'system',
-            content: `Skill name: ${skill.name}
-Trigger when: ${skill.triggers}
-Reaction: ${skill.response}`
+            content: skillsModel.planningPrompt,
           })
+          
+          // Send it
+          neededPlan = true
+          console.log('📋 Generating plan')
+          const response = await sendToLLM(messages, {text: '🤔 Thinking...', role: 'placeholder'})
+
+          
+          // Remove placeholders
+          console.log('📋 Plan generated:\n', response.combinedMessage)
+          this.removePlaceholders({placeholders: [response.placeholders], $messages, messagesModel})
         }
-
-        // Add planning prompt
-        messages.unshift({
-          role: 'system',
-          content: skillsModel.planningPrompt,
-        })
-        
-        // Send it
-        neededPlan = true
-        console.log('📋 Generating plan')
-        const response = await sendToLLM(messages, {text: '🤔 Thinking...', role: 'placeholder'})
-
-        
-        // Remove placeholders
-        console.log('📋 Plan generated:\n', response.combinedMessage)
-        this.removePlaceholders({placeholders: [response.placeholders], $messages, messagesModel})
       }
     } else {
-      const messages = await messagesModel.getPreparedMessages(activeChannel.value)
-      const response = await sendToLLM(messages, {text: '🤔 Thinking...'})
-      this.removePlaceholders({placeholders: [response.placeholders], $messages, messagesModel})
+      if (isWorking.value) {
+        const messages = await messagesModel.getPreparedMessages(activeChannel.value)
+        const response = await sendToLLM(messages, {text: '🤔 Thinking...'})
+        this.removePlaceholders({placeholders: [response.placeholders], $messages, messagesModel})
+      }
     }
 
     // Extract scripts from the response and run them
-    console.log('⚡ Running scripts')
-    await this.scanAndRunScripts({response, $scriptsContainer})
-    neededPlan && console.log('📋 Reviewing plan and results')
-    neededPlan && console.log('🫡 Confirming')
+    if (isWorking.value) {
+      console.log('⚡ Running scripts')
+      await this.scanAndRunScripts({response, $scriptsContainer})
+      neededPlan && console.log('📋 Reviewing plan and results')
+      neededPlan && console.log('🫡 Confirming')
+    } else {
+      console.log('✋ Message round cancelled')
+    }
     console.log('💤 Message round over')
+    isWorking.value = false
   },
 
     /**
@@ -230,7 +253,7 @@ Trigger when: ${skill.triggers}`,
    * Send to the llm for inference
    * @returns {skillPassedTest, combinedMessage}
    */
-  async sendToLLM ({messages, assistantDefaults, isThinking, connectionsModel, activeChannel, messagesModel, $promptEl, scrollBottom}) {
+  async sendToLLM ({messages, isWorking, assistantDefaults, isThinking, connectionsModel, activeChannel, messagesModel, $promptEl, scrollBottom}) {
     isThinking.value = true
 
     // Add a placeholder message to start updating
@@ -276,6 +299,10 @@ Trigger when: ${skill.triggers}`,
     let skillPassedTest = false
     
     for await (const completionChunk of completion) {
+      if (!isWorking.value) {
+        break
+      }
+      
       if (!isGeneratingSkills) {
         const chunk = completionChunk.choices?.[0]?.delta?.content || ''
         

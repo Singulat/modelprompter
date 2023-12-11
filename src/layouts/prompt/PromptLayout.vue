@@ -54,8 +54,8 @@ div(style='flex: 0;')
           div(style='display: flex; position: relative')
             button(@click='showMore' :class='{active: isShowingMore}') More
         div
-          button.fullwidth(v-if='!isThinking' :disabled='!curPrompt' @click='runPrompt') Run prompt
-          button.fullwidth(v-else='' disabled='') Thinking...
+          button.fullwidth(v-if='!isWorking' :disabled='!curPrompt' @click='runPrompt') Run prompt
+          button.fullwidth(v-else='' @click='isWorking = false') Cancel prompt
       // Editing
       div(v-if='isEditing || isSelecting')
         .flex
@@ -190,10 +190,12 @@ const deleteChannel =()=> channel.deleteChannel({messagesModel, channelsModel, a
 /**
  * Prompting
  */
+const isWorking = ref(false)
 const maybeAddSystemPrompt = async()=> await prompt.maybeAddSystemPrompt({channelsModel, activeChannel, messagesModel})
 const maybeAddOrUpdateSystemPrompt = async()=> await prompt.maybeAddOrUpdateSystemPrompt({channelsModel, activeChannel, messagesModel, sortedMessages})
-const runPrompt = async()=> await prompt.runPrompt({$messages, $scriptsContainer, isEditing, curPrompt, skillsModel, messagesModel, activeChannel, sendToLLM, updateMessage})
-const sendToLLM = async(messages, assistantDefaults = {}) => await prompt.sendToLLM({messages, assistantDefaults, isThinking, connectionsModel, activeChannel, messagesModel, $promptEl, scrollBottom})
+const runPrompt = async()=> await prompt.runPrompt({isWorking, $messages, $scriptsContainer, isEditing, curPrompt, skillsModel, messagesModel, activeChannel, sendToLLM, updateMessage})
+const sendToLLM = async(messages, assistantDefaults = {}) => await prompt.sendToLLM({messages, assistantDefaults, isThinking, connectionsModel, activeChannel, messagesModel, isWorking, $promptEl, scrollBottom})
+const cancelThinking =()=> prompt.cancelThinking({isThinking, $promptEl})
 
 
 /**
@@ -251,7 +253,7 @@ onMounted(() => {
   hotkeys('down', 'PromptLayout', (ev) => keyboard.nextMessage({ev, $messages, selectMessage, isSelecting, $promptEl}))
 
   // Escaping
-  hotkeys('esc', 'PromptLayout', (ev)=> keyboard.onEsc({ev, curPrompt, isEditing, isSelecting, $promptEl}))
+  hotkeys('esc', 'PromptLayout', (ev)=> keyboard.onEsc({ev, isWorking, curPrompt, isEditing, isSelecting, $promptEl}))
   hotkeys.setScope('PromptLayout')
 })
 
