@@ -55,7 +55,7 @@ div(style='flex: 0;')
             button(@click='showMore' :class='{active: isShowingMore}') More
         div
           button.fullwidth(v-if='!isWorking' :disabled='!curPrompt' @click='runPrompt') Run prompt
-          button.fullwidth(v-else='' @click='isWorking = false') Cancel prompt
+          button.fullwidth(v-else='' @click='cancelPrompt') Cancel prompt
       // Editing
       div(v-if='isEditing || isSelecting')
         .flex
@@ -193,7 +193,7 @@ const deleteChannel =()=> channel.deleteChannel({messagesModel, channelsModel, a
 const isWorking = ref(false)
 const maybeAddSystemPrompt = async()=> await prompt.maybeAddSystemPrompt({channelsModel, activeChannel, messagesModel})
 const maybeAddOrUpdateSystemPrompt = async()=> await prompt.maybeAddOrUpdateSystemPrompt({channelsModel, activeChannel, messagesModel, sortedMessages})
-const runPrompt = async()=> await prompt.runPrompt({isWorking, $messages, $scriptsContainer, isEditing, curPrompt, skillsModel, messagesModel, activeChannel, sendToLLM, updateMessage})
+const runPrompt = async(regenerate = false)=> await prompt.runPrompt({regenerate, isWorking, $messages, $scriptsContainer, isEditing, curPrompt, skillsModel, messagesModel, activeChannel, sendToLLM, updateMessage})
 const sendToLLM = async(messages, assistantDefaults = {}) => await prompt.sendToLLM({messages, assistantDefaults, isThinking, connectionsModel, activeChannel, messagesModel, isWorking, $promptEl, scrollBottom})
 const cancelThinking =()=> prompt.cancelThinking({isThinking, $promptEl})
 
@@ -216,8 +216,18 @@ const cancelEditing =()=> {
   isEditing.value = false
   isSelecting.value = false
   curPrompt.value = ''
-  $promptEl.value?.focus()
   $messages.value?.querySelector('.highlight')?.classList.remove('highlight')
+
+  setTimeout(() => {
+    $promptEl.value?.focus()
+  }, 0)
+}
+const cancelPrompt = ()=> {
+  isWorking.value = false
+
+  setTimeout(() => {
+    $promptEl.value?.focus()
+  }, 0)
 }
 const updateMessage = async()=> channel.updateMessage({isEditing, messagesModel, curPrompt, activeChannel, channelsModel, sortedMessages, $messages, $promptEl})
 const deleteMessage = async()=> channel.deleteMessage({isEditing, isSelecting, messagesModel, curPrompt, $messages, $promptEl, selectMessage})
@@ -247,8 +257,6 @@ onMounted(() => {
   hotkeys('delete', 'PromptLayout', async()=> channel.deleteMessage({isKey: true, selectMessage, isEditing, isSelecting, messagesModel, curPrompt, $messages, $promptEl}))
 
   // Navigation
-  hotkeys('ctrl+shift+up', 'PromptLayout', (ev) => keyboard.prevMessage({ev, $messages, selectMessage, isSelecting}))
-  hotkeys('ctrl+shift+down', 'PromptLayout', (ev) => keyboard.nextMessage({ev, $messages, selectMessage, isSelecting, $promptEl}))
   hotkeys('up', 'PromptLayout', (ev) => keyboard.prevMessage({ev, $messages, selectMessage, isSelecting}))
   hotkeys('down', 'PromptLayout', (ev) => keyboard.nextMessage({ev, $messages, selectMessage, isSelecting, $promptEl}))
 

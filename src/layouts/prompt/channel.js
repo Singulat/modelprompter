@@ -188,38 +188,12 @@ export default {
   /**
    * Regenerate message
    */
-  async regenerateMessage ({isEditing, messagesModel, sortedMessages, $messages, $promptEl, sendToLLM, curPrompt}) {
-    const message = messagesModel.messages[isEditing.value]
-
-    // If user, get all messages up to this one
-    if (message.role === 'user') {
-      const sortedClone = [...sortedMessages.value]
-      const index = sortedClone.findIndex(m => m.id === message.id)
-      const messages = sortedClone.slice(0, index + 1)
-      await sendToLLM(messagesModel.prepareMessages(messages), {created_at: message.created_at+1})
-    } else if (message.role === 'assistant') {
-      // If only one message, regenerate using it's own prompt as input
-      if (sortedMessages.value.length === 1) {
-        await sendToLLM(messagesModel.prepareMessages([message]))
-        await messagesModel.deleteMessage(message.id)
-      // Get up to the one before it
-      } else {
-        const sortedClone = [...sortedMessages.value]
-        const index = sortedClone.findIndex(m => m.id === message.id)
-        const messages = sortedClone.slice(0, index)
-        await messagesModel.deleteMessage(message.id)
-        await sendToLLM(messagesModel.prepareMessages(messages), {created_at: message.created_at-1})
-      }
-    }
-
-    isEditing.value = false
-    const $messagesEl = $messages.value.querySelectorAll('.message')
-    $messagesEl.forEach($message => {
-      $message.classList.remove('highlight')
-    })
-
-    curPrompt.value = ''
-    $promptEl.value.focus()
+  async regenerateMessage ({$messages, isWorking, $scriptsContainer, curPrompt, isEditing, skillsModel, updateMessage, activeChannel, messagesModel, sendToLLM, isSelecting}) {
+    let promptsToUse = []
+    // Get all messages up to the current one
+    const activeMessage = isEditing.value || isSelecting.value
+    
+    runPrompt({$messages, promptsToUse, isWorking, $scriptsContainer, curPrompt, isEditing, skillsModel, updateMessage, activeChannel, messagesModel, sendToLLM})
   },
 
   cancelEditing ({isEditing, curPrompt, $messages}) {
@@ -229,5 +203,7 @@ export default {
     $messagesEl.forEach($message => {
       $message.classList.remove('highlight')
     })
+
+    set
   }
 }

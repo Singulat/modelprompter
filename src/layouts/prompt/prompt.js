@@ -71,7 +71,7 @@ export default {
   /**
    * Run prompt
    */
-  async runPrompt ({$messages, isWorking, $scriptsContainer, curPrompt, isEditing, skillsModel, updateMessage, activeChannel, messagesModel, sendToLLM}) {
+  async runPrompt ({$messages, isWorking, $scriptsContainer, curPrompt, isEditing, skillsModel, updateMessage, activeChannel, messagesModel, sendToLLM, isSelecting}) {
     if (isEditing.value) {
       updateMessage()
       return
@@ -253,7 +253,7 @@ Trigger when: ${skill.triggers}`,
    * Send to the llm for inference
    * @returns {skillPassedTest, combinedMessage}
    */
-  async sendToLLM ({messages, isWorking, assistantDefaults, isThinking, connectionsModel, activeChannel, messagesModel, $promptEl, scrollBottom}) {
+  async sendToLLM ({regenerate, messages, isWorking, assistantDefaults, isThinking, connectionsModel, activeChannel, messagesModel, $promptEl, scrollBottom}) {
     isThinking.value = true
 
     // Add a placeholder message to start updating

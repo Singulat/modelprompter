@@ -125,6 +125,8 @@ onMounted(async () => {
     activeTab.value = tabs[nextIndex]
   }
   hotkeys('ctrl+alt+shift+left', prevTab)
+  hotkeys('ctrl+shift+left', prevTab)
+  hotkeys('ctrl+left', prevTab)
   hotkeys('left', prevTab)
 
   // Select next tab
@@ -148,6 +150,8 @@ onMounted(async () => {
     activeTab.value = tabs[nextIndex]
   }
   hotkeys('ctrl+alt+shift+right', nextTab)
+  hotkeys('ctrl+shift+right', nextTab)
+  hotkeys('ctrl+right', nextTab)
   hotkeys('right', nextTab)
 })
 
