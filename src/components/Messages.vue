@@ -84,7 +84,6 @@ const $messages = ref(null)
 const isEditing = ref(false)
 const isSelecting = ref(false)
 const $promptBox = ref(null)
-const isShowingMore = ref(false)
 const isWorking = ref(false)
 const roleToChangeTo = ref('user')
 const showingChangeRole = ref(false)
@@ -324,7 +323,6 @@ const cancelPrompt = ()=> {
  * Clear messages
  */
 const clearMessages = async () => {
-  isShowingMore.value = false
   await messagesModel.deleteAll(props.activeChannel)
   await maybeAddSystemPrompt()
   $promptBox.value && $promptBox.value.focus()
@@ -470,13 +468,6 @@ const maybeAddOrUpdateSystemPrompt = async () => {
  * ################# Other ################
  * ########################################
  */
-
-
-/**
- * Show more menu
- * @fixme get rid of menu
- */
-const showMore =()=> {isShowingMore.value = !isShowingMore.value}
 
 
 

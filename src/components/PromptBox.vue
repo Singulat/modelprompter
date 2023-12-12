@@ -1,5 +1,5 @@
 <template lang="pug">
-//- The actual textbox
+// The actual textbox
 .mb1
   textarea(
     ref='$promptEl'
@@ -13,15 +13,15 @@
     @keydown.ctrl.exact.enter='runPrompt'
   )
 
-//- More button
+// More button
 .mb1(v-if='isShowingMore')
   button.fullwidth(@click='clearMessages') Clear messages
 
-//- Prompt buttons
+// Prompt buttons
 .flex(v-if='!isEditing && !isSelecting')
   .flex-auto.mr1
     div(style='display: flex; position: relative')
-      button(@click='showMore' :class='{active: isShowingMore}') More
+      button(@click='isShowingMore = !isShowingMore' :class='{active: isShowingMore}') More
   div
     button.fullwidth(v-if='!isWorking' :disabled='!curPrompt' @click='runPrompt') Run prompt
     button.fullwidth(v-else='' @click='cancelPrompt') Cancel prompt
@@ -39,6 +39,7 @@ const $promptEl = ref(null)
 const curPrompt = ref('')
 const isThinking = ref(false)
 const isWorking = ref(false)
+const isShowingMore = ref(false)
 
 // Props and stores
 const messagesModel = useMessagesModel()
@@ -351,6 +352,12 @@ const sendToLLM = async (messages, assistantDefaults) => {
  * Emits
  */
 const emit = defineEmits(['clearMessages', 'cancelPrompt', 'scrollBottom', 'updateMessage'])
+const clearMessages = () => {
+  emit('clearMessages')
+  curPrompt.value = ''
+  isShowingMore.value = false
+  $promptEl.value?.focus()
+}
 
 /**
  * Define expose
