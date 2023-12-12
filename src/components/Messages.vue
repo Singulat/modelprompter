@@ -47,7 +47,7 @@ div(style='flex: 0;')
           .mr1
             button.fullwidth(@click='cancelEditing') Cancel
           .mr1
-            button.fullwidth(@click='deleteMessage') Delete
+            button.fullwidth(@click='deleteMessage(false)') Delete
           div
             button.fullwidth(v-if='isSelecting' @click='onEditMessage') Edit
             button.fullwidth(v-if='isEditing' @click='updateMessage') Update  
