@@ -1,14 +1,19 @@
 <template lang="pug">
+// The main window ✨
+// CTRL+SHIFT+M to maximize into a new tab
 Window(
-canClose
-title="ModelPrompter"
-:canMax="true"
-:bubbleEsc="true"
-@close="onClose"
-:style="{height}"
-hotkeysScope=""
-bodyClass="flex column overflow-hidden m0 p1 fullwidth fullheight"
+  canClose
+  title="ModelPrompter"
+  :canMax="true"
+  :bubbleEsc="true"
+  @close="onClose"
+  :style="{height}"
+  hotkeysScope=""
+  bodyClass="flex column overflow-hidden m0 p1 fullwidth fullheight"
 )
+  // The main tabs
+  // Use arrow keys to navigate between them
+  // Use CTRL+ALT+SHIFT+Arrow to break out of inputs and navigate
   Tabs(
   ref="tabs"
   v-model="activeTab"
@@ -26,6 +31,7 @@ bodyClass="flex column overflow-hidden m0 p1 fullwidth fullheight"
 </template>
 
 <style>
+/* @see https://jdan.github.io/98.css */
 @import '98.css';
 @import './assets/styles/core.css';
 @import './assets/styles/helpers.css';
@@ -48,80 +54,86 @@ import { useSettingsModel } from './model/settings'
 import {ref, onMounted, onBeforeMount, watch} from 'vue'
 import hotkeys from 'hotkeys-js'
 
+// Refs
 const activeTab = ref('prompt')
 const height = ref('')
 const isIframe = ref(false)
 const mainTabs = ref({settings: 'Settings', connections: 'Connections', prompt: 'Prompt', skills: 'Skills'})
 
+// Watch for changes to activeTab and persist
+watch(activeTab, async (value) => await chrome.storage.local.set({activeTab: value}))
+const updateTab = (tab) => {activeTab.value = tab}
+
+/**
+ * Load data
+ */
+// @todo This should be automated so that any files in the ./model folder are autoloaded
 const messagesModel = useMessagesModel()
 const connectionsModel = useConnectionsModel()
 const channelsModel = useChannelsModel()
 const skillsModel = useSkillsModel()
 const settingsModel = useSettingsModel()
-
-// Watch for changes to activeTab and persist
-watch(activeTab, async (value) => {
-  await chrome.storage.local.set({activeTab: value})
-})
-
-const updateTab = (tab) => {
-  activeTab.value = tab
-}
-
-/**
- * Load data
- */
 onBeforeMount(async () => {
-  // Load models
+  // Initialize models
   await connectionsModel.init()
   await messagesModel.init()
   await channelsModel.init()
   await skillsModel.init()
   await settingsModel.init()
 
+  // Load the latest tab
+  // @todo this should be in settingsModel
   let lastTab = await chrome.storage.local.get('activeTab')
   lastTab = lastTab.activeTab
   if (lastTab) {
     activeTab.value = lastTab
   }
 
-  // Redirect to connections if there are no connections
+  // Redirect to Connections view if there are no connections
   if (!connectionsModel.defaultConnection) {
     activeTab.value = 'connections'
   }
 })
 
-// @todo clean this up
+
+
+/**
+ * Kickstart the app
+ */
 onMounted(async () => {
+  // Force the dimensions based on the context
+  // This helps define the browser popup page size
   const params = new URLSearchParams(window.location.search)
-  
   isIframe.value = params.get('context') === 'iframe'
   height.value = isIframe.value ? '100%' : '450px'
   
   // CTRL+M to create a new window
   hotkeys.filter =()=> true
-  hotkeys('ctrl+shift+m', () => {
-    chrome.runtime.sendMessage({type: 'maximizePopup'})
-  })
+  hotkeys('ctrl+shift+m', () => chrome.runtime.sendMessage({type: 'maximizePopup'}))
 
-  // Select previous tab
+
+  /**
+   * Handle previous tab navigation
+   */
   const prevTab =(ev)=> {
     if (isThereAModalVisible() && ['INPUT', 'TEXTAREA'].includes(ev.target.tagName)) {
       return
     }
 
+    // Overrides input arrow key behavior with shortcut
+    // when .bubble-arrow-hotkeys 
     if (!(ev.shiftKey && ev.ctrlKey && ev.altKey)
-    && ['INPUT', 'TEXTAREA'].includes(ev.target.tagName)
-    && !ev.target.classList.contains('bubble-arrow-hotkeys')) {
+      && ['INPUT', 'TEXTAREA'].includes(ev.target.tagName)
+      && !ev.target.classList.contains('bubble-arrow-hotkeys')
+    ) {
       return
     }
     
+    // Select previous tab with wraparound
     const tabs = Object.keys(mainTabs.value)
     const currentIndex = tabs.indexOf(activeTab.value)
     const nextIndex = currentIndex - 1
-    if (nextIndex < 0) {
-      return
-    }
+    if (nextIndex < 0) nextIndex = tabs.length - 1
     activeTab.value = tabs[nextIndex]
   }
   hotkeys('ctrl+alt+shift+left', prevTab)
@@ -129,24 +141,30 @@ onMounted(async () => {
   hotkeys('ctrl+left', prevTab)
   hotkeys('left', prevTab)
 
-  // Select next tab
+  
+  
+  /**
+   * Handle previous tab navigation
+   */
   const nextTab =(ev)=> {
     if (isThereAModalVisible() && ['INPUT', 'TEXTAREA'].includes(ev.target.tagName)) {
       return
     }
 
+    // Overrides input arrow key behavior with shortcut
+    // when .bubble-arrow-hotkeys 
     if (!(ev.shiftKey && ev.ctrlKey && ev.altKey)
-    && ['INPUT', 'TEXTAREA'].includes(ev.target.tagName)
-    && !ev.target.classList.contains('bubble-arrow-hotkeys')) {
+      && ['INPUT', 'TEXTAREA'].includes(ev.target.tagName)
+      && !ev.target.classList.contains('bubble-arrow-hotkeys')
+    ) {
       return
     }
     
+    // Select previous tab with wraparound
     const tabs = Object.keys(mainTabs.value)
     const currentIndex = tabs.indexOf(activeTab.value)
     const nextIndex = currentIndex + 1
-    if (nextIndex >= tabs.length) {
-      return
-    }
+    if (nextIndex >= tabs.length) nextIndex = 0
     activeTab.value = tabs[nextIndex]
   }
   hotkeys('ctrl+alt+shift+right', nextTab)
@@ -155,13 +173,18 @@ onMounted(async () => {
   hotkeys('right', nextTab)
 })
 
-// Check if a .window.modal is visible
-const isThereAModalVisible = () => {
-  return document.querySelector('.window.modal') !== null
-}
 
-// Close window
-const onClose = () => {
-  globalThis.close()
-}
+
+/**
+ * Checks if another modal is visible
+ * @todo This may not be needed with hotkey-js namespaces
+ */
+const isThereAModalVisible =()=> document.querySelector('.window.modal') !== null
+
+
+
+/**
+ * Closes the window, popup, or context
+ */
+const onClose = () => globalThis.close()
 </script>
