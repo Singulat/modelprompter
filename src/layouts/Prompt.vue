@@ -17,7 +17,7 @@
 
 // Contains all the scripts to run
 .hidden
-  div(ref='$scriptsContainer')
+  div#scripts-container(ref='$scriptsContainer')
 
 
 // Display messages and editing area
@@ -42,7 +42,6 @@ import hotkeys from 'hotkeys-js'
 const $channels = ref(null)
 const $messages = ref(null)
 const $scriptsContainer = ref(null)
-const isThinking = ref(false)
 const activeChannel = ref('general')
 
 /**

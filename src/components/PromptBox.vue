@@ -1,4 +1,5 @@
 <template lang="pug">
+//- The actual textbox
 .mb1
   textarea(
     ref='$promptEl'
@@ -27,36 +28,38 @@
 </template>
 
 <script setup>
-import {ref, onMounted, onBeforeUnmount} from 'vue'
+import {ref, watch} from 'vue'
+import { useSkillsModel } from '../model/skills'
 import { useMessagesModel } from '../model/messages'
+import { useConnectionsModel } from '../model/connections'
+import OpenAI from 'openai'
 
 // Refs
 const $promptEl = ref(null)
 const curPrompt = ref('')
+const isThinking = ref(false)
+const isWorking = ref(false)
 
 // Props and stores
 const messagesModel = useMessagesModel()
+const skillsModel = useSkillsModel()
+const connectionsModel = useConnectionsModel()
 const props = defineProps({
   hotkeysScope: {type: String, default: 'PromptBox'},
   isEditing: {type: Boolean, default: false},
   isSelecting: {type: Boolean, default: false},
-  isWorking: {type: Boolean, default: false},
   activeChannel: {type: String, default: ''},
 })
-
-
-
-
 
 
 /**
  * Remove placeholder elements
  * (they already get removed from store)
  */
- const removePlaceholders = (placeholders) => {
+const removePlaceholders = (placeholders) => {
   for (const placeholder of placeholders) {
     // Remove the placeholder from the dom
-    const $placeholder = $messages.value.querySelector(`[data-id="${placeholder.id}"]`)
+    const $placeholder = document.querySelector(`.messages [data-id="${placeholder.id}"]`)
     if ($placeholder) {
       $placeholder.remove()
     }
@@ -71,12 +74,12 @@ const props = defineProps({
  * Run prompt
  */
 const runPrompt = async () => {
-  if (props.isEditing.value) {
+  if (props.isEditing) {
     updateMessage()
     return
   }
   
-  props.isWorking.value = true
+  isWorking.value = true
   let response = ''
   let neededPlan = false
   console.log('\n\n\n---\n📜 New Prompt:', curPrompt.value)
@@ -86,7 +89,7 @@ const runPrompt = async () => {
   await messagesModel.addMessage({
     role: 'user',
     text: prompt,
-    channel: props.activeChannel.value
+    channel: props.activeChannel
   })
   curPrompt.value = ''
   
@@ -94,7 +97,7 @@ const runPrompt = async () => {
    * Extract skills
    */
   if (!skillsModel.allSkillsDisabled) {
-    const skillsToParse = await this.getSkills({skillsModel, messagesModel, prompt})
+    const skillsToParse = await getSkills({skillsModel, messagesModel, prompt})
     const rawSkills = Object.values(skillsModel.skills)
     const passedSkills = []
     const responses = []
@@ -103,7 +106,7 @@ const runPrompt = async () => {
     // Check each skill individually
     console.log('🤸 Evaluating required skills')
     for (let i = 0; i < skillsToParse.length; i++) {
-      if (!props.isWorking.value) return
+      if (!isWorking.value) return
 
       console.log('🤔 Checking skill:', rawSkills[i].name)
       const response = await sendToLLM(skillsToParse[i], {
@@ -119,18 +122,18 @@ const runPrompt = async () => {
         id: response.assistantId,
       })
     }
-    this.removePlaceholders({placeholders: placeholders, $messages, messagesModel})
+    removePlaceholders(placeholders)
 
     
-    if (props.isWorking.value) {
+    if (isWorking.value) {
     // Send the message through as normal chat if no skills passed
       if (passedSkills.length === 0) {
-        const messages = await messagesModel.getPreparedMessages(props.activeChannel.value)
+        const messages = await messagesModel.getPreparedMessages(props.activeChannel)
         console.log('💬 No skills needed. Generating response.')
         const response = await sendToLLM(messages, {text: '🤔 Thinking...', role: 'placeholder'})
-        this.removePlaceholders({placeholders: [response.placeholders], $messages, messagesModel})
+        removePlaceholders([response.placeholders])
       } else {
-        const messages = await messagesModel.getPreparedMessages(props.activeChannel.value)
+        const messages = await messagesModel.getPreparedMessages(props.activeChannel)
 
         /**
          * Planning stage
@@ -159,28 +162,28 @@ const runPrompt = async () => {
         
         // Remove placeholders
         console.log('📋 Plan generated:\n', response.combinedMessage)
-        this.removePlaceholders({placeholders: [response.placeholders], $messages, messagesModel})
+        removePlaceholders([response.placeholders])
       }
     }
   } else {
-    if (props.isWorking.value) {
-      const messages = await messagesModel.getPreparedMessages(props.activeChannel.value)
+    if (isWorking.value) {
+      const messages = await messagesModel.getPreparedMessages(props.activeChannel)
       const response = await sendToLLM(messages, {text: '🤔 Thinking...'})
-      this.removePlaceholders({placeholders: [response.placeholders], $messages, messagesModel})
+      removePlaceholders([response.placeholders])
     }
   }
 
   // Extract scripts from the response and run them
-  if (props.isWorking.value) {
-    console.log('⚡ Running scripts')
-    await this.scanAndRunScripts(response, $scriptsContainer)
+  if (isWorking.value) {
+    const $scriptsContainer = document.querySelector('#scripts-container')
+    await scanAndRunScripts(response, $scriptsContainer)
     neededPlan && console.log('📋 Reviewing plan and results')
     neededPlan && console.log('🫡 Confirming')
   } else {
     console.log('✋ Message round cancelled')
   }
   console.log('💤 Message round over')
-  props.isWorking.value = false
+  isWorking.value = false
 }
 
 
@@ -189,10 +192,10 @@ const runPrompt = async () => {
  * Scan and run scripts
  */
 const scanAndRunScripts = async (response, $scriptsContainer) => {
-  $scriptsContainer.value.innerHTML = response.combinedMessage
+  $scriptsContainer.innerHTML = response.combinedMessage
 
   // Extract script tags and run them
-  $scriptsContainer.value.querySelectorAll('script').forEach(async script => {
+  $scriptsContainer.querySelectorAll('script').forEach(async script => {
     const $sandbox = document.querySelector('#sandbox')
     // post message to all
     $sandbox.contentWindow.postMessage({
@@ -202,7 +205,7 @@ const scanAndRunScripts = async (response, $scriptsContainer) => {
   })
 
   // Wrap <video> tags in a container
-  $scriptsContainer.value.querySelectorAll('video').forEach(video => {
+  $scriptsContainer.querySelectorAll('video').forEach(video => {
     if (video.parentElement.classList.contains('video-container')) return
     video.outerHTML = `<div class="video-container">${video.outerHTML}<div class="video-container-mask"></div><i class="q-icon notranslate material-icons">play_circle_filled</i></div>`
   })
@@ -254,16 +257,16 @@ Trigger when: ${skill.triggers}`,
  * Send to the llm for inference
  * @returns {skillPassedTest, combinedMessage}
  */
-const sendToLLM = async () => {
+const sendToLLM = async (messages, assistantDefaults) => {
   isThinking.value = true
 
   // Add a placeholder message to start updating
   const assistantId = await messagesModel.addMessage(Object.assign({
-    channel: props.activeChannel.value,
+    channel: props.activeChannel,
     role: 'assistant',
     text: '',
   }, assistantDefaults))
-  scrollBottom()
+  emit('scrollBottom')
   $promptEl.value.focus()
 
   // Extract possible non message
@@ -300,7 +303,7 @@ const sendToLLM = async () => {
   let skillPassedTest = false
   
   for await (const completionChunk of completion) {
-    if (!props.isWorking.value) {
+    if (!isWorking.value) {
       break
     }
     
@@ -332,7 +335,7 @@ const sendToLLM = async () => {
       }
     }
     
-    scrollBottom()
+    emit('scrollBottom')
   }
 
   isThinking.value = false  
@@ -350,7 +353,7 @@ const sendToLLM = async () => {
 /**
  * Emits
  */
-const emit = defineEmits(['clearMessages', 'cancelPrompt'])
+const emit = defineEmits(['clearMessages', 'cancelPrompt', 'scrollBottom'])
 
 /**
  * Define expose

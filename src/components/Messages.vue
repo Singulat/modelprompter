@@ -26,6 +26,7 @@ div(style='flex: 0;')
         :isWorking='isWorking'
         @clearMessages='clearMessages'
         @cancelPrompt='cancelPrompt'
+        @scrollBottom='scrollBottom'
       )
 
       // Message Controls
