@@ -12,6 +12,7 @@
     @focusPrompt='$messages?.$promptBox?.focus()'
     @maybeAddSystemPrompt='maybeAddSystemPrompt'
     @maybeAddOrUpdateSystemPrompt='maybeAddOrUpdateSystemPrompt'
+    @resetChannel='$messages.clearMessages()'
   )
 
 

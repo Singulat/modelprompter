@@ -331,6 +331,7 @@ const clearMessages = async () => {
 }
 
 
+
 /**
  * Delete message
  */
@@ -575,6 +576,7 @@ const onEscape = (ev) => {
  * Defined methods
  */
 defineExpose({
+  clearMessages,
   maybeAddSystemPrompt,
   maybeAddOrUpdateSystemPrompt,
   scrollBottom,

@@ -55,7 +55,7 @@ const props = defineProps({
 })
 
 // Emiters
-const emit = defineEmits(['scrollBottom', 'focusPrompt', 'maybeAddOrUpdateSystemPrompt', 'maybeAddSystemPrompt'])
+const emit = defineEmits(['scrollBottom', 'focusPrompt', 'maybeAddOrUpdateSystemPrompt', 'maybeAddSystemPrompt', 'resetChannel'])
 watch(activeChannel, (val) => emit('update:activeChannel', val))
 
 
@@ -173,16 +173,15 @@ const resetChannel = async (ev) => {
   ev?.preventDefault()
   ev?.stopPropagation()
   
-  props.isSelecting.value = false
-  props.isEditing.value = false
-  props.isWorking.value = false    
+  props.isSelecting = false
+  props.isEditing = false
+  props.isWorking = false    
   
   // Delete if not general and not have messages, otherwise just clear
-  if (channelsModel.currentChannel !== 'general' && !sortedMessages.value.length) {
+  if (channelsModel.currentChannel !== 'general' && !Object.keys(messagesModel.messages).length) {
     await deleteChannel()
-  } else {
-    await clearMessages()
   }
+  emit('resetChannel')
 
   setTimeout(() => {
     emit('focusPrompt')
