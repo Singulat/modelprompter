@@ -37,7 +37,7 @@ const props = defineProps({
 })
 
 // Emiters
-const emit = defineEmits(['scrollBottom'])
+const emit = defineEmits(['scrollBottom', 'focusPrompt', 'maybeAddOrUpdateSystemPrompt', 'maybeAddSystemPrompt'])
 
 
 
@@ -47,7 +47,7 @@ const emit = defineEmits(['scrollBottom'])
 const changeCurrentChannel = async (focusPrompt) => {
   await channelsModel.setCurrentChannel(activeChannel.value)
   emit('scrollBottom')
-  focusPrompt && $promptEl.value.focus()
+  focusPrompt && emit('focusPrompt')
 }
 
 
@@ -79,16 +79,16 @@ const onChannelCreated = async (id) => {
   activeChannel.value = id
   isShowingMoreChannel.value = false
   tabsModel.adjustZIndex()
-  await maybeAddSystemPrompt()
-  $promptEl.value.focus()
+  emit('maybeAddSystemPrompt')
+  emit('focusPrompt')
 }
 
 const onChannelUpdated = async (id) => {
   isShowingChannelModal.value = false
   isShowingMoreChannel.value = false
   tabsModel.adjustZIndex()
-  await maybeAddOrUpdateSystemPrompt()
-  $promptEl.value.focus()
+  emit('maybeAddOrUpdateSystemPrompt')
+  emit('focusPrompt')
 }
 
 
@@ -164,7 +164,7 @@ const resetChannel = async (ev) => {
   }
 
   setTimeout(() => {
-    $promptEl.value.focus()
+    emit('focusPrompt')
   }, 0)
 }
 
