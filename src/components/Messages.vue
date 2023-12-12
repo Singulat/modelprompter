@@ -24,6 +24,7 @@ div(style='flex: 0;')
         :isSelecting='isSelecting'
         :isEditing='isEditing'
         :isWorking='isWorking'
+        :activeChannel='props.activeChannel'
         @clearMessages='clearMessages'
         @cancelPrompt='cancelPrompt'
         @scrollBottom='scrollBottom'
@@ -254,7 +255,7 @@ const updateMessage = async () => {
   })
 
   // If this is the first message and it's also a system prompt, update the channel system prompt
-  if (message.role === 'system' && sortedMessages.value[0].id === message.id) {
+  if (message.role === 'system' && sortedMessages[0].id === message.id) {
     await channelsModel.updateChannel(props.activeChannel, {
       systemPrompt: $promptBox.value.curPrompt
     })
@@ -423,8 +424,8 @@ const maybeAddOrUpdateSystemPrompt = async () => {
   const channel = channelsModel.channels[props.activeChannel]
 
   // Update the first system prompt, otherwise add a new one
-  if (sortedMessages.value) {
-    const sortedClone = [...sortedMessages.value]
+  if (sortedMessages) {
+    const sortedClone = [...sortedMessages]
     const firstMessage = sortedClone.shift()
     if (firstMessage.role === 'system') {
       await messagesModel.updateMessage(firstMessage.id, {
@@ -483,10 +484,10 @@ const renderMarkdown = (text) => {
 /**
  * Sort by date
  */
-const sortedMessages = ()=> {
+const sortedMessages = computed(()=> {
   const messages = messagesModel.getSortedByDate(props.activeChannel)
   return messages
-}
+})
 
 
 
