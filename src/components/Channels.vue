@@ -13,14 +13,28 @@ fieldset.overflow.fullheight
     button.flex-auto.mr1(:disabled="activeChannel == 'general'" @click='deleteChannel') Delete
     button.flex-auto.mr1(:disabled="activeChannel == 'general'" @click='showEditChannelModal') Edit
     button.flex-auto(@click='showNewChannelModal') New
+
+
+  //- Channel edit window
+  WindowChannel(
+    v-if='isShowingChannelModal'
+    @created='onChannelCreated'
+    @updated='onChannelUpdated'
+    @close='closeChannelModal'
+    restoreHotkeysScope='PromptLayout'
+    :isediting='channelBeingEdited'
+    :activeChannel='activeChannel'
+  )
 </template>
 
 
 <script setup>
-import {ref, onMounted} from 'vue'
+import {ref, onMounted, watch} from 'vue'
 import hotkeys from 'hotkeys-js'
 import {useChannelsModel} from '../model/channels'
+import {useMessagesModel} from '../model/messages'
 import {useTabsModel} from '../model/tabs.js'
+import WindowChannel from '../components/WindowChannel.vue'
 
 // Refs
 const $channels = ref(null)
@@ -31,14 +45,18 @@ const channelBeingEdited = ref(null)
 
 // Props and stores
 const channelsModel = useChannelsModel()
+const messagesModel = useMessagesModel()
 const tabsModel = useTabsModel()
 const props = defineProps({
-  hotkeysScope: {type: String, default: 'Channels'}
+  hotkeysScope: {type: String, default: 'Channels'},
+  isEditing: {type: Boolean, default: false},
+  isWorking: {type: Boolean, default: false},
+  activeChannel: {type: String, default: 'general'}
 })
 
 // Emiters
 const emit = defineEmits(['scrollBottom', 'focusPrompt', 'maybeAddOrUpdateSystemPrompt', 'maybeAddSystemPrompt'])
-
+watch(activeChannel, (val) => emit('update:activeChannel', val))
 
 
 /**
@@ -46,6 +64,7 @@ const emit = defineEmits(['scrollBottom', 'focusPrompt', 'maybeAddOrUpdateSystem
  */
 const changeCurrentChannel = async (focusPrompt) => {
   await channelsModel.setCurrentChannel(activeChannel.value)
+  activeChannel.value = activeChannel.value
   emit('scrollBottom')
   focusPrompt && emit('focusPrompt')
 }
@@ -76,6 +95,7 @@ const showEditChannelModal = () => {
  * Handle channel creation and changing
  */
 const onChannelCreated = async (id) => {
+  await channelsModel.setCurrentChannel(id)
   activeChannel.value = id
   isShowingMoreChannel.value = false
   tabsModel.adjustZIndex()
@@ -100,6 +120,7 @@ const onChannelUpdated = async (id) => {
 const deleteChannel = async () => {
   await messagesModel.deleteAll(activeChannel.value)
   await channelsModel.deleteChannel(activeChannel.value)
+  await channelsModel.setCurrentChannel('general')
   activeChannel.value = 'general'
   isShowingMoreChannel.value = false
   emit('scrollBottom')
@@ -152,9 +173,9 @@ const resetChannel = async (ev) => {
   ev?.preventDefault()
   ev?.stopPropagation()
   
-  isSelecting.value = false
-  isEditing.value = false
-  isWorking.value = false    
+  props.isSelecting.value = false
+  props.isEditing.value = false
+  props.isWorking.value = false    
   
   // Delete if not general and not have messages, otherwise just clear
   if (channelsModel.currentChannel !== 'general' && !sortedMessages.value.length) {
@@ -185,7 +206,8 @@ const selectChannels = (ev) => {
 onMounted(()=> {
   // Set active channel
   setTimeout(async () => {
-    activeChannel.value = await channelsModel.getCurrentChannel()
+    await channelsModel.setCurrentChannel(await channelsModel.getCurrentChannel())
+    activeChannel.value = channelsModel.currentChannel?.currentChannel
   }, 0)
 
   // Channel Management

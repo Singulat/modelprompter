@@ -72,10 +72,8 @@ const messagesModel = useMessagesModel()
 const channelsModel = useChannelsModel()
 const props = defineProps({
   messages: Array,
-  hotkeysScope: {
-    type: String,
-    default: 'Messages'
-  }
+  hotkeysScope: {type: String, default: 'Messages'},
+  activeChannel: {type: String, default: 'general'}
 })
 
 // Refs
@@ -188,7 +186,7 @@ const cancelPrompt = ()=> {
  */
 const clearMessages = async () => {
   isShowingMore.value = false
-  await messagesModel.deleteAll(activeChannel.value)
+  await messagesModel.deleteAll(props.activeChannel.value)
   await maybeAddSystemPrompt()
   $promptBox.value.focus()
 }
@@ -201,12 +199,12 @@ const clearMessages = async () => {
  * Add system prompt
  */
 const maybeAddSystemPrompt = async () => {
-  const channel = channelsModel.channels[activeChannel.value]
+  const channel = channelsModel.channels[props.activeChannel.value]
   if (channel?.systemPrompt) {
     await messagesModel.addMessage({
       role: 'system',
       text: channel.systemPrompt,
-      channel: activeChannel.value
+      channel: props.activeChannel.value
     })
   }
 }
@@ -216,7 +214,7 @@ const maybeAddSystemPrompt = async () => {
  * Add or update system prompt
  */
 const maybeAddOrUpdateSystemPrompt = async () => {
-  const channel = channelsModel.channels[activeChannel.value]
+  const channel = channelsModel.channels[props.activeChannel.value]
   // Check if the first sorted message is a system prompt, if so update. if not, add a new one with the date a bit before the first
   const sortedClone = [...sortedMessages.value]
   const firstMessage = sortedClone.shift()
@@ -229,7 +227,7 @@ const maybeAddOrUpdateSystemPrompt = async () => {
     await messagesModel.addMessage({
       role: 'system',
       text: channel.systemPrompt,
-      channel: activeChannel.value,
+      channel: props.activeChannel.value,
       created_at: firstMessage.created_at - 10
     })
   }
@@ -248,7 +246,7 @@ const updateMessage = async () => {
 
   // If this is the first message and it's also a system prompt, update the channel system prompt
   if (message.role === 'system' && sortedMessages.value[0].id === message.id) {
-    await channelsModel.updateChannel(activeChannel.value, {
+    await channelsModel.updateChannel(props.activeChannel.value, {
       systemPrompt: $promptBox.value.curPrompt
     })
   }
@@ -358,7 +356,7 @@ const renderMarkdown = (text) => {
  * Sort by date
  */
 const sortedMessages = ()=> {
-  const messages = messagesModel.getSortedByDate(activeChannel.value)
+  const messages = messagesModel.getSortedByDate(props.activeChannel.value)
   return messages
 }
 
