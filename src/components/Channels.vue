@@ -22,7 +22,7 @@ fieldset.overflow.fullheight
     @updated='onChannelUpdated'
     @close='closeChannelModal'
     restoreHotkeysScope='PromptLayout'
-    :isediting='channelBeingEdited'
+    :isEditing='isChannelBeingEdited'
     :activeChannel='activeChannel'
   )
 </template>
@@ -41,7 +41,7 @@ const $channels = ref(null)
 const activeChannel = ref('general')
 const isShowingMoreChannel = ref(false)
 const isShowingChannelModal = ref(false)
-const channelBeingEdited = ref(null) 
+const isChannelBeingEdited = ref(null) 
 
 // Props and stores
 const channelsModel = useChannelsModel()
@@ -82,11 +82,11 @@ const toggleShowMoreChannel = () => {
  * Show new vs edit modals
  */
 const showNewChannelModal = () => {
-  channelBeingEdited.value = null
+  isChannelBeingEdited.value = null
   isShowingChannelModal.value = true
 }
 const showEditChannelModal = () => {
-  channelBeingEdited.value = activeChannel.value
+  isChannelBeingEdited.value = activeChannel.value
   isShowingChannelModal.value = true
 }
 
@@ -213,8 +213,8 @@ onMounted(()=> {
   // Channel Management
   hotkeys('ctrl+shift+r', props.hotkeysScope, (ev) => resetChannel(ev))
   hotkeys('ctrl+n', props.hotkeysScope, (ev) => newChannel(ev))
-  hotkeys('ctrl+shift+e', props.hotkeysScope, (ev) => editChannel(ev))
-  hotkeys('ctrl+shift+l', props.hotkeysScope, (ev) => selectChannels(ev))
+  hotkeys('ctrl+e', props.hotkeysScope, (ev) => editChannel(ev))
+  hotkeys('ctrl+l', props.hotkeysScope, (ev) => selectChannels(ev))
 })
 
 

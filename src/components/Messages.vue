@@ -214,7 +214,9 @@ const maybeAddSystemPrompt = async () => {
  * Add or update system prompt
  */
 const maybeAddOrUpdateSystemPrompt = async () => {
+  if (!sortedMessages.value?.length) return
   const channel = channelsModel.channels[props.activeChannel.value]
+
   // Check if the first sorted message is a system prompt, if so update. if not, add a new one with the date a bit before the first
   const sortedClone = [...sortedMessages.value]
   const firstMessage = sortedClone.shift()

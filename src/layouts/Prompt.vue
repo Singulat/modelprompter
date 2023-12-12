@@ -1,5 +1,5 @@
 <template lang="pug">
-//- Channel section
+// Channel section
 .flex-auto
   Channels(
     ref='$channels'
@@ -14,11 +14,13 @@
     @maybeAddOrUpdateSystemPrompt='maybeAddOrUpdateSystemPrompt'
   )
 
-//- Contains all the scripts to run
+
+// Contains all the scripts to run
 .hidden
   div(ref='$scriptsContainer')
 
-//- Display messages and editing area
+
+// Display messages and editing area
 Messages(
   ref='$messages'
   hotkeysScope='PromptLayout'
@@ -32,14 +34,9 @@ Messages(
 
 <script setup>
 import {ref, onMounted, onBeforeUnmount} from 'vue'
-import { useConnectionsModel } from '../model/connections'
-import {useChannelsModel} from '../model/channels'
-import {useMessagesModel} from '../model/messages'
-import { useSkillsModel } from '../model/skills'
 import Messages from '../components/Messages.vue'
 import Channels from '../components/Channels.vue'
 import hotkeys from 'hotkeys-js'
-import OpenAI from 'openai'
 
 // Refs
 const $channels = ref(null)
@@ -48,17 +45,6 @@ const $scriptsContainer = ref(null)
 const isThinking = ref(false)
 const activeChannel = ref('general')
 
-
-/**
- * Stores
- */
-const messagesModel = useMessagesModel()
-const connectionsModel = useConnectionsModel()
-const channelsModel = useChannelsModel()
-const skillsModel = useSkillsModel()
-
-
-
 /**
  * Channel management
  */
@@ -66,19 +52,12 @@ const closeChannelModal =()=> {
   $channels.value.closeChannelModal()
   hotkeys.setScope('PromptLayout')
 }
-const onChannelCreated = async(id)=> $channels.value.onChannelCreated(id)
-const onChannelUpdated = async(id)=> $channels.value.onChannelUpdated(id)
-const changeCurrentChannel = async(focusPrompt)=> $channels.value.changeCurrentChannel(focusPrompt)
-const deleteChannel =()=> $channels.value.deleteChannel()
-
 
 /**
  * Message management
  */
 const maybeAddSystemPrompt = async()=> await $messages.value.maybeAddSystemPrompt()
 const maybeAddOrUpdateSystemPrompt = async()=> await $messages.value.maybeAddOrUpdateSystemPrompt()
-
-
 
 /**
  * Keyboard shortcuts
