@@ -28,6 +28,7 @@ div(style='flex: 0;')
         @clearMessages='clearMessages'
         @cancelPrompt='cancelPrompt'
         @scrollBottom='scrollBottom'
+        @updateMessage='updateMessage'
       )
 
       // Message Controls
@@ -159,7 +160,7 @@ const onEditMessage = (ev)=> hotkeys.trigger('enter', props.hotkeysScope, ev)
 
   // Select
   if ($message) {
-    selectMessage({target: $message, isSelecting, $messages})
+    selectMessage($message)
     isSelecting.value = $message.getAttribute('data-id')
   }
 }
@@ -195,14 +196,14 @@ const nextMessage = (ev) => {
 
   // Select
   if ($message) {
-    selectMessage({target: $message, isSelecting, $messages})
+    selectMessage($message)
   } else {
     isSelecting.value = false
     if ($highlight) {
       $highlight.classList.remove('highlight')
     }
     setTimeout(() => {
-      $promptBox.value.focus()
+      $promptBox.value && $promptBox.value.focus()
     }, 0)
   }
 }
@@ -238,8 +239,10 @@ const editSelectedMessage =(isKey)=> {
   // Update the prompt box
   setTimeout(() => {
     const message = messagesModel.messages[isEditing.value]
-    $promptBox.value.curPrompt = message.text
-    $promptBox.value.focus()
+    if ($promptBox.value) {
+      $promptBox.value.curPrompt = message.text
+      $promptBox.value.focus()
+    }
   }, 0)
 }
 
@@ -251,17 +254,19 @@ const updateMessage = async () => {
   const message = messagesModel.messages[isEditing.value]
   await messagesModel.updateMessage(isEditing.value, {
     updated_at: Date.now(),
-    text: $promptBox.value.curPrompt
+    text: $promptBox.value?.curPrompt
   })
 
   // If this is the first message and it's also a system prompt, update the channel system prompt
   if (message.role === 'system' && sortedMessages[0].id === message.id) {
     await channelsModel.updateChannel(props.activeChannel, {
-      systemPrompt: $promptBox.value.curPrompt
+      systemPrompt: $promptBox.value?.curPrompt
     })
   }
 
-  $promptBox.value.curPrompt = ''
+  if ($promptBox.value) {
+    $promptBox.value.curPrompt = ''
+  }
   isEditing.value = false
 
   const $messagesEl = $messages.value.querySelectorAll('.message')
@@ -269,7 +274,9 @@ const updateMessage = async () => {
     $message.classList.remove('highlight')
   })
 
-  $promptBox.value.focus()
+  if ($promptBox.value) {
+    $promptBox.value.focus()
+  }
 }
 
 
@@ -285,11 +292,11 @@ const cancelEditing =(ev)=> {
 
   isEditing.value = false
   isSelecting.value = false
-  $promptBox.value.curPrompt = ''
+  if ($promptBox.value) $promptBox.value.curPrompt = ''
   $messages.value?.querySelector('.highlight')?.classList.remove('highlight')
 
   setTimeout(() => {
-    $promptBox.value.focus()
+    $promptBox.value && $promptBox.value.focus()
   }, 10)
 }
 
@@ -300,7 +307,7 @@ const cancelEditing =(ev)=> {
 const cancelPrompt = ()=> {
   isWorking.value = false
   setTimeout(() => {
-    $promptBox.value.focus()
+    $promptBox.value && $promptBox.value.focus()
   }, 0)
 }
 
@@ -320,7 +327,7 @@ const clearMessages = async () => {
   isShowingMore.value = false
   await messagesModel.deleteAll(props.activeChannel)
   await maybeAddSystemPrompt()
-  $promptBox.value.focus()
+  $promptBox.value && $promptBox.value.focus()
 }
 
 
@@ -341,7 +348,7 @@ const clearMessages = async () => {
   } else if (isEditing.value) {
     await messagesModel.deleteMessage(isEditing.value)
   }
-  $promptBox.value.curPrompt = ''
+  if ($promptBox.value) $promptBox.value.curPrompt = ''
   isEditing.value = false
 
   const $messagesEl = $messages.value.querySelectorAll('.message')
@@ -349,11 +356,11 @@ const clearMessages = async () => {
     $message.classList.remove('highlight')
   })
 
-  $promptBox.value.curPrompt = ''
+  if ($promptBox.value) $promptBox.value.curPrompt = ''
   setTimeout(() => {
     // Select the next message
     if ($nextMessage) {
-      selectMessage({target: $nextMessage, isSelecting, $messages})
+      selectMessage($nextMessage)
     } else {
       hotkeys.trigger('esc', props.hotkeysScope)
     }
@@ -368,7 +375,8 @@ const regenerateMessage = async () => {
   let promptsToUse = []
   // Get all messages up to the current one
   const activeMessage = isEditing.value || isSelecting.value
-  runPrompt({$messages, promptsToUse, isWorking, $scriptsContainer, isEditing, skillsModel, updateMessage, activeChannel, messagesModel, sendToLLM})
+  // runPrompt()
+  console.log('regenerate message')
 }
 
 
@@ -389,8 +397,8 @@ const changeRole = async (role) => {
     $message.classList.remove('highlight')
   })
   
-  $promptBox.value.curPrompt = ''
-  $promptBox.value.focus()
+  if ($promptBox.value) $promptBox.value.curPrompt = ''
+  $promptBox.value && $promptBox.value.focus()
 }
 
 
@@ -510,7 +518,7 @@ onMounted(() => {
   // Focus things
   setTimeout(() => {
     scrollBottom()
-    $promptBox.value.focus()
+    $promptBox.value && $promptBox.value.focus()
   }, 100)
 
   // Message management
@@ -537,7 +545,7 @@ const onEscape = (ev) => {
     ev?.preventDefault()
     ev?.stopPropagation()
   }
-  $promptBox.value.curPrompt = ''
+  if ($promptBox.value) $promptBox.value.curPrompt = ''
   isWorking.value = false
 
   // Clear prompt

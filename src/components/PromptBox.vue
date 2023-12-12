@@ -75,7 +75,7 @@ const removePlaceholders = (placeholders) => {
  */
 const runPrompt = async () => {
   if (props.isEditing) {
-    updateMessage()
+    emit('updateMessage')
     return
   }
   
@@ -243,9 +243,6 @@ Trigger when: ${skill.triggers}`,
       text: `${prompt}`
     })
 
-    // Move first to last
-    // skillMessages.push(skillMessages.shift())
-
     skills.push(await messagesModel.prepareMessages(skillMessages))
   }
 
@@ -353,7 +350,7 @@ const sendToLLM = async (messages, assistantDefaults) => {
 /**
  * Emits
  */
-const emit = defineEmits(['clearMessages', 'cancelPrompt', 'scrollBottom'])
+const emit = defineEmits(['clearMessages', 'cancelPrompt', 'scrollBottom', 'updateMessage'])
 
 /**
  * Define expose
