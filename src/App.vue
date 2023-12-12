@@ -22,7 +22,7 @@ bodyClass="flex column overflow-hidden m0 p1 fullwidth fullheight"
     template(v-slot:skills)
       Skills
     template(v-slot:prompt)
-      PromptLayout
+      Prompt
 </template>
 
 <style>
@@ -36,7 +36,7 @@ bodyClass="flex column overflow-hidden m0 p1 fullwidth fullheight"
 <script setup>
 import Window from './components/Window.vue'
 import Tabs from './components/Tabs.vue'
-import PromptLayout from './layouts/prompt/PromptLayout.vue'
+import Prompt from './layouts/Prompt.vue'
 import Settings from './layouts/Settings.vue'
 import Skills from './layouts/Skills.vue'
 import Connections from './layouts/Connections.vue'
