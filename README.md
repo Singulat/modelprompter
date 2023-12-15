@@ -6,6 +6,11 @@
 |-|-|-|
 | ![](https://github.com/modelprompters/modelprompter/assets/151397270/68ddf351-b9de-481e-821f-abb7494e5448) | ![](https://github.com/modelprompters/modelprompter/assets/151397270/9296d533-5130-4a5a-a41e-d9cec4fc15b5) | ![](https://github.com/modelprompters/modelprompter/assets/151397270/74876598-bc22-4a96-a43e-76b0fcc21098) |
 
+# Key features (so far)
+- Shortcuts for everything; no mouse needed
+- Quickly change models & configurations
+- Multiple channels with system prompts
+
 
 <br>
 <br>
@@ -90,6 +95,10 @@ After setup, press the icon or hold `CTRL+SHIFT` to begin navigating the interfa
 <br>
 
 # Install from source
+> **Playstore coming soon:** I'll make it easier to setup later, but for now you'll need to build from source.
+
+<br>
+
 ## Step 1 - Build the Browser Extension
 ### Requirements
 - git - https://git-scm.com/downloads
@@ -106,7 +115,7 @@ npm install
 
 <br>
 
-## Step 2 - Sideload the extension
+  ## Step 2 - Sideload the extension
 1. Visit `chrome://extensions` (even if you're on edge etc, your browser should automatically redirect)
 2. Enable **Developer Mode**
 3. Click **Load unpacked extension** and select the `modelprompter/dist` folder
