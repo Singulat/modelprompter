@@ -38,8 +38,8 @@ import OpenAI from 'openai'
 const $promptEl = ref(null)
 const curPrompt = ref('')
 const isThinking = ref(false)
-const isWorking = ref(false)
 const isShowingMore = ref(false)
+const isWorking = ref(false)
 
 // Props and stores
 const messagesModel = useMessagesModel()
@@ -98,7 +98,7 @@ const runPrompt = async () => {
    * Extract skills
    */
   if (!skillsModel.allSkillsDisabled) {
-    const skillsToParse = await getSkills({skillsModel, messagesModel, prompt})
+    const skillsToParse = await getSkills(prompt)
     const rawSkills = Object.values(skillsModel.skills)
     const passedSkills = []
     const responses = []
@@ -216,7 +216,7 @@ const scanAndRunScripts = async (response, $scriptsContainer) => {
 /**
  * Get skills
  */
-const getSkills = async () => {
+const getSkills = async (prompt = '.') => {
   // Send each skill for inference to check if it's a good match
   const rawSkills = Object.values(skillsModel.skills)
   const skills = []
@@ -243,8 +243,9 @@ Trigger when: ${skill.triggers}`,
       role: 'user',
       text: `${prompt}`
     })
-
-    skills.push(await messagesModel.prepareMessages(skillMessages))
+    
+    const prepped = await messagesModel.prepareMessages(skillMessages)
+    skills.push(prepped)
   }
 
   return skills
