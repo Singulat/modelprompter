@@ -26,7 +26,8 @@ div(style='flex: 0;')
         :isWorking='isWorking'
         :activeChannel='props.activeChannel'
         @clearMessages='clearMessages'
-        @cancelPrompt='cancelPrompt'
+        @startWorking='isWorking = true'
+        @stopWorking='stopWorking'
         @scrollBottom='scrollBottom'
         @updateMessage='updateMessage'
       )
@@ -291,6 +292,8 @@ const cancelEditing =(ev)=> {
 
   isEditing.value = false
   isSelecting.value = false
+  isWorking.value = false
+
   if ($promptBox.value) $promptBox.value.curPrompt = ''
   $messages.value?.querySelector('.highlight')?.classList.remove('highlight')
 
@@ -303,8 +306,11 @@ const cancelEditing =(ev)=> {
 /**
  * Cancel prompt streaming
  */
-const cancelPrompt = ()=> {
+const stopWorking = ()=> {
   isWorking.value = false
+  isEditing.value = false
+  isSelecting.value = false
+  
   setTimeout(() => {
     $promptBox.value && $promptBox.value.focus()
   }, 0)

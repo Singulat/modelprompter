@@ -28,7 +28,7 @@
 </template>
 
 <script setup>
-import {ref, watch} from 'vue'
+import {ref} from 'vue'
 import { useSkillsModel } from '../model/skills'
 import { useMessagesModel } from '../model/messages'
 import { useConnectionsModel } from '../model/connections'
@@ -37,9 +37,7 @@ import OpenAI from 'openai'
 // Refs
 const $promptEl = ref(null)
 const curPrompt = ref('')
-const isThinking = ref(false)
 const isShowingMore = ref(false)
-const isWorking = ref(false)
 
 // Props and stores
 const messagesModel = useMessagesModel()
@@ -49,6 +47,7 @@ const props = defineProps({
   hotkeysScope: {type: String, default: 'PromptBox'},
   isEditing: {type: Boolean, default: false},
   isSelecting: {type: Boolean, default: false},
+  isWorking: {type: Boolean, default: false},
   activeChannel: {type: String, default: ''},
 })
 
@@ -79,8 +78,9 @@ const runPrompt = async () => {
     emit('updateMessage')
     return
   }
+  emit('startWorking')
+  console.log(props.isWorking)
   
-  isWorking.value = true
   let response = ''
   let neededPlan = false
   console.log('\n\n\n---\n📜 New Prompt:', curPrompt.value)
@@ -107,7 +107,7 @@ const runPrompt = async () => {
     // Check each skill individually
     console.log('🤸 Evaluating required skills')
     for (let i = 0; i < skillsToParse.length; i++) {
-      if (!isWorking.value) return
+      if (!props.isWorking) return
 
       console.log('🤔 Checking skill:', rawSkills[i].name)
       const response = await sendToLLM(skillsToParse[i], {
@@ -126,7 +126,7 @@ const runPrompt = async () => {
     removePlaceholders(placeholders)
 
     
-    if (isWorking.value) {
+    if (props.isWorking) {
     // Send the message through as normal chat if no skills passed
       if (passedSkills.length === 0) {
         const messages = await messagesModel.getPreparedMessages(props.activeChannel)
@@ -167,7 +167,7 @@ const runPrompt = async () => {
       }
     }
   } else {
-    if (isWorking.value) {
+    if (props.isWorking) {
       const messages = await messagesModel.getPreparedMessages(props.activeChannel)
       const response = await sendToLLM(messages, {text: '🤔 Thinking...'})
       removePlaceholders([response.placeholders])
@@ -175,7 +175,7 @@ const runPrompt = async () => {
   }
 
   // Extract scripts from the response and run them
-  if (isWorking.value) {
+  if (props.isWorking) {
     const $scriptsContainer = document.querySelector('#scripts-container')
     await scanAndRunScripts(response, $scriptsContainer)
     neededPlan && console.log('📋 Reviewing plan and results')
@@ -184,7 +184,8 @@ const runPrompt = async () => {
     console.log('✋ Message round cancelled')
   }
   console.log('💤 Message round over')
-  isWorking.value = false
+  
+  emit('stopWorking')
 }
 
 
@@ -257,8 +258,6 @@ Trigger when: ${skill.triggers}`,
  * @returns {skillPassedTest, combinedMessage}
  */
 const sendToLLM = async (messages, assistantDefaults) => {
-  isThinking.value = true
-
   // Add a placeholder message to start updating
   const assistantId = await messagesModel.addMessage(Object.assign({
     channel: props.activeChannel,
@@ -302,7 +301,7 @@ const sendToLLM = async (messages, assistantDefaults) => {
   let skillPassedTest = false
   
   for await (const completionChunk of completion) {
-    if (!isWorking.value) {
+    if (!props.isWorking) {
       break
     }
     
@@ -337,22 +336,27 @@ const sendToLLM = async (messages, assistantDefaults) => {
     emit('scrollBottom')
   }
 
-  isThinking.value = false  
-
   return {
     placeholders,
     skillPassedTest,
     combinedMessage,
     assistantId
   }
-}  
+}
+
+/**
+ * Cancel prompting
+ */
+const cancelPrompt = () => {
+  emit('stopWorking')
+}
 
 
 
 /**
  * Emits
  */
-const emit = defineEmits(['clearMessages', 'cancelPrompt', 'scrollBottom', 'updateMessage'])
+const emit = defineEmits(['clearMessages', 'startWorking', 'stopWorking', 'scrollBottom', 'updateMessage'])
 const clearMessages = () => {
   emit('clearMessages')
   curPrompt.value = ''
