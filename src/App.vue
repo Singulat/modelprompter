@@ -189,6 +189,7 @@ onMounted(async () => {
 
   // Other shortcuts
   hotkeys('ctrl+s', exportEverything)
+  hotkeys('ctrl+o', importEverything)
 })
 
 
@@ -263,6 +264,68 @@ const exportEverything = async(ev)=> {
   URL.revokeObjectURL(url)  
 }
 bus.value.$on('exportEverything', exportEverything)
+
+
+/**
+ * Import everything
+ */
+const importEverything = async(ev)=> {
+  if (ev) {
+    ev.preventDefault()
+    ev.stopPropagation()
+  }
+
+  const file = document.createElement('input')
+  file.type = 'file'
+  file.accept = 'application/json'
+  file.onchange = async()=> {
+    const reader = new FileReader()
+    reader.onload = async()=> {
+      const json = reader.result
+      const data = JSON.parse(json)
+
+      if (data.namespace?.namespaceName) {
+        settingsModel.namespaceName = data.namespace.namespaceName
+      } else {
+        settingsModel.namespaceName = ''
+      }
+
+      // Remove any API keys
+      const connections = data.connections.connections
+      for (const key in connections) {
+        delete connections[key].apiKey
+      }
+      connectionsModel.connections = connections
+      connectionsModel.defaultConnection = data.defaultConnection
+      
+      // Load everything
+      channelsModel.channels = data.channels?.channels
+      channelsModel.currentChannel = data.channels?.currentChannel
+      messagesModel.messages = data.messages.messages
+      
+      skillsModel.skills = data.skills.skills
+      skillsModel.activeSkills = data.skills.activeSkills
+      skillsModel.systemPrompt = data.skills.systemPrompt
+      skillsModel.planningPrompt = data.skills.planningPrompt
+      skillsModel.defaultSkill = data.skills.defaultSkill
+      skillsModel.allSkillsDisabled = data.skills.allSkillsDisabled
+
+      // Save everything
+      await connectionsModel.save()
+      await channelsModel.save()
+      await messagesModel.save()
+      await skillsModel.save()
+      await settingsModel.save()
+
+
+      // Delete elements
+      file.remove()
+    }
+    reader.readAsText(file.files[0])
+  }
+  file.click()
+}
+bus.value.$on('importEverything', importEverything)
 
 
 
