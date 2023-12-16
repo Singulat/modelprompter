@@ -4,12 +4,13 @@ div.flex.column
     legend Namespace
     .field-row-stacked
       input#settings-namespace-name(
-      type='text'
-      ref='$namespaceName'
-      :value="typeof settingsModel.namespaceName === 'string' ? settingsModel.namespaceName : settingsModel.namespaceName.namespaceName"
-      autofocus
-      placeholder='Untitled'
-      @change='onNamespaceNameChange')
+        type='text'
+        ref='$namespaceName'
+        :value="typeof settingsModel.namespaceName === 'string' ? settingsModel.namespaceName : settingsModel.namespaceName.namespaceName"
+        autofocus
+        placeholder='Untitled'
+        @change='onNamespaceNameChange'
+      )
 
   fieldset.flex.mb1
     legend Data
@@ -21,20 +22,22 @@ div.flex.column
 </template>
 
 <script setup>
-import {ref, computed, onMounted, onBeforeUnmount} from 'vue'
+import {ref, onMounted, inject} from 'vue'
 import {useConnectionsModel} from '../model/connections.js'
 import { useChannelsModel } from '../model/channels'
 import { useSettingsModel } from '../model/settings'
 import {useSkillsModel} from '../model/skills.js'
 import {useMessagesModel} from '../model/messages.js'
-import pkg from '../../package.json'
 
+// Stores
 const connectionsModel = useConnectionsModel()
 const skillsModel = useSkillsModel()
 const messagesModel = useMessagesModel()
 const channelsModel = useChannelsModel()
 const settingsModel = useSettingsModel()
 
+// Refs
+const bus = inject('bus')
 const $namespaceName = ref(null)
 
 /**
@@ -109,75 +112,8 @@ const importEverything = async()=> {
   file.click()
 }
 
-/**
- * Export
- */
-const exportEverything = async()=> {
-  let data = {
-    version: pkg.version,
-    namespace: {
-      namespaceName: settingsModel.namespaceName?.namespaceName || settingsModel.namespaceName || ''
-    },
-    connections: {
-      defaultConnection: connectionsModel.defaultConnection,
-      connections: connectionsModel.connections
-    },
-    messages: {
-      messages: messagesModel.messages
-    },
-    channels: {
-      channels: channelsModel.channels,
-      currentChannel: channelsModel.currentChannel
-    },
-    skills: {
-      skills: skillsModel.skills,
-      activeSkills: skillsModel.activeSkills,
-      allSkillsDisabled: skillsModel.allSkillsDisabled,
-      defaultSkill: skillsModel.defaultSkill,
-      systemPrompt: skillsModel.systemPrompt,
-      planningPrompt: skillsModel.planningPrompt,
-    }
-  }
 
-  // Remove API keys from connections
-  data = JSON.parse(JSON.stringify(data))
-  if (data.connections.connections) {
-    for (const key in data.connections.connections) {
-      data.connections.connections[key].apiKey = ''
-    }
-  }
-
-  // title is "yy-mm-dd mp"
-  const date = new Date()
-  const year = date.getFullYear()
-  const month = date.getMonth() + 1
-  const day = date.getDate()
-  let title = `${year}-${month}-${day}`
-
-  // @fixme this is so much
-  // inscrutable spaghetti code
-  // it could feed me for a week
-  let namespaceName = settingsModel.namespaceName?.namespaceName || settingsModel.namespaceName || ''
-  if (typeof namespaceName === 'object') {
-    namespaceName = ''
-  }
-  title = namespaceName ? `${namespaceName} -- ${title}` : `ModelPrompter -- ${title}`
-  
-  // Download the json file
-  // Convert the data to a JSON string
-  const json = JSON.stringify(data, null, 2)
-  const blob = new Blob([json], { type: 'application/json' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = `${title}.json`
-  link.click()
-  URL.revokeObjectURL(url)  
+const exportEverything =()=> {
+  bus.value.$on('exportEverything')
 }
-
-onMounted(() => {
-  // setTimeout(() => {
-  //   $namespaceName.value.focus()
-  // }, 0)
-})
 </script>

@@ -117,6 +117,19 @@ onMounted(()=> {
     }
   }, 0)
 
+  // Toggle skills
+  hotkeys('ctrl+shift+e', 'Skills', (ev)=> {
+    ev.preventDefault()
+    ev.stopPropagation()
+    
+    if (skillsModel.allSkillsDisabled) {
+      skillsModel.enableAllSkills()
+    } else {
+      skillsModel.disableAllSkills()
+    }
+  })
+
+  // Show skills modal
   hotkeys('ctrl+shift+s', 'Skills', showSkillSystemPromptModal)
   hotkeys.setScope('Skills')
   bindEscape()

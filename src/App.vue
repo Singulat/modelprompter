@@ -51,8 +51,23 @@ import { useMessagesModel } from './model/messages'
 import { useChannelsModel } from './model/channels'
 import { useSkillsModel } from './model/skills'
 import { useSettingsModel } from './model/settings'
-import {ref, onMounted, onBeforeMount, watch} from 'vue'
+import {ref, onMounted, onBeforeMount, watch, provide} from 'vue'
 import hotkeys from 'hotkeys-js'
+import pkg from '../package.json'
+
+/**
+ * Event bus
+ */
+const bus = ref({})
+provide('bus', bus)
+// Assign
+bus.value.$on = (ev, callback) => {
+  bus.value[ev] = callback
+}
+// Emitter
+bus.value.$emit = (ev, ...args) => {
+  bus.value[ev] && bus.value[ev](...args)
+}
 
 // Refs
 const activeTab = ref('prompt')
@@ -171,7 +186,83 @@ onMounted(async () => {
   hotkeys('ctrl+shift+right', nextTab)
   hotkeys('ctrl+right', nextTab)
   hotkeys('right', nextTab)
+
+  // Other shortcuts
+  hotkeys('ctrl+s', exportEverything)
 })
+
+
+/**
+ * Export
+ */
+const exportEverything = async(ev)=> {
+  if (ev) {
+    ev.preventDefault()
+    ev.stopPropagation()
+  }
+  
+  let data = {
+    version: pkg.version,
+    namespace: {
+      namespaceName: settingsModel.namespaceName?.namespaceName || settingsModel.namespaceName || ''
+    },
+    connections: {
+      defaultConnection: connectionsModel.defaultConnection,
+      connections: connectionsModel.connections
+    },
+    messages: {
+      messages: messagesModel.messages
+    },
+    channels: {
+      channels: channelsModel.channels,
+      currentChannel: channelsModel.currentChannel
+    },
+    skills: {
+      skills: skillsModel.skills,
+      activeSkills: skillsModel.activeSkills,
+      allSkillsDisabled: skillsModel.allSkillsDisabled,
+      defaultSkill: skillsModel.defaultSkill,
+      systemPrompt: skillsModel.systemPrompt,
+      planningPrompt: skillsModel.planningPrompt,
+    }
+  }
+
+  // Remove API keys from connections
+  data = JSON.parse(JSON.stringify(data))
+  if (data.connections.connections) {
+    for (const key in data.connections.connections) {
+      data.connections.connections[key].apiKey = ''
+    }
+  }
+
+  // title is "yy-mm-dd mp"
+  const date = new Date()
+  const year = date.getFullYear()
+  const month = date.getMonth() + 1
+  const day = date.getDate()
+  let title = `${year}-${month}-${day}`
+
+  // @fixme this is so much
+  // inscrutable spaghetti code
+  // it could feed me for a week
+  let namespaceName = settingsModel.namespaceName?.namespaceName || settingsModel.namespaceName || ''
+  if (typeof namespaceName === 'object') {
+    namespaceName = ''
+  }
+  title = namespaceName ? `${namespaceName} -- ${title}` : `ModelPrompter -- ${title}`
+  
+  // Download the json file
+  // Convert the data to a JSON string
+  const json = JSON.stringify(data, null, 2)
+  const blob = new Blob([json], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `${title}.json`
+  link.click()
+  URL.revokeObjectURL(url)  
+}
+bus.value.$on('exportEverything', exportEverything)
 
 
 
