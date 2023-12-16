@@ -118,12 +118,6 @@ onMounted(()=> {
   }, 0)
 
   hotkeys('ctrl+shift+s', 'Skills', showSkillSystemPromptModal)
-  hotkeys('enter', 'Skills', ()=> {
-    if ($table.value.isModalOpen) {
-      return
-    }
-    $table.value.showEditModal()
-  })
   hotkeys.setScope('Skills')
   bindEscape()
 })

@@ -237,15 +237,13 @@ onMounted(() => {
     showAddModal()
   })
   // Edit
-  hotkeys('ctrl+shift+e', props.hotkeysScope, (ev) => {
-    if (isModalOpen.value) {
-      return
+  hotkeys('enter', props.hotkeysScope, (ev) => {
+    if (isModalOpen.value) {return}
+    if (ev) {
+      ev.preventDefault()
+      ev.stopPropagation()
     }
-    ev.preventDefault()
-    ev.stopPropagation()
-    if (props.highlightedRow) {
-      showEditModal()
-    }
+    if (props.highlightedRow) {showEditModal()}
   })
   
   // Delete

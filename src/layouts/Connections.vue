@@ -1,18 +1,18 @@
 <template lang="pug">
 Table(
-ref="$table"
-title="Connection"
-hotkeysScope="Connections"
-:headings="headings"
-:form="connectionForm"
-:data="connectionsModel.connections"
-:validateForm="validateForm"
-:defaults="connectDefaults"
-:highlightedRow="connectionsModel.defaultConnection"
-@updateHighlightedRow='id => connectionsModel.setDefault(id)'
-@submit="onSubmit"
-@delete="deleteConnection"
-@close="onTableClose"
+  ref="$table"
+  title="Connection"
+  hotkeysScope="Connections"
+  :headings="headings"
+  :form="connectionForm"
+  :data="connectionsModel.connections"
+  :validateForm="validateForm"
+  :defaults="connectDefaults"
+  :highlightedRow="connectionsModel.defaultConnection"
+  @updateHighlightedRow='id => connectionsModel.setDefault(id)'
+  @submit="onSubmit"
+  @delete="deleteConnection"
+  @close="onTableClose"
 )
 </template>
 
@@ -83,12 +83,6 @@ onMounted(() => {
       $table.value.selectRow(connectionsModel.defaultConnection)
     }
   }, 0)
-  hotkeys('enter', 'Connections', ()=> {
-    if ($table.value.isModalOpen) {
-      return
-    }
-    $table.value.showEditModal()
-  })
   hotkeys.setScope('Connections')
   bindEscape()
 })

@@ -79,7 +79,6 @@ const runPrompt = async () => {
     return
   }
   emit('startWorking')
-  console.log(props.isWorking)
   
   let response = ''
   let neededPlan = false
