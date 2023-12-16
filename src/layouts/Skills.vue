@@ -9,26 +9,27 @@
       div(style='flex: 0 1 25%')
       button(@click='isShowingSystemPromptModel = true') Skill system prompt
   Table.fullheight(
-  ref='$table'
-  hotkeysScope="Skills"
-  title='Skill'
-  :headings='headings'
-  :form='skillForm'
-  :data='skillsModel.skills'
-  :validateForm='validateForm'
-  :defaults='skillDefaults'
-  :highlightedRow='skillsModel.defaultSkill'
-  @updateHighlightedRow='id => skillsModel.setDefaultSkill(id)'
-  @submit='onSubmit'
-  @delete='deleteSkill'
-  @close='onTableClose')
+    ref='$table'
+    hotkeysScope="Skills"
+    title='Skill'
+    :headings='headings'
+    :form='skillForm'
+    :data='skillsModel.skills'
+    :validateForm='validateForm'
+    :defaults='skillDefaults'
+    :highlightedRow='skillsModel.defaultSkill'
+    @updateHighlightedRow='id => skillsModel.setDefaultSkill(id)'
+    @submit='onSubmit'
+    @delete='deleteSkill'
+    @close='onTableClose'
+  )
 
 WindowSkillSystemPrompt(v-if='isShowingSystemPromptModel' @close='closeSystemPromptModal')
 </template>
 
 
 <script setup>
-import {ref, computed, onMounted, onBeforeUnmount} from 'vue'
+import {ref, inject, onMounted, onBeforeUnmount} from 'vue'
 import hotkeys from 'hotkeys-js'
 import {useSkillsModel} from '../model/skills.js'
 import {useTabsModel} from '../model/tabs.js'
@@ -47,6 +48,7 @@ const headings = [
   {key: 'response', content: 'Response', class: 'gt-md', field: {type: 'textarea'}},
 ]
 
+const bus = inject('bus')
 const $table = ref(null)
 const skillsModel = useSkillsModel()
 const tabsModel = useTabsModel()
@@ -85,12 +87,8 @@ const deleteSkill =()=> {
 /**
  * Update settings
  */
-const toggleAllSkills =(e)=> {
-  if (e.target.checked) {
-    skillsModel.enableAllSkills()
-  } else {
-    skillsModel.disableAllSkills()
-  }
+const toggleAllSkills =(ev)=> {
+  bus.value.$emit('toggleAllSkills', ev)
 }
 
 
@@ -116,18 +114,6 @@ onMounted(()=> {
       $table.value.selectRow(skillsModel.defaultSkill)
     }
   }, 0)
-
-  // Toggle skills
-  hotkeys('ctrl+shift+e', 'Skills', (ev)=> {
-    ev.preventDefault()
-    ev.stopPropagation()
-    
-    if (skillsModel.allSkillsDisabled) {
-      skillsModel.enableAllSkills()
-    } else {
-      skillsModel.disableAllSkills()
-    }
-  })
 
   // Show skills modal
   hotkeys('ctrl+shift+s', 'Skills', showSkillSystemPromptModal)

@@ -3,7 +3,7 @@
 // CTRL+SHIFT+M to maximize into a new tab
 Window(
   canClose
-  title="ModelPrompter"
+  :title='"ModelPrompter - Skills[" + (skillsModel.allSkillsDisabled ? "off" : "on") + "]"'
   :canMax="true"
   :bubbleEsc="true"
   @close="onClose"
@@ -190,6 +190,7 @@ onMounted(async () => {
   // Other shortcuts
   hotkeys('ctrl+s', exportEverything)
   hotkeys('ctrl+o', importEverything)
+  hotkeys('ctrl+shift+e', toggleAllSkills)
 })
 
 
@@ -326,6 +327,22 @@ const importEverything = async(ev)=> {
   file.click()
 }
 bus.value.$on('importEverything', importEverything)
+
+/**
+ * Toggle all skills
+ */
+const toggleAllSkills =(ev)=> {
+  if (ev) {
+    ev.preventDefault()
+    ev.stopPropagation()
+  }
+
+  if (skillsModel.allSkillsDisabled) {
+    skillsModel.enableAllSkills()
+  } else {
+    skillsModel.disableAllSkills()
+  }
+}
 
 
 
