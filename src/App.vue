@@ -28,6 +28,8 @@ Window(
       Skills
     template(v-slot:prompt)
       Prompt
+
+WindowSkillSystemPrompt(v-if='isShowingSystemPromptModel' @close='closeSystemPromptModal')
 </template>
 
 <style>
@@ -46,11 +48,13 @@ import Prompt from './layouts/Prompt.vue'
 import Settings from './layouts/Settings.vue'
 import Skills from './layouts/Skills.vue'
 import Connections from './layouts/Connections.vue'
+import WindowSkillSystemPrompt from './components/WindowSkillSystemPrompt.vue'
 import { useConnectionsModel } from './model/connections'
 import { useMessagesModel } from './model/messages'
 import { useChannelsModel } from './model/channels'
 import { useSkillsModel } from './model/skills'
 import { useSettingsModel } from './model/settings'
+import {useTabsModel} from './model/tabs.js'
 import {ref, onMounted, onBeforeMount, watch, provide} from 'vue'
 import hotkeys from 'hotkeys-js'
 import pkg from '../package.json'
@@ -70,10 +74,12 @@ bus.value.$emit = (ev, ...args) => {
 }
 
 // Refs
+const tabsModel = useTabsModel()
 const activeTab = ref('prompt')
 const height = ref('')
 const isIframe = ref(false)
 const mainTabs = ref({settings: 'Settings', connections: 'Connections', prompt: 'Prompt', skills: 'Skills'})
+const isShowingSystemPromptModel = ref(false)
 
 // Watch for changes to activeTab and persist
 watch(activeTab, async (value) => await chrome.storage.local.set({activeTab: value}))
@@ -191,6 +197,7 @@ onMounted(async () => {
   hotkeys('ctrl+s', exportEverything)
   hotkeys('ctrl+o', importEverything)
   hotkeys('ctrl+shift+e', toggleAllSkills)
+  hotkeys('ctrl+shift+s', (ev) => bus.value.$emit('showSystemPromptEditor', ev))
 })
 
 
@@ -344,6 +351,19 @@ const toggleAllSkills =(ev)=> {
   }
 }
 
+/**
+ * Update system prompt
+ */
+const closeSystemPromptModal =()=> {
+  isShowingSystemPromptModel.value = false
+  tabsModel.adjustZIndex()
+  bindEscape()
+}
+bus.value.$on('showSystemPromptEditor', (ev)=> {
+  ev.preventDefault()
+  ev.stopPropagation()
+  isShowingSystemPromptModel.value = true
+})
 
 
 /**

@@ -7,7 +7,7 @@
         input#skills-enabled(type='checkbox' @change='toggleAllSkills' :checked='!skillsModel.allSkillsDisabled')
         label(for='skills-enabled') Enabled
       div(style='flex: 0 1 25%')
-      button(@click='isShowingSystemPromptModel = true') Skill system prompt
+      button(@click='showSystemPromptEditor') Skill system prompt
   Table.fullheight(
     ref='$table'
     hotkeysScope="Skills"
@@ -23,8 +23,6 @@
     @delete='deleteSkill'
     @close='onTableClose'
   )
-
-WindowSkillSystemPrompt(v-if='isShowingSystemPromptModel' @close='closeSystemPromptModal')
 </template>
 
 
@@ -32,9 +30,7 @@ WindowSkillSystemPrompt(v-if='isShowingSystemPromptModel' @close='closeSystemPro
 import {ref, inject, onMounted, onBeforeUnmount} from 'vue'
 import hotkeys from 'hotkeys-js'
 import {useSkillsModel} from '../model/skills.js'
-import {useTabsModel} from '../model/tabs.js'
 import Table from '../components/Table.vue'
-import WindowSkillSystemPrompt from '../components/WindowSkillSystemPrompt.vue'
 
 const skillDefaults = {
   name: 'Untitled',
@@ -51,9 +47,7 @@ const headings = [
 const bus = inject('bus')
 const $table = ref(null)
 const skillsModel = useSkillsModel()
-const tabsModel = useTabsModel()
 const skillForm = ref(skillDefaults)
-const isShowingSystemPromptModel = ref(false)
 
 const validateForm =(record)=> {
   return !!record.name
@@ -91,14 +85,8 @@ const toggleAllSkills =(ev)=> {
   bus.value.$emit('toggleAllSkills', ev)
 }
 
-
-/**
- * Update system prompt
- */
-const closeSystemPromptModal =()=> {
-  isShowingSystemPromptModel.value = false
-  tabsModel.adjustZIndex()
-  bindEscape()
+const showSystemPromptEditor =(ev)=> {
+  bus.value.$emit('showSystemPromptEditor', ev)
 }
 
 
@@ -116,7 +104,6 @@ onMounted(()=> {
   }, 0)
 
   // Show skills modal
-  hotkeys('ctrl+shift+s', 'Skills', showSkillSystemPromptModal)
   hotkeys.setScope('Skills')
   bindEscape()
 })
@@ -124,14 +111,6 @@ onMounted(()=> {
 onBeforeUnmount(()=> {
   hotkeys.deleteScope('Skills')
 })
-
-const showSkillSystemPromptModal =(ev)=> {
-  ev.preventDefault()
-  ev.stopPropagation()
-  isShowingSystemPromptModel.value = true
-  bindEscape()
-}
-
 
 /**
  * Bind escape key (just let it pass through to close the window)
