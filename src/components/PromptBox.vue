@@ -28,7 +28,7 @@
 </template>
 
 <script setup>
-import {ref, onMounted, onBeforeMount} from 'vue'
+import {ref, watch, onMounted} from 'vue'
 import { useSkillsModel } from '../model/skills'
 import { useMessagesModel } from '../model/messages'
 import { useConnectionsModel } from '../model/connections'
@@ -48,6 +48,12 @@ const props = defineProps({
   isSelecting: {type: Boolean, default: false},
   isWorking: {type: Boolean, default: false},
   activeChannel: {type: String, default: ''},
+})
+
+// Store the prompt the user is writing in the channel
+// in case they navigate away
+watch(curPrompt, (val) => {
+  messagesModel.setCurPrompt(val)
 })
 
 
@@ -341,5 +347,13 @@ defineExpose({
   focus: () => $promptEl.value.focus(),
   clear: () => curPrompt.value = '',
   runPrompt: () => runPrompt(),
+})
+
+
+/**
+ * On mounted
+ */
+onMounted(async () => {
+  curPrompt.value = await messagesModel.getCurPrompt()
 })
 </script>

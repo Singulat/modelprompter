@@ -5,12 +5,14 @@ export const useMessagesModel = defineStore({
   id: 'messages',
 
   state: () => ({
-    messages: {}
+    messages: {},
+    curPrompt: '',
   }),
 
   actions: {
     async init (bindListeners = false) {
       await this.getMessages()
+      await this.getCurPrompt()
 
       if (bindListeners) {
         chrome.storage.onChanged.addListener(({messages}) => {
@@ -30,14 +32,18 @@ export const useMessagesModel = defineStore({
      * @returns {messages}
      */
     async getMessages () {
-      // Load from memory
-      let messages = await chrome.storage.sync.get('messages') || {}
-      if (typeof messages != 'object') {
-        messages = {}
-      }
-      this.messages = messages?.messages || {}
-
+      const data = await chrome.storage.sync.get('messages')
+      this.messages = data.messages || {}
       return this.messages
+    },
+
+    /**
+     * Get current prompt
+     */
+    async getCurPrompt () {
+      const data = await chrome.storage.sync.get('curPrompt')
+      this.curPrompt = data.curPrompt || ''
+      return this.curPrompt
     },
 
     /**
@@ -134,6 +140,13 @@ export const useMessagesModel = defineStore({
       })
       
       return messages
+    },
+
+    /**
+     * Persist the prompt box in case the page closes
+     */
+    setCurPrompt (prompt) {
+      chrome.storage.sync.set({'curPrompt': prompt})
     }
   }
 })

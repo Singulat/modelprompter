@@ -357,7 +357,6 @@ const toggleAllSkills =(ev)=> {
 const closeSystemPromptModal =()=> {
   isShowingSystemPromptModel.value = false
   tabsModel.adjustZIndex()
-  bindEscape()
 }
 bus.value.$on('showSystemPromptEditor', (ev)=> {
   ev.preventDefault()
