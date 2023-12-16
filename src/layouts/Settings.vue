@@ -1,7 +1,7 @@
 <template lang="pug">
 div.flex.column
   fieldset.flex-auto.mb1
-    legend Namespace
+    legend Workbook Name
     .field-row-stacked
       input#settings-namespace-name(
         type='text'

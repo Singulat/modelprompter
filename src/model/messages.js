@@ -9,8 +9,16 @@ export const useMessagesModel = defineStore({
   }),
 
   actions: {
-    async init () {
+    async init (bindListeners = false) {
       await this.getMessages()
+
+      if (bindListeners) {
+        chrome.storage.onChanged.addListener(({messages}) => {
+          if (messages?.newValue) {
+            this.messages = messages.newValue
+          }
+        })
+      }
     },
 
     async save () {

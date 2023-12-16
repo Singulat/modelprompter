@@ -28,11 +28,10 @@
 </template>
 
 <script setup>
-import {ref} from 'vue'
+import {ref, onMounted, onBeforeMount} from 'vue'
 import { useSkillsModel } from '../model/skills'
 import { useMessagesModel } from '../model/messages'
 import { useConnectionsModel } from '../model/connections'
-import OpenAI from 'openai'
 
 // Refs
 const $promptEl = ref(null)
@@ -254,7 +253,7 @@ Trigger when: ${skill.triggers}`,
 
 /**
  * Send to the llm for inference
- * @returns {skillPassedTest, combinedMessage}
+ * @returns {skillPassedTest}
  */
 const sendToLLM = async (messages, assistantDefaults) => {
   // Add a placeholder message to start updating
@@ -274,14 +273,6 @@ const sendToLLM = async (messages, assistantDefaults) => {
   let defaultConnection = connectionsModel.defaultConnection
   defaultConnection = connectionsModel.connections[defaultConnection]
 
-  // Create openai instance
-  const openai = new OpenAI({
-    baseURL: defaultConnection.baseurl,
-    apiKey: defaultConnection.apiKey || '123',
-    organization: defaultConnection.organization,
-    dangerouslyAllowBrowser: true
-  })
-
   // Pull out all placeholders into a seperate array
   // and remove them from the messages
   const placeholders = [...messages.filter(message => message.role === 'placeholder')]
@@ -289,56 +280,35 @@ const sendToLLM = async (messages, assistantDefaults) => {
 
   // Send to openai
   console.log('📦 Sending to LLM', messages)
-  const completion = await openai.chat.completions.create({
-    messages,
-    model: defaultConnection.model,
-    temperature: +defaultConnection.temp,
-    stream: true
-  })
-
-  let combinedMessage = isGeneratingSkills ? assistantDefaults.text : ''
-  let skillPassedTest = false
-  
-  for await (const completionChunk of completion) {
-    if (!props.isWorking) {
-      break
-    }
-    
-    if (!isGeneratingSkills) {
-      const chunk = completionChunk.choices?.[0]?.delta?.content || ''
-      
-      // Concat the chunk
-      combinedMessage += chunk
-      messagesModel.updateMessage(assistantId, {
-        text: combinedMessage
-      })
-    } else {
-      // If it's a skill, check if its a good match
-      const chunk = completionChunk.choices?.[0]?.delta?.content?.trim() || ''
-      if (chunk) {
-        if (chunk[0] == '1' || chunk.toLowerCase() == 'yes' || chunk.toLowerCase() == 'true') {
-          console.log('✅ Passed on chunk', chunk)
-          await messagesModel.updateMessage(assistantId, {
-            text: combinedMessage + '\n✅'
-          })
-          skillPassedTest = true
-        } else {
-          console.log('❌ Failed on chunk', chunk)
-          await messagesModel.updateMessage(assistantId, {
-            text: combinedMessage + '\n❌'
-          })
-        }
-        break
+  const completion = await (async () => new Promise((resolve, reject) => {
+    chrome.runtime.sendMessage({
+      type: 'sendToLLM',
+      assistantId,
+      messages,
+      channel: props.activeChannel,
+      model: defaultConnection.model,
+      isGeneratingSkills,
+      assistantDefaults,
+      connection: {
+        baseurl: defaultConnection.baseurl,
+        apiKey: defaultConnection.apiKey,
+        organization: defaultConnection.organization,        
+      },
+      temperature: +defaultConnection.temp,
+      stream: true
+    }, response => {
+      if (response.error) {
+        reject(response.error)
+      } else {
+        resolve(response)
       }
-    }
-    
-    emit('scrollBottom')
-  }
+    })
+  }))()
 
   return {
     placeholders,
-    skillPassedTest,
-    combinedMessage,
+    skillPassedTest: completion.skillPassedTest,
+    combinedMessage: completion.combinedMessage,
     assistantId
   }
 }

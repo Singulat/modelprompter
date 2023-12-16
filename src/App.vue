@@ -97,7 +97,7 @@ const settingsModel = useSettingsModel()
 onBeforeMount(async () => {
   // Initialize models
   await connectionsModel.init()
-  await messagesModel.init()
+  await messagesModel.init(true)
   await channelsModel.init()
   await skillsModel.init()
   await settingsModel.init()

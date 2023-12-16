@@ -293,6 +293,10 @@ const cancelEditing =(ev)=> {
   isEditing.value = false
   isSelecting.value = false
   isWorking.value = false
+  chrome.runtime.sendMessage({
+    type: 'cancelPrompting',
+    channel: props.activeChannel
+  })
 
   if ($promptBox.value) $promptBox.value.curPrompt = ''
   $messages.value?.querySelector('.highlight')?.classList.remove('highlight')
@@ -310,6 +314,10 @@ const stopWorking = ()=> {
   isWorking.value = false
   isEditing.value = false
   isSelecting.value = false
+  chrome.runtime.sendMessage({
+    type: 'cancelPrompting',
+    channel: props.activeChannel
+  })
   
   setTimeout(() => {
     $promptBox.value && $promptBox.value.focus()
@@ -545,7 +553,11 @@ const onEscape = (ev) => {
   }
   if ($promptBox.value) $promptBox.value.curPrompt = ''
   isWorking.value = false
-
+  chrome.runtime.sendMessage({
+    type: 'cancelPrompting',
+    channel: props.activeChannel
+  })
+  
   // Clear prompt
   if (!isEditing.value && !isSelecting.value) {
     setTimeout(() => {
