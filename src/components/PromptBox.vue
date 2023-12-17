@@ -191,7 +191,7 @@ const runPrompt = async () => {
   // Extract scripts from the response and run them
   if (props.isWorking) {
     console.log('🖨️ Scanning for scripts')
-    await scanAndRunScripts(response)
+    const scriptData = await scanAndRunScripts(response)
     neededPlan && console.log('📋 Reviewing plan and results')
     neededPlan && console.log('🫡 Confirming')
   } else {
@@ -213,6 +213,7 @@ const scanAndRunScripts = async (response) => {
     ALLOWED_ATTR: ['class']
   })
   md.render(text)
+  let scriptData = {}
 
   // Parse the response and extract all <code class="language-mp">...</code>
   // @fixme we should probably use virtual dom for this 😬
@@ -221,19 +222,20 @@ const scanAndRunScripts = async (response) => {
   const $scripts = $scriptsContainer.querySelectorAll('code.language-mp')
 
   for (const $script of Array.from($scripts)) {
-    console.log($script)
     const script = $script.innerText
     // Split the script into lines
-    const lines = script?.split('\n')
-    for (const line of lines) {
-      if (!line.trim()) continue
+    const scripts = script?.split('\n')
+    const vars = {}
+    for (let script of scripts) {
+      if (!script.trim()) continue
+      script = shellParser(script.trim())
       
       // Send to background script to be processed
-      console.log('📜 Running script:', line)
+      console.log('📜 Running script:', JSON.stringify(script))
       const completion = await (async ()=> new Promise((resolve, reject) => {
         chrome.runtime.sendMessage({
           type: 'runMPScript',
-          line
+          script,
         }, response => {
           if (response.error) {
             reject(response.error)
@@ -242,11 +244,23 @@ const scanAndRunScripts = async (response) => {
           }
         })
       }))()
-  
-      console.log('🔮 Result:', completion)
+
+      // Respond to the function
+      console.log('script[0]', script[0])
+      switch (script[0]) {
+        case 'getPageText':
+          vars[script[1]] = completion.text
+        break
+
+        case 'output':
+          scriptData.print = vars[script[1]]
+        break
+      }
     }
   }
-  console.log('🖨️ Finished with scripts')
+
+  console.log('🖨️ Finished with scripts', scriptData)
+  return scriptData
 }
 
 

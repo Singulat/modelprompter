@@ -205,6 +205,9 @@ onMounted(async () => {
   hotkeys('ctrl+o', importEverything)
   hotkeys('ctrl+shift+e', toggleAllSkills)
   hotkeys('ctrl+shift+s', (ev) => bus.value.$emit('showSystemPromptEditor', ev))
+
+  // Inject contentscript
+  chrome.runtime.sendMessage({type: 'injectContentscript'})
 })
 
 

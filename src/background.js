@@ -99,7 +99,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
      */
     case 'cancelPrompting':
       channelsActivelyPrompting[request.channelID] = false
-    break
+    return false
 
     /**
      * Inject ModelPrompter
@@ -114,38 +114,36 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           })
         }
       })
-    break
+    return false
 
     /**
      * Run a line of modelprompter
      */
     case 'runMPScript':
       ;(async ()=> {
-        sendResponse(request)
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
           if (tabs[0]?.id) {
-            chrome.tabs.sendMessage(tabs[0].id, {
-              type: 'runMPScript',
-              script: request.line
-            })
+            // Parse the prompt on the frontend
+            const completion = await (async ()=> new Promise((resolve, reject) => {
+              chrome.tabs.sendMessage(tabs[0].id, {
+                type: 'contentscript:runMPScript',
+                script: request.script
+              }, response => {
+                if (response) {
+                  resolve(response)
+                } else {
+                  reject({error: 'NO RESPONSE'})
+                }
+              })
+            }))()
+
+            // Determine how to react to the function to call
+            sendResponse(completion)
+          } else {
+            sendResponse({error: 'NO TABS FOUND'})
           }
         })
       })()
     return true
   }
 })
-
-
-/**
- * Add content script on popup click
- */
-chrome.action.onClicked.addListener(async (tab) => {
-  try {
-    await chrome.scripting.executeScript({
-      files: ['contentscript.js'],
-      target: {tabId: tab.id,},
-    })
-  } catch (err) {
-    console.error(`Failed to execute content script: ${err}`)
-  }
-});
