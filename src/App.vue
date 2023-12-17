@@ -3,7 +3,7 @@
 // CTRL+SHIFT+M to maximize into a new tab
 Window(
   canClose
-  :title='"ModelPrompter - Skills[" + (skillsModel.allSkillsDisabled ? "off" : "on") + "]"'
+  :title='title'
   :canMax="true"
   :bubbleEsc="true"
   @close="onClose"
@@ -55,7 +55,7 @@ import { useChannelsModel } from './model/channels'
 import { useSkillsModel } from './model/skills'
 import { useSettingsModel } from './model/settings'
 import {useTabsModel} from './model/tabs.js'
-import {ref, onMounted, onBeforeMount, watch, provide} from 'vue'
+import {ref, onMounted, computed, onBeforeMount, watch, provide} from 'vue'
 import hotkeys from 'hotkeys-js'
 import pkg from '../package.json'
 
@@ -80,6 +80,13 @@ const height = ref('')
 const isIframe = ref(false)
 const mainTabs = ref({settings: 'Settings', connections: 'Connections', prompt: 'Prompt', skills: 'Skills'})
 const isShowingSystemPromptModel = ref(false)
+
+// Title
+const title = computed(() => {
+  // @fixme This should always be a string
+  let title = settingsModel.namespaceName?.namespaceName || settingsModel.namespaceName || 'ModelPrompter'
+  return title + ' - Skills[' + (skillsModel.allSkillsDisabled ? 'off' : 'on') + ']'
+})
 
 // Watch for changes to activeTab and persist
 watch(activeTab, async (value) => await chrome.storage.local.set({activeTab: value}))

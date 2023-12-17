@@ -1,12 +1,12 @@
 <template lang="pug">
 Window.modal(
-title='Update Skill System Prompt'
+title='Update System Prompts'
 hotkeysScope="SkillsWindow"
 canClose
 isModal
 @close='closeModal')
   .field-row-stacked
-    label(for='skill-system-prompt') System Prompt:
+    label(for='skill-system-prompt') Skills Prompt:
     textarea#skill-system-prompt(ref='skillSystemPrompt' rows='7' autofocus placeholder='Untitled' v-model='skillForm.systemPrompt' @keydown.ctrl.exact.enter.prevent='submitSkillForm' style='rows: 7;')
   .field-row-stacked
     label(for='skill-planning-prompt') Planning Prompt:
