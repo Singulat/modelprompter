@@ -6,12 +6,17 @@ import manifest from './manifest.json' assert { type: 'json' }
 import { writeFileSync, readFileSync } from 'fs'
 import { resolve } from 'path'
 
-// Function to copy sandbox.html
-function copySandbox() {
-  const sandboxPath = resolve(__dirname, 'sandbox.html')
-  const distPath = resolve(__dirname, 'dist', 'sandbox.html')
-  const sandboxContent = readFileSync(sandboxPath, 'utf-8')
-  writeFileSync(distPath, sandboxContent)
+// Function to copy files
+function copyFiles() {
+  let path = resolve(__dirname, 'sandbox.html')
+  let distPath = resolve(__dirname, 'dist', 'sandbox.html')
+  let fileContent = readFileSync(path, 'utf-8')
+  writeFileSync(distPath, fileContent)
+  
+  path = resolve(__dirname, 'src/contentscript.js')
+  distPath = resolve(__dirname, 'dist', 'contentscript.js')
+  fileContent = readFileSync(path, 'utf-8')
+  writeFileSync(distPath, fileContent)
 }
 
 export default defineConfig({
@@ -23,10 +28,10 @@ export default defineConfig({
       name: 'copy-sandbox',
       apply: 'build',
       configureServer() {
-      copySandbox()
+      copyFiles()
       },
       writeBundle() {
-        copySandbox()
+        copyFiles()
       }
     }
   ],

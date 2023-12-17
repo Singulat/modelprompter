@@ -39,6 +39,7 @@
     "monaco-editor-vue3": "^0.1.10",
     "openai": "^4.20.0",
     "pinia": "^2.1.7",
+    "shell-quote": "^1.8.1",
     "vue": "^3.2.25"
   },
   "devDependencies": {

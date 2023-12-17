@@ -100,5 +100,52 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     case 'cancelPrompting':
       channelsActivelyPrompting[request.channelID] = false
     break
+
+    /**
+     * Inject ModelPrompter
+     */
+    case 'injectContentscript':
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs[0]?.id) {
+          // Inject the content script into the current tab
+          chrome.scripting.executeScript({
+            files: ['contentscript.js'],
+            target: { tabId: tabs[0].id }
+          })
+        }
+      })
+    break
+
+    /**
+     * Run a line of modelprompter
+     */
+    case 'runMPScript':
+      ;(async ()=> {
+        sendResponse(request)
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          if (tabs[0]?.id) {
+            chrome.tabs.sendMessage(tabs[0].id, {
+              type: 'runMPScript',
+              script: request.line
+            })
+          }
+        })
+      })()
+    return true
   }
 })
+
+
+/**
+ * Add content script on popup click
+ */
+chrome.action.onClicked.addListener(async (tab) => {
+  try {
+    await chrome.scripting.executeScript({
+      files: ['contentscript.js'],
+      target: {tabId: tab.id,},
+    })
+  } catch (err) {
+    console.error(`Failed to execute content script: ${err}`)
+  }
+});

@@ -32,6 +32,16 @@ import {ref, watch, onMounted} from 'vue'
 import { useSkillsModel } from '../model/skills'
 import { useMessagesModel } from '../model/messages'
 import { useConnectionsModel } from '../model/connections'
+import MarkdownIt from 'markdown-it'
+import MarkdownItAttrs from 'markdown-it-attrs'
+import DOMPurify from 'dompurify'
+import shellParser from 'shell-quote/parse'
+
+// Markdown
+const md = new MarkdownIt({
+  html: true,
+})
+md.use(MarkdownItAttrs)
 
 // Refs
 const $promptEl = ref(null)
@@ -114,7 +124,7 @@ const runPrompt = async () => {
       if (!props.isWorking) return
 
       console.log('🤔 Checking skill:', rawSkills[i].name)
-      const response = await sendToLLM(skillsToParse[i], {
+      response = await sendToLLM(skillsToParse[i], {
         role: 'placeholder',
         text: `📋 Checking skill: ${rawSkills[i].name}`,
         isGeneratingSkills: true
@@ -135,7 +145,7 @@ const runPrompt = async () => {
       if (passedSkills.length === 0) {
         const messages = await messagesModel.getPreparedMessages(props.activeChannel)
         console.log('💬 No skills needed. Generating response.')
-        const response = await sendToLLM(messages, {text: '🤔 Thinking...', role: 'placeholder'})
+        response = await sendToLLM(messages, {text: '🤔 Thinking...', role: 'placeholder'})
         removePlaceholders([response.placeholders])
       } else {
         const messages = await messagesModel.getPreparedMessages(props.activeChannel)
@@ -162,7 +172,7 @@ const runPrompt = async () => {
         // Send it
         neededPlan = true
         console.log('📋 Generating plan')
-        const response = await sendToLLM(messages, {text: '🤔 Thinking...', role: 'placeholder'})
+        response = await sendToLLM(messages, {text: '🤔 Thinking...', role: 'placeholder'})
 
         
         // Remove placeholders
@@ -173,15 +183,15 @@ const runPrompt = async () => {
   } else {
     if (props.isWorking) {
       const messages = await messagesModel.getPreparedMessages(props.activeChannel)
-      const response = await sendToLLM(messages, {text: '🤔 Thinking...'})
+      response = await sendToLLM(messages, {text: '🤔 Thinking...'})
       removePlaceholders([response.placeholders])
     }
   }
 
   // Extract scripts from the response and run them
   if (props.isWorking) {
-    const $scriptsContainer = document.querySelector('#scripts-container')
-    await scanAndRunScripts(response, $scriptsContainer)
+    console.log('🖨️ Scanning for scripts')
+    await scanAndRunScripts(response)
     neededPlan && console.log('📋 Reviewing plan and results')
     neededPlan && console.log('🫡 Confirming')
   } else {
@@ -197,24 +207,46 @@ const runPrompt = async () => {
 /**
  * Scan and run scripts
  */
-const scanAndRunScripts = async (response, $scriptsContainer) => {
-  $scriptsContainer.innerHTML = response.combinedMessage
-
-  // Extract script tags and run them
-  $scriptsContainer.querySelectorAll('script').forEach(async script => {
-    const $sandbox = document.querySelector('#sandbox')
-    // post message to all
-    $sandbox.contentWindow.postMessage({
-      type: 'evalCode',
-      code: script.innerText
-    }, '*')
+const scanAndRunScripts = async (response) => {
+  let text = DOMPurify.sanitize(md.render(response.combinedMessage), {
+    ALLOWED_TAGS: ['code'],
+    ALLOWED_ATTR: ['class']
   })
+  md.render(text)
 
-  // Wrap <video> tags in a container
-  $scriptsContainer.querySelectorAll('video').forEach(video => {
-    if (video.parentElement.classList.contains('video-container')) return
-    video.outerHTML = `<div class="video-container">${video.outerHTML}<div class="video-container-mask"></div><i class="q-icon notranslate material-icons">play_circle_filled</i></div>`
-  })
+  // Parse the response and extract all <code class="language-mp">...</code>
+  // @fixme we should probably use virtual dom for this 😬
+  const $scriptsContainer = document.createElement('div')
+  $scriptsContainer.innerHTML = text
+  const $scripts = $scriptsContainer.querySelectorAll('code.language-mp')
+
+  for (const $script of Array.from($scripts)) {
+    console.log($script)
+    const script = $script.innerText
+    // Split the script into lines
+    const lines = script?.split('\n')
+    for (const line of lines) {
+      if (!line.trim()) continue
+      
+      // Send to background script to be processed
+      console.log('📜 Running script:', line)
+      const completion = await (async ()=> new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage({
+          type: 'runMPScript',
+          line
+        }, response => {
+          if (response.error) {
+            reject(response.error)
+          } else {
+            resolve(response)
+          }
+        })
+      }))()
+  
+      console.log('🔮 Result:', completion)
+    }
+  }
+  console.log('🖨️ Finished with scripts')
 }
 
 
@@ -286,7 +318,7 @@ const sendToLLM = async (messages, assistantDefaults) => {
 
   // Send to openai
   console.log('📦 Sending to LLM', messages)
-  const completion = await (async () => new Promise((resolve, reject) => {
+  const completion = await (async ()=> new Promise((resolve, reject) => {
     chrome.runtime.sendMessage({
       type: 'sendToLLM',
       assistantId,

@@ -6,12 +6,14 @@
 <body>
 <script>
 // Event listenter for to eval code from parent
-window.addEventListener('message', ev => {
+window.addEventListener('message', async (ev) => {
   // message status type is "runcode"
   switch (ev.data.type) {
     case 'evalCode':
-      const result = eval(ev.data.code)
-      window.parent.postMessage(result, '*')
+      const result = await eval(`(()=> {
+;${ev.data.code};
+})()`)
+      ev.srcElement.postMessage(result, '*')
     break
   }
 })
