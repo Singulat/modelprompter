@@ -1,5 +1,5 @@
 import {defineStore} from 'pinia'
-import {throttle} from 'lodash-es'
+import {AsyncThrottle} from '../helpers.js'
 
 export const useMessagesModel = defineStore({
   id: 'messages',
@@ -52,7 +52,7 @@ export const useMessagesModel = defineStore({
      * @returns id
      */
     async addMessage (message) {
-      const id = crypto.randomUUID()
+      const id = message.id || crypto.randomUUID()
       
       message = Object.assign({
         id: id,
@@ -94,16 +94,16 @@ export const useMessagesModel = defineStore({
     /**
      * Update message
      */
-    updateMessage: throttle(async function (id, message) {
+    async updateMessage (id, message) {
       Object.keys(message).forEach(key => {
         if (this.messages[id] && message[key]) {
           this.messages[id][key] = message[key]
         }
       })
       await chrome.storage.sync.set({messages: this.messages})
-
+    
       return id
-    }, 200),
+    },
 
     /**
      * Delete all messages

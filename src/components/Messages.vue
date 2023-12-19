@@ -251,8 +251,10 @@ const editSelectedMessage =(isKey)=> {
  * Update a message
  */
 const updateMessage = async () => {
-  const message = messagesModel.messages[isEditing.value]
-  await messagesModel.updateMessage(isEditing.value, {
+  const id = isEditing.value || isWorking.value
+  
+  const message = messagesModel.messages[id]
+  await messagesModel.updateMessage({
     updated_at: Date.now(),
     text: $promptBox.value?.curPrompt
   })
@@ -267,7 +269,9 @@ const updateMessage = async () => {
   if ($promptBox.value) {
     $promptBox.value.curPrompt = ''
   }
-  isEditing.value = false
+  if (isEditing.value) {
+    isEditing.value = false
+  }
 
   const $messagesEl = $messages.value.querySelectorAll('.message')
   $messagesEl.forEach($message => {
@@ -318,6 +322,8 @@ const stopWorking = ()=> {
     type: 'cancelPrompting',
     channel: props.activeChannel
   })
+
+  
   
   setTimeout(() => {
     $promptBox.value && $promptBox.value.focus()
@@ -388,7 +394,6 @@ const regenerateMessage = async () => {
   let promptsToUse = []
   // Get all messages up to the current one
   const activeMessage = isEditing.value || isSelecting.value
-  // runPrompt()
   console.log('regenerate message')
 }
 
@@ -488,7 +493,7 @@ const maybeAddOrUpdateSystemPrompt = async () => {
 /**
  * Render Markdown
  */
-const renderMarkdown = (text) => {
+const renderMarkdown = (text = '') => {
   text = DOMPurify.sanitize(md.render(text), { ADD_TAGS: ['iframe'], ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'scrolling'] })
   return md.render(text)
 }
