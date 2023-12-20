@@ -322,8 +322,6 @@ const stopWorking = ()=> {
     type: 'cancelPrompting',
     channel: props.activeChannel
   })
-
-  
   
   setTimeout(() => {
     $promptBox.value && $promptBox.value.focus()

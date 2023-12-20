@@ -191,7 +191,21 @@ const runPrompt = async () => {
   // Extract scripts from the response and run them
   if (props.isWorking) {
     console.log('🖨️ Scanning for scripts')
+
+    /**
+     * Print additional data
+     */
     const scriptData = await scanAndRunScripts(response)
+    if (scriptData.print) {
+      // Update last message
+      let printMessage = Object.assign({
+        channel: props.activeChannel,
+        role: 'assistant',
+        text: scriptData.print,
+      }, {})
+      const id = await messagesModel.addMessage(printMessage)
+    }
+    
     neededPlan && console.log('📋 Reviewing plan and results')
     neededPlan && console.log('🫡 Confirming')
   } else {
@@ -232,21 +246,26 @@ const scanAndRunScripts = async (response) => {
       
       // Send to background script to be processed
       console.log('📜 Running script:', JSON.stringify(script))
-      const completion = await (async ()=> new Promise((resolve, reject) => {
-        chrome.runtime.sendMessage({
-          type: 'runMPScript',
-          script,
-        }, response => {
-          if (response.error) {
-            reject(response.error)
-          } else {
-            resolve(response)
-          }
-        })
-      }))()
+      let completion = {}
+      try {
+        completion = await (async ()=> new Promise((resolve, reject) => {
+          chrome.runtime.sendMessage({
+            type: 'runMPScript',
+            script,
+          }, response => {
+            if (response.error) {
+              reject(response.error)
+            } else {
+              resolve(response)
+            }
+          })
+        }))()
+      } catch (err) {
+        // @todo We need a notification system
+        continue
+      }
 
       // Respond to the function
-      console.log('script[0]', script[0])
       switch (script[0]) {
         case 'getPageText':
           vars[script[1]] = completion.text
