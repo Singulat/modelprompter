@@ -8,11 +8,14 @@ import { resolve } from 'path'
 
 // Function to copy files
 function copyFiles() {
+  // Sandbox for eval()
+  // @see https://developer.chrome.com/docs/extensions/how-to/security/sandboxing-eval
   let path = resolve(__dirname, 'sandbox.html')
   let distPath = resolve(__dirname, 'dist', 'sandbox.html')
   let fileContent = readFileSync(path, 'utf-8')
   writeFileSync(distPath, fileContent)
   
+  // Contentscript
   path = resolve(__dirname, 'src/contentscript.js')
   distPath = resolve(__dirname, 'dist', 'contentscript.js')
   fileContent = readFileSync(path, 'utf-8')

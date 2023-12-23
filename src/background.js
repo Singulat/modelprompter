@@ -105,15 +105,21 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
      * Inject ModelPrompter
      */
     case 'injectContentscript':
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        if (tabs[0]?.id) {
-          // Inject the content script into the current tab
-          chrome.scripting.executeScript({
-            files: ['contentscript.js'],
-            target: { tabId: tabs[0].id }
-          })
-        }
-      })
+      // Try injecting into current tab
+      try {
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          if (tabs[0]?.id) {
+            // Inject the content script into the current tab
+            chrome.scripting.executeScript({
+              files: ['contentscript.js'],
+              target: { tabId: tabs[0].id }
+            })
+          }
+        })
+
+      // @todo
+      } catch (err) {
+      }
     return false
 
     /**

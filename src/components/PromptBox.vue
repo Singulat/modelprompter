@@ -62,8 +62,8 @@ const props = defineProps({
 
 // Store the prompt the user is writing in the channel
 // in case they navigate away
-watch(curPrompt, (val) => {
-  messagesModel.setCurPrompt(val)
+watch(curPrompt, async (val) => {
+  await messagesModel.setCurPrompt(val)
 })
 
 
@@ -267,10 +267,12 @@ const scanAndRunScripts = async (response) => {
 
       // Respond to the function
       switch (script[0]) {
+        // [1] variable name to store in
         case 'getPageText':
           vars[script[1]] = completion.text
         break
 
+        // [1] variable name to output
         case 'output':
           scriptData.print = vars[script[1]]
         break

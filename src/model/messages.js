@@ -32,7 +32,7 @@ export const useMessagesModel = defineStore({
      * @returns {messages}
      */
     async getMessages () {
-      return this.messages = await store.get('messages', '')
+      return this.messages = await store.get('messages', [])
     },
 
     /**
