@@ -15,12 +15,21 @@ globalThis.___MODELPROMPTER___ = {
           ;(async ()=> {
             // Determine the function to call
             switch (message.script[0]) {
+              /**
+               * Return the whole page as text
+               */
               case 'getPageText':
                 await sendResponse({text: document.body.innerText})
               break
+
+              /**
+               * Truthy
+               */
+              case 'prompt':
               case 'output':
-                await sendResponse({send: 'it'})
+                await sendResponse({send: 'it'}) // can be any value
               break
+
               default:
                 await sendResponse({error: 'No matching function found: ' + message.script[0]})
               break

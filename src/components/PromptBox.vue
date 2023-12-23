@@ -195,24 +195,15 @@ const runPrompt = async () => {
     /**
      * Print additional data
      */
-    const scriptData = await scanAndRunScripts(response)
-    if (scriptData.print) {
-      // Update last message
-      let printMessage = Object.assign({
-        channel: props.activeChannel,
-        role: 'assistant',
-        text: scriptData.print,
-      }, {})
-      const id = await messagesModel.addMessage(printMessage)
-    }
-    
+    await scanAndRunScripts(response)
     neededPlan && console.log('📋 Reviewing plan and results')
     neededPlan && console.log('🫡 Confirming')
+
+  // End the message round
   } else {
     console.log('✋ Message round cancelled')
   }
   console.log('💤 Message round over')
-  
   emit('stopWorking')
 }
 
@@ -227,7 +218,6 @@ const scanAndRunScripts = async (response) => {
     ALLOWED_ATTR: ['class']
   })
   md.render(text)
-  let scriptData = {}
 
   // Parse the response and extract all <code class="language-mp">...</code>
   // @fixme we should probably use virtual dom for this 😬
@@ -265,7 +255,9 @@ const scanAndRunScripts = async (response) => {
         continue
       }
 
-      // Respond to the function
+      /**
+       * Respond to Functions
+       */
       switch (script[0]) {
         // [1] variable name to store in
         case 'getPageText':
@@ -274,16 +266,29 @@ const scanAndRunScripts = async (response) => {
 
         // [1] variable name to output
         case 'output':
-          scriptData.print = vars[script[1]]
+          await messagesModel.addMessage(Object.assign({
+            channel: props.activeChannel,
+            role: 'assistant',
+            text: vars[script[1]],
+          }, {}))
+        break
+
+        // [1] The message to prompt
+        case 'prompt':
+          await messagesModel.addMessage(Object.assign({
+            channel: props.activeChannel,
+            role: 'user',
+            text: script[1],
+          }, {}))
+
+          const messages = await messagesModel.getPreparedMessages(props.activeChannel)
+          const response = await sendToLLM(messages, {text: '🤔 Thinking...', role: 'placeholder'})
+          removePlaceholders([response.placeholders])
         break
       }
     }
   }
-
-  console.log('🖨️ Finished with scripts', scriptData)
-  return scriptData
 }
-
 
 /**
  * Get skills
