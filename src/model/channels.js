@@ -1,4 +1,5 @@
 import {defineStore} from 'pinia'
+import store from './store'
 
 export const useChannelsModel = defineStore({
   id: 'channels',
@@ -15,13 +16,12 @@ export const useChannelsModel = defineStore({
     },
 
     async save () {
-      await chrome.storage.sync.set({channels: this.channels})
-      await chrome.storage.sync.set({currentChannel: this.currentChannel})
+      await store.set({channels: this.channels})
+      await store.set({currentChannel: this.currentChannel})
     },
 
     async getCurrentChannel () {
-      this.currentChannel = await chrome.storage.sync.get('currentChannel')
-      return this.currentChannel?.currentChannel || 'general'
+      return this.currentChannel = await store.get('currentChannel', 'general')
     },
 
     /**
@@ -29,14 +29,7 @@ export const useChannelsModel = defineStore({
      * @returns {channels}
      */
     async getChannels () {
-      // Load from memory
-      let channels = await chrome.storage.sync.get('channels') || {}
-      if (typeof channels != 'object') {
-        channels = {}
-      }
-      this.channels = channels?.channels || {}
-
-      return this.channels
+      return this.channels = await store.get('channels', {})
     },
 
     /**
@@ -54,7 +47,7 @@ export const useChannelsModel = defineStore({
       }, channel)
       
       this.channels[id] = Object.assign({}, channel)
-      await chrome.storage.sync.set({channels: this.channels})
+      await store.set({channels: this.channels})
 
       return id
     },
@@ -63,7 +56,7 @@ export const useChannelsModel = defineStore({
      * Select a channel as the current one
      */
     async setCurrentChannel (id) {
-      await chrome.storage.sync.set({currentChannel: id})
+      await store.set({currentChannel: id})
     },
 
     /**
@@ -71,7 +64,7 @@ export const useChannelsModel = defineStore({
      */
     async deleteChannel (id) {
       delete this.channels[id]
-      await chrome.storage.sync.set({channels: this.channels})
+      await store.set({channels: this.channels})
     },
 
     /**
@@ -83,7 +76,7 @@ export const useChannelsModel = defineStore({
         this.channels[id][key] = channel[key]
       })
 
-      await chrome.storage.sync.set({channels: this.channels})
+      await store.set({channels: this.channels})
     }
   }
 })

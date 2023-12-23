@@ -1,4 +1,5 @@
 import {defineStore} from 'pinia'
+import store from './store'
 
 export const useSettingsModel = defineStore({
   id: 'settings',
@@ -13,17 +14,16 @@ export const useSettingsModel = defineStore({
     },
 
     async save () {
-      await chrome.storage.sync.set({namespaceName: this.namespaceName})
+      await store.set({namespaceName: this.namespaceName})
     },
 
     async getNamespaceName () {
-      this.namespaceName = await chrome.storage.sync.get('namespaceName')
-      return this.namespaceName?.namespaceName || this.namespaceName || ''
+      return this.namespaceName = await store.get('namespaceName', '')
     },
 
     async setNamespaceName (name) {
       this.namespaceName = name
-      await chrome.storage.sync.set({namespaceName: name})
+      await store.set({namespaceName: name})
     }
   }
 })

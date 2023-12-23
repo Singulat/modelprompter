@@ -1,5 +1,5 @@
 import {defineStore} from 'pinia'
-import {AsyncThrottle} from '../helpers.js'
+import store from './store'
 
 export const useMessagesModel = defineStore({
   id: 'messages',
@@ -24,7 +24,7 @@ export const useMessagesModel = defineStore({
     },
 
     async save () {
-      await chrome.storage.sync.set({messages: this.messages})
+      await store.set({messages: this.messages})
     },
 
     /**
@@ -32,18 +32,14 @@ export const useMessagesModel = defineStore({
      * @returns {messages}
      */
     async getMessages () {
-      const data = await chrome.storage.sync.get('messages')
-      this.messages = data.messages || {}
-      return this.messages
+      return this.messages = await store.get('messages', '')
     },
 
     /**
      * Get current prompt
      */
     async getCurPrompt () {
-      const data = await chrome.storage.sync.get('curPrompt')
-      this.curPrompt = data.curPrompt || ''
-      return this.curPrompt
+      return this.curPrompt = await store.get('curPrompt', '')
     },
 
     /**
@@ -62,7 +58,7 @@ export const useMessagesModel = defineStore({
       }, message)
       
       this.messages[id] = Object.assign({}, message)
-      await chrome.storage.sync.set({messages: this.messages})
+      await store.set({messages: this.messages})
 
       return id
     },
@@ -100,7 +96,7 @@ export const useMessagesModel = defineStore({
           this.messages[id][key] = message[key]
         }
       })
-      await chrome.storage.sync.set({messages: this.messages})
+      await store.set({messages: this.messages})
     
       return id
     },
@@ -117,7 +113,7 @@ export const useMessagesModel = defineStore({
       messages.forEach(message => {
         this.messages[message.id] = message
       })
-      await chrome.storage.sync.set({messages: this.messages})
+      await store.set({messages: this.messages})
     },
 
     /**
@@ -125,7 +121,7 @@ export const useMessagesModel = defineStore({
      */
     async deleteMessage (id) {
       delete this.messages[id]
-      await chrome.storage.sync.set({messages: this.messages})
+      await store.set({messages: this.messages})
     },
 
     /**
@@ -146,7 +142,7 @@ export const useMessagesModel = defineStore({
      * Persist the prompt box in case the page closes
      */
     setCurPrompt (prompt) {
-      chrome.storage.sync.set({'curPrompt': prompt})
+      store.set({'curPrompt': prompt})
     }
   }
 })

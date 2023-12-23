@@ -1,4 +1,5 @@
 import {defineStore} from 'pinia'
+import store from './store'
 
 export const useSkillsModel = defineStore({
   id: 'skills',
@@ -10,8 +11,8 @@ export const useSkillsModel = defineStore({
 
     // @todo Rename this to something else...it's now used as the highlighted skill
     defaultSkill: '',
-    systemPrompt: ``,
-    planningPrompt: ``
+    systemPrompt: '',
+    planningPrompt: ''
   }),
 
   actions: {
@@ -19,25 +20,23 @@ export const useSkillsModel = defineStore({
       await this.getSkills()
       await this.getActiveSkills()
 
-      const data = await chrome.storage.sync.get('defaultSkill') || {}
-      this.allSkillsDisabled = !!(await chrome.storage.sync.get('allSkillsDisabled'))?.allSkillsDisabled
-      this.systemPrompt = (await chrome.storage.sync.get('systemPrompt'))?.systemPrompt || this.systemPrompt
-      this.planningPrompt = (await chrome.storage.sync.get('planningPrompt'))?.planningPrompt || this.planningPrompt
-      this.defaultSkill = data.defaultSkill || ''
+      this.allSkillsDisabled = await store.get('allSkillsDisabled', false)
+      this.systemPrompt = await store.get('systemPrompt', this.systemPrompt)
+      this.planningPrompt = await store.get('planningPrompt', this.planningPrompt)
+      this.defaultSkill = await store.get('defaultSkill', '')
     },
 
     async save () {
-      await chrome.storage.sync.set({skills: this.skills})
-      await chrome.storage.sync.set({activeSkills: this.activeSkills})
-      await chrome.storage.sync.set({allSkillsDisabled: this.allSkillsDisabled})
-      await chrome.storage.sync.set({defaultSkill: this.defaultSkill})
-      await chrome.storage.sync.set({systemPrompt: this.systemPrompt})
-      await chrome.storage.sync.set({planningPrompt: this.planningPrompt})
+      await store.set({skills: this.skills})
+      await store.set({activeSkills: this.activeSkills})
+      await store.set({allSkillsDisabled: this.allSkillsDisabled})
+      await store.set({defaultSkill: this.defaultSkill})
+      await store.set({systemPrompt: this.systemPrompt})
+      await store.set({planningPrompt: this.planningPrompt})
     },
 
     async getActiveSkills () {
-      this.activeSkills = await chrome.storage.sync.get('activeSkills')
-      return this.activeSkills?.activeSkills || []
+      return this.activeSkills = await store.get('activeSkills', [])
     },
 
     /**
@@ -45,14 +44,7 @@ export const useSkillsModel = defineStore({
      * @returns {channels}
      */
     async getSkills () {
-      // Load from memory
-      let skills = await chrome.storage.sync.get('skills')
-      if (typeof skills != 'object') {
-        skills = {}
-      }
-      this.skills = skills?.skills || {}
-
-      return this.skills
+      return this.skills = await store.get('skills', {})
     },
 
     /**
@@ -72,7 +64,7 @@ export const useSkillsModel = defineStore({
       }, skill)
       
       this.skills[id] = Object.assign({}, skill)
-      await chrome.storage.sync.set({skills: this.skills})
+      await store.set({skills: this.skills})
 
       return id
     },
@@ -81,10 +73,10 @@ export const useSkillsModel = defineStore({
      * Select a skill as the current one
      */
     async setActiveSkills (ids) {
-      await chrome.storage.sync.set({activeSkills: []})
+      await store.set({activeSkills: []})
     },
     async setDefaultSkill (id) {
-      await chrome.storage.sync.set({defaultSkill: id})
+      await store.set({defaultSkill: id})
       this.defaultSkill = id
     },
 
@@ -93,7 +85,7 @@ export const useSkillsModel = defineStore({
      */
     async deleteSkill (id) {
       delete this.skills[id]
-      await chrome.storage.sync.set({skills: this.skills})
+      await store.set({skills: this.skills})
     },
 
     /**
@@ -105,7 +97,7 @@ export const useSkillsModel = defineStore({
         this.skills[id][key] = skill[key]
       })
 
-      await chrome.storage.sync.set({skills: this.skills})
+      await store.set({skills: this.skills})
     },
 
     /**
@@ -113,7 +105,7 @@ export const useSkillsModel = defineStore({
      */
     async enableAllSkills () {
       this.allSkillsDisabled = false
-      await chrome.storage.sync.set({allSkillsDisabled: false})
+      await store.set({allSkillsDisabled: false})
     },
 
     /**
@@ -121,7 +113,7 @@ export const useSkillsModel = defineStore({
      */
     async disableAllSkills () {
       this.allSkillsDisabled = true
-      await chrome.storage.sync.set({allSkillsDisabled: true})
+      await store.set({allSkillsDisabled: true})
     },
 
     /**
@@ -129,7 +121,7 @@ export const useSkillsModel = defineStore({
      */
     async updateSystemPrompt (systemPrompt) {
       this.systemPrompt = systemPrompt
-      await chrome.storage.sync.set({systemPrompt: systemPrompt})
+      await store.set({systemPrompt: systemPrompt})
     },
 
     /**
@@ -137,7 +129,7 @@ export const useSkillsModel = defineStore({
      */
     async updatePlanningPrompt (planningPrompt) {
       this.planningPrompt = planningPrompt
-      await chrome.storage.sync.set({planningPrompt: planningPrompt})
+      await store.set({planningPrompt: planningPrompt})
     },
   }
 })

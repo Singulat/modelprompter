@@ -28,6 +28,7 @@ import { useChannelsModel } from '../model/channels'
 import { useSettingsModel } from '../model/settings'
 import {useSkillsModel} from '../model/skills.js'
 import {useMessagesModel} from '../model/messages.js'
+import store from '../model/store.js'
 
 // Stores
 const connectionsModel = useConnectionsModel()
@@ -52,7 +53,7 @@ const onNamespaceNameChange = async(ev)=> {
  * Clear everything
  */
 const clearEverything = async()=> {
-  chrome.storage.sync.clear()
+  store.clear()
   globalThis.location.reload()
 }
 

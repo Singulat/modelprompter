@@ -1,4 +1,5 @@
 import {defineStore} from 'pinia'
+import store from './store'
 
 export const useConnectionsModel = defineStore({
   id: 'connections',
@@ -15,24 +16,23 @@ export const useConnectionsModel = defineStore({
      */
     async init () {
       await this.getConnections()
-      const data = await chrome.storage.sync.get('defaultConnection') || {}
-      this.defaultConnection = data.defaultConnection || ''
+      this.defaultConnection = await store.get('defaultConnection', {})
     },
 
     async save () {
-      await chrome.storage.sync.set({connections: this.connections})
-      await chrome.storage.sync.set({defaultConnection: this.defaultConnection})
+      await store.set({connections: this.connections})
+      await store.set({defaultConnection: this.defaultConnection})
     },
 
     async setDefault (id) {
       this.defaultConnection = id
-      await chrome.storage.sync.set({defaultConnection: id})
+      await store.set({defaultConnection: id})
     },
     
     async addConnection (connection) {
       const id = crypto.randomUUID()
       this.connections[id] = Object.assign({}, connection)
-      await chrome.storage.sync.set({connections: this.connections})
+      await store.set({connections: this.connections})
       return id
     },
 
@@ -49,7 +49,7 @@ export const useConnectionsModel = defineStore({
         }
       }      
 
-      await chrome.storage.sync.set({connections: this.connections})
+      await store.set({connections: this.connections})
     },
 
     getConnection (id) {
@@ -57,19 +57,12 @@ export const useConnectionsModel = defineStore({
     },
 
     async getConnections () {
-      // Load from memory
-      let connections = await chrome.storage.sync.get('connections') || {}
-      if (typeof connections != 'object') {
-        connections = {}
-      }
-      this.connections = connections?.connections || {}
-
-      return this.connections
+      return this.connections = await store.get('connections', {})
     },
 
     async updateConnection (id, connection) {
       this.connections[id] = Object.assign({}, connection)
-      await chrome.storage.sync.set({connections: this.connections})
+      await store.set({connections: this.connections})
     }
   }
 })
