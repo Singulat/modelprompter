@@ -1,13 +1,17 @@
-export default {
+import throttle from '@jcoreio/async-throttle'
+
+const throttledSet = throttle(async data => {
+  await chrome.storage[store.mode].set(data)
+}, 600)
+
+const store = {
   mode: 'sync',
 
   /**
    * Set a value
-   * @param {*} data 
+   * @param {*} data
    */
-  async set (data) {
-    await chrome.storage[this.mode].set(data)
-  },
+  set: throttledSet,
 
   /**
    * Get a value with optional default
@@ -27,3 +31,6 @@ export default {
     await chrome.storage[this.mode].clear()
   }
 }
+
+
+export default store
