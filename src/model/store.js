@@ -1,25 +1,12 @@
-import {throttle} from 'lodash-es'
-
-// Can only do 120 calls per minute, so throttle for a little
-// less than 2 per second to account for other calls
-const throttledSet = throttle(async data => {
-  await chrome.storage[store.mode].set(data)
-}, 600, {trailing: true})
-
 const store = {
   /**
    * Set a value
    * @param {*} data
-   * @param {boolean} throttle Whether to throttle or not
    * @param {*} mode 'local', 'sync', or 'managed'
    * @param {boolean} throttle
    */
-  async set (data, throttle=false, mode='local') {
-    if (throttle) {
-      throttledSet(data)
-    } else {
-      await chrome.storage[mode].set(data)
-    }
+  async set (data, mode='local') {
+    await chrome.storage[mode].set(data)
   },
 
   /**

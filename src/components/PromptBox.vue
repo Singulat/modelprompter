@@ -178,6 +178,9 @@ const runPrompt = async () => {
         // Remove placeholders
         console.log('📋 Plan generated:\n', response.combinedMessage)
         removePlaceholders([response.placeholders])
+        await messagesModel.updateMessage(response.assistantId, {
+          text: response.combinedMessage
+        })
       }
     }
   } else {
