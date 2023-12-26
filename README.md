@@ -1,95 +1,50 @@
-# Design and deploy browser agents for your LLMs
-<!-- (<small>✨</small> magic as defined by [Arthur C. Clarke's 3rd Law](https://en.wikipedia.org/wiki/Clarke%27s_three_laws)) -->
+# Connect LLMs to your browser and teach them Skills
 
-
-| Connect LLMs to your browser...<br><small>(manage multiple connections)</small> | ...teach them some skills...<br><small>(<small>"when this happens, do that"</small>)</small>  | ...and help them learn!<br><small><b>(they get better over time!)</small> |
-|-|-|-|
-| ![](https://github.com/singulat/gpt-scratchpad/assets/151397270/68ddf351-b9de-481e-821f-abb7494e5448) | ![](https://github.com/singulat/gpt-scratchpad/assets/151397270/9296d533-5130-4a5a-a41e-d9cec4fc15b5) | ![](https://github.com/singulat/gpt-scratchpad/assets/151397270/74876598-bc22-4a96-a43e-76b0fcc21098) |
-
-# Key features (so far)
-- Shortcuts for everything; no mouse needed
-- Quickly change models & configurations
-- Multiple channels with system prompts
-
-
-<br>
-<br>
-<br>
-<br>
-
-# How it works
-
-```mermaid
-graph LR
-Prompt-->Skills-->Plan-->Execute-.->Prompt
-```
-
-## Skills
-
-When you submit a Prompt it's checked against every Skill individually. A Skill is made up of two sub-prompts, a Trigger Prompt and a Response Prompt. GPT Scratchpad creates a 3 message stack and asks the LLM to return `1` if the Skill matches the user's prompt based on a Skill Checker Prompt, or `0` otherwise:
-
-```js
-[
-  {
-    role: 'system',
-    content: SkillCheckerPrompt
-  },
-  {
-    role: 'user',
-    content: YourPrompt
-  },
-  {
-    role: 'user',
-    content: SkillTrigger1
-  }
-]
-```
-
-It does this for every Skill, creating a new stack of potential Skills to use. This new stack, along with the original Prompt, is then sent to the Planner.
-
-### Planning
-After the Skills are gathered, a new message stack is created by combining the Planning Prompt, the relevant Skills, and all of the Channel's messages and sent back to the LLM. This time, any output from the LLM rendered in a `<pre class="gpt"></pre>` will get extracted and run as JavaScript in the context of the browser extension.
-
-```js
-[
-  {
-    role: 'system',
-    content: PlanningPrompt
-  },
-  ...Skills,
-  ...ChannelMessages,
-  {
-    role: 'user',
-    content: YourPrompt
-  }
-]
-```
-
-### Executing
-
-Once the plan has been output and all of the code extracted and run, the Chat Turn has ended and the user must type another prompt to continue. However, GPT Scratchpad exposes `gpt.prompt(newPrompt)` so that the LLM can act on behalf of the user and continue iterating on the plan.
+<table>
+  <tbody>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>Summarize pages</td>
+      <td>Fill out forms</td>
+      <td>Recursive prompting</td>
+    </tr>
+  </tbody>
+</table>
 
 <br>
 <br>
 <br>
-<br>
-<hr>
-<br>
-<br>
-<br>
-<br>
 
-# Keyboard Shortcuts
+# Quickstart
+<table>
+  <tbody>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>Connecting to GPT4</td>
+      <td>Teaching your GPTs Skills</td>
+      <td>Keyboard shortcuts</td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>Managing multiple connections</td>
+      <td>Connecting to local models</td>
+      <td>Roadmap</td>
+    </tr>    
+  </tbody>
+</table>
 
-After setup, press the icon or hold `CTRL+SHIFT` to begin navigating the interface. While holding that, tap left or right to change tabs and up and down to select things.
-
-
-<br>
-<br>
-<br>
-<br>
-<hr>
-<br>
 <br>
 <br>
 <br>
@@ -123,6 +78,7 @@ npm install
 5. Click on the GPT Scratchpad icon or press <kbd>CTRL+SHIFT+SPACE</kbd> to begin
 
 ### Visual guide: Edge Browser
+
 <img width="906" alt="image" src="https://github.com/singulat/gpt-scratchpad/assets/151397270/7768ff80-5f03-43e8-9f5f-5b3924b1a4e9">
 
 <br>
@@ -161,7 +117,3 @@ npm start
 <br>
 <br>
 <br>
-
-
-# Research
-- **Why are skills checked individually?** Although this creates more calls to the LLM, the idea is that it will make the system more accurate by hyperfocusing on one skill at a time.
