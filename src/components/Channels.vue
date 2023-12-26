@@ -205,8 +205,9 @@ const selectChannels = (ev) => {
 onMounted(()=> {
   // Set active channel
   setTimeout(async () => {
-    await channelsModel.setCurrentChannel(await channelsModel.getCurrentChannel())
-    activeChannel.value = channelsModel.currentChannel?.currentChannel
+    const channel = await channelsModel.getCurrentChannel()
+    await channelsModel.setCurrentChannel(channel)
+    activeChannel.value = channelsModel.currentChannel
   }, 0)
 
   // Channel Management

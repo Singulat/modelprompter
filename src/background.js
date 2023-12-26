@@ -52,10 +52,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         let combinedMessage = request.isGeneratingSkills ? request.assistantDefaults.text : ''
         let skillPassedTest = false
         for await (const completionChunk of completion) {
-          if (!channelsActivelyPrompting[request.channelID]) {
-            break
-          }
-          
           if (!request.isGeneratingSkills) {
             const chunk = completionChunk.choices?.[0]?.delta?.content || ''
             
@@ -83,6 +79,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
               break
             }
           }
+
+          if (!channelsActivelyPrompting[request.channelID]) {
+            break
+          }          
         }
         
         channelsActivelyPrompting[request.channelID] = false
@@ -102,22 +102,28 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return false
 
     /**
-     * Inject ModelPrompter
+     * Inject GPT Scratchpad
      */
     case 'injectContentscript':
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        if (tabs[0]?.id) {
-          // Inject the content script into the current tab
-          chrome.scripting.executeScript({
-            files: ['contentscript.js'],
-            target: { tabId: tabs[0].id }
-          })
-        }
-      })
+      // Try injecting into current tab
+      try {
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          if (tabs[0]?.id) {
+            // Inject the content script into the current tab
+            chrome.scripting.executeScript({
+              files: ['contentscript.js'],
+              target: { tabId: tabs[0].id }
+            })
+          }
+        })
+
+      // @todo
+      } catch (err) {
+      }
     return false
 
     /**
-     * Run a line of modelprompter
+     * Run a line of GPT Scratchpad
      */
     case 'runMPScript':
       ;(async ()=> {

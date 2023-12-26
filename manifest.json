@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "ModelPrompter",
+  "name": "GPT Scratchpad",
   "version": "0.0.1",
   "permissions": ["storage", "unlimitedStorage", "tabs", "activeTab", "scripting"],
   "icons": {

@@ -84,7 +84,7 @@ const isShowingSystemPromptModel = ref(false)
 // Title
 const title = computed(() => {
   // @fixme This should always be a string
-  let title = settingsModel.namespaceName?.namespaceName || settingsModel.namespaceName || 'ModelPrompter'
+  let title = settingsModel.namespaceName?.namespaceName || settingsModel.namespaceName || 'GPT Scratchpad'
   return title + ' - Skills[' + (skillsModel.allSkillsDisabled ? 'off' : 'on') + ']'
 })
 
@@ -268,7 +268,7 @@ const exportEverything = async(ev)=> {
   if (typeof namespaceName === 'object') {
     namespaceName = ''
   }
-  title = namespaceName ? `${namespaceName} -- ${title}` : `ModelPrompter -- ${title}`
+  title = namespaceName ? `${namespaceName} -- ${title}` : `GPT Scratchpad -- ${title}`
   
   // Download the json file
   // Convert the data to a JSON string
