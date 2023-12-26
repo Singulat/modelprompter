@@ -15,17 +15,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
      * Either maximizes the popup or creates a new tab if already maximized
      */
     case 'maximizePopup':
-      if (request.tabID) {
-        chrome.tabs.create({url: chrome.runtime.getURL(`index.html?context=iframe&tabID=${request.tabID}`)})
-      } else {
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-          // Open tab with tabID
-          const ID = tabs[0]?.id
-          if (ID) {
-            chrome.tabs.create({url: chrome.runtime.getURL(`index.html?context=iframe&tabID=${ID}`)})
-          }
-        })
-      }
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        // Open tab with tabID
+        const ID = +request.tabID || tabs[0]?.id
+        if (ID) chrome.tabs.create({url: chrome.runtime.getURL(`index.html?context=iframe&tabID=${ID}`)})
+      })
     return false
 
     /**
@@ -114,11 +108,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       // Try injecting into current tab
       try {
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-          if (tabs[0]?.id) {
+          const ID = +request.tabID || tabs[0]?.id
+          if (ID) {
             // Inject the content script into the current tab
             chrome.scripting.executeScript({
               files: ['contentscript.js'],
-              target: { tabId: tabs[0].id }
+              target: { tabId: ID }
             })
           }
         })
@@ -131,14 +126,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     /**
      * Run a line of GPT Scratchpad
      */
-    case 'runMPScript':
+    case 'runGPTScript':
       ;(async ()=> {
         chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
-          if (tabs[0]?.id) {
+          const ID = +request.tabID || tabs[0]?.id
+          if (ID) {
             // Parse the prompt on the frontend
             const completion = await (async ()=> new Promise((resolve, reject) => {
-              chrome.tabs.sendMessage(tabs[0].id, {
-                type: 'contentscript:runMPScript',
+              chrome.tabs.sendMessage(ID, {
+                type: 'contentscript:runGPTScript',
                 script: request.script
               }, response => {
                 if (response) {

@@ -243,7 +243,8 @@ const scanAndRunScripts = async (response) => {
       try {
         completion = await (async ()=> new Promise((resolve, reject) => {
           chrome.runtime.sendMessage({
-            type: 'runMPScript',
+            type: 'runGPTScript',
+            tabID: globalThis.gptScratchpad.tabID,
             script,
           }, response => {
             if (response.error) {

@@ -210,7 +210,10 @@ onMounted(async () => {
   hotkeys('ctrl+shift+s', (ev) => bus.value.$emit('showSystemPromptEditor', ev))
 
   // Inject contentscript
-  chrome.runtime.sendMessage({type: 'injectContentscript'})
+  chrome.runtime.sendMessage({
+    type: 'injectContentscript',
+    tabID: globalThis.gptScratchpad.tabID
+  })
 })
 
 

@@ -10,7 +10,7 @@ globalThis.__GPT_SCRATCHPAD__ = {
         /**
          * Get the whole page as text
          */
-        case 'contentscript:runMPScript':
+        case 'contentscript:runGPTScript':
           console.log('🤖 GPT Scratchpad Function Call:', message.script)
           ;(async ()=> {
             // Determine the function to call
