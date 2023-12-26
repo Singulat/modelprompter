@@ -63,7 +63,7 @@ const onMaximize = () => {
 
 onMounted(() => {
   setTimeout(() => {
-    if (globalThis.mp?.params?.get('context') === 'iframe') {
+    if (globalThis.gptScratchpad?.params?.get('context') === 'iframe') {
       windowHeight.value = '100vh'
       emit('maximize')
     } 

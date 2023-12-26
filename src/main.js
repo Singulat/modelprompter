@@ -9,7 +9,7 @@ const params = new URLSearchParams(window.location.search)
 const app = createApp(App)
 app.use(createPinia())
 
-globalThis.mp = {
+globalThis.gptScratchpad = {
   app: app.mount('#app'),
   params
 }

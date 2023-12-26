@@ -1,7 +1,7 @@
 /**
  * Listen for messages from the background script.
  */
-globalThis.___MODELPROMPTER___ = {
+globalThis.__GPT_SCRATCHPAD__ = {
   listener: null,
   id: null,
   init () {
@@ -11,7 +11,7 @@ globalThis.___MODELPROMPTER___ = {
          * Get the whole page as text
          */
         case 'contentscript:runMPScript':
-          console.log('🤖 ModelPrompter Function Call:', message.script)
+          console.log('🤖 GPT Scratchpad Function Call:', message.script)
           ;(async ()=> {
             // Determine the function to call
             switch (message.script[0]) {
@@ -38,7 +38,7 @@ globalThis.___MODELPROMPTER___ = {
         return true
       }
     })
-    console.log('🤖 ModelPrompter listeners initialized')
+    console.log('🤖 GPT Scratchpad listeners initialized')
   }
 }
-globalThis.___MODELPROMPTER___.init()
+globalThis.__GPT_SCRATCHPAD__.init()
