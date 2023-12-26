@@ -15,11 +15,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
      * Either maximizes the popup or creates a new tab if already maximized
      */
     case 'maximizePopup':
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        if (tabs[0]?.id) {
-          chrome.tabs.create({url: chrome.runtime.getURL('index.html?context=iframe')})
-        }
-      })
+      if (request.tabID) {
+        chrome.tabs.create({url: chrome.runtime.getURL(`index.html?context=iframe&tabID=${request.tabID}`)})
+      } else {
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          // Open tab with tabID
+          const ID = tabs[0]?.id
+          if (ID) {
+            chrome.tabs.create({url: chrome.runtime.getURL(`index.html?context=iframe&tabID=${ID}`)})
+          }
+        })
+      }
     return false
 
     /**

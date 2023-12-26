@@ -11,5 +11,6 @@ app.use(createPinia())
 
 globalThis.gptScratchpad = {
   app: app.mount('#app'),
-  params
+  tabID: params.get('tabID'),
+  context: params.get('context'),
 }

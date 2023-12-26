@@ -137,7 +137,10 @@ onMounted(async () => {
   
   // CTRL+M to create a new window
   hotkeys.filter =()=> true
-  hotkeys('ctrl+shift+m', () => chrome.runtime.sendMessage({type: 'maximizePopup'}))
+  hotkeys('ctrl+shift+m', () => chrome.runtime.sendMessage({
+    type: 'maximizePopup',
+    tabID: globalThis.gptScratchpad.tabID
+  }))
 
 
   /**
