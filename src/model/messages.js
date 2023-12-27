@@ -141,8 +141,8 @@ export const useMessagesModel = defineStore({
     /**
      * Persist the prompt box in case the page closes
      */
-    setCurPrompt (prompt) {
-      store.set({'curPrompt': prompt})
+    async setCurPrompt (prompt) {
+      await store.set({'curPrompt': prompt})
     }
   }
 })

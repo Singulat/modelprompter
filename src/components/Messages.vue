@@ -560,12 +560,15 @@ onMounted(() => {
  * - This handles the "tiered" context,
  *  the deeper into edit you are the more you can escape
  */
-const onEscape = (ev) => {
+const onEscape = async (ev)=> {
   if (isWorking.value || isEditing.value || isSelecting.value) {
     ev?.preventDefault()
     ev?.stopPropagation()
   }
+  
+  await messagesModel.setCurPrompt('')
   if ($promptBox.value) $promptBox.value.setPrompt('')
+  
   isWorking.value = false
   chrome.runtime.sendMessage({
     type: 'cancelPrompting',
