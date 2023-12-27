@@ -265,7 +265,7 @@ const updateMessage = async () => {
   const id = isEditing.value || isWorking.value
   
   const message = messagesModel.messages[id]
-  await messagesModel.updateMessage({
+  await messagesModel.updateMessage(id, {
     updated_at: Date.now(),
     text: $promptBox.value?.curPrompt
   })
