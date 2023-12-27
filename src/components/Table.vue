@@ -7,7 +7,7 @@
           tr(style='flex: 0')
             th(v-for='heading in props.headings' :class='heading.class') {{ heading.content }}
       tbody
-        tr(@click='clickedRow' @dblclick='showEditModal' @contextmenu='ev => clickedRow(ev) | showEditModal(ev)' v-for='(record, dataKey) in data' :key='dataKey' :class="{'highlighted': dataKey == props.highlightedRow}" :data-id='dataKey')
+        tr(@click='clickedRow' @dblclick='showEditModal' v-for='(record, dataKey) in data' :key='dataKey' :class="{'highlighted': dataKey == props.highlightedRow}" :data-id='dataKey')
           td(v-for='heading in props.headings' :class='heading.class' :key='heading.key')
             | {{ record[heading.key] }}
         slot(name='tbody')

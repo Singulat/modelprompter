@@ -114,7 +114,6 @@ const onMessageEdit =(ev)=> {
   const $message = ev.target?.closest('.message')
   if ($message) {
     selectMessage($message)
-    editSelectedMessage()
   }
 }
 const onEditMessage = (ev)=> hotkeys.trigger('enter', props.hotkeysScope, ev)

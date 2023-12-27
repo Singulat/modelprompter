@@ -79,7 +79,7 @@ export const useMessagesModel = defineStore({
       messages.forEach(message => {
         preparedMessages.push({
           role: message.role,
-          // Alias since I keep mixing these up 😅
+          // @fixme Alias since I keep mixing these up 😅
           content: message.text || message.content,
         })
       })

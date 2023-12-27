@@ -48,33 +48,26 @@ html, body {
 }
 
 /* Collapsable messages */
-[rel="output"].message.collapsed:not(.highlight) .window-body > div,
-[rel="prompt"].message.collapsed:not(.highlight) .window-body > div {
+.message.collapsed:not(.highlight) .window-body > div {
   display: none;
 }
-
-[rel="output"].message.collapsed:not(.highlight),
-[rel="prompt"].message.collapsed:not(.highlight) {
+.message.collapsed:not(.highlight) > .window {
+  background: lightslategray !important;
+  color: #fff;
+}
+.message.collapsed:not(.highlight) > .window > div:before {
+  content: '📦 Data message';
+}
+.message.collapsed:not(.highlight)[rel="prompt"] > .window > div:before {
+  content: '🤖 Automated prompt';
+}
+.message.collapsed:not(.highlight)[rel="output"] > .window > div:before {
+  content: '📝 GPT Output';
+}
+.message.collapsed:not(.highlight) {
   padding-left: 0 !important;
   padding-right: 0 !important;
 }
-[rel="output"].message.collapsed:not(.highlight) .window-body:before,
-[rel="prompt"].message.collapsed:not(.highlight) .window-body:before {
-  content: ' ';
-}
-
-
-/* [rel="output"].message.collapsed .window,
-[rel="prompt"].message.collapsed .window {
-  background: #000;
-} */
-
-/* [rel="output"].message.collapsed + [rel="output"].message.collapsed,
-[rel="prompt"].message.collapsed + [rel="prompt"].message.collapsed,
-[rel="output"].message.collapsed + [rel="prompt"].message.collapsed,
-[rel="prompt"].message.collapsed + [rel="output"].message.collapsed {
-  display: none;
-} */
 
 
 /* Menu */
@@ -125,4 +118,10 @@ html, body {
 }
 .window.modal {
   max-height: calc(100% - 4em);
+}
+
+
+/* Tables */
+table.interactive {
+  white-space: normal;
 }

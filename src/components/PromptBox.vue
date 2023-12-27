@@ -67,22 +67,6 @@ watch(curPrompt, async (val) => {
 })
 
 
-/**
- * Remove placeholder elements
- * (they already get removed from store)
- */
-const removePlaceholders = (placeholders) => {
-  for (const placeholder of placeholders) {
-    // Remove the placeholder from the dom
-    const $placeholder = document.querySelector(`.messages [data-id="${placeholder.id}"]`)
-    if ($placeholder) {
-      $placeholder.remove()
-    }
-    
-    // Remove from store if it's there too
-    messagesModel.deleteMessage(placeholder.id)
-  }
-}
 
 
 /**
@@ -145,7 +129,7 @@ const runPrompt = async () => {
       if (passedSkills.length === 0) {
         const messages = await messagesModel.getPreparedMessages(props.activeChannel)
         console.log('💬 No skills needed. Generating response.')
-        response = await sendToLLM(messages, {text: '🤔 Thinking...', role: 'placeholder'})
+        response = await sendToLLM(messages, {text: '🤔 Thinking...', role: 'assistant'})
         removePlaceholders([response.placeholders])
       } else {
         const messages = await messagesModel.getPreparedMessages(props.activeChannel)
@@ -172,7 +156,7 @@ const runPrompt = async () => {
         // Send it
         neededPlan = true
         console.log('📋 Generating plan')
-        response = await sendToLLM(messages, {text: '🤔 Thinking...', role: 'placeholder'})
+        response = await sendToLLM(messages, {text: '🤔 Thinking...', role: 'assistant'})
 
         
         // Remove placeholders
@@ -186,7 +170,7 @@ const runPrompt = async () => {
   } else {
     if (props.isWorking) {
       const messages = await messagesModel.getPreparedMessages(props.activeChannel)
-      response = await sendToLLM(messages, {text: '🤔 Thinking...'})
+      response = await sendToLLM(messages, {text: '🤔 Thinking...', role: 'assistant'})
       removePlaceholders([response.placeholders])
     }
   }
@@ -400,6 +384,24 @@ const sendToLLM = async (messages, assistantDefaults) => {
   }
 }
 
+
+/**
+ * Remove placeholder elements
+ * (they already get removed from store)
+ */
+const removePlaceholders = (placeholders) => {
+  for (const placeholder of placeholders) {
+    // Remove the placeholder from the dom
+    const $placeholder = document.querySelector(`.messages [data-id="${placeholder.id}"]`)
+    if ($placeholder) {
+      $placeholder.remove()
+    }
+    
+    // Remove from store if it's there too
+    messagesModel.deleteMessage(placeholder.id)
+  }
+}
+
 /**
  * Cancel prompting
  */
@@ -420,6 +422,7 @@ const clearMessages = () => {
   $promptEl.value?.focus()
 }
 
+
 /**
  * Define expose
  */
@@ -437,4 +440,5 @@ defineExpose({
 onMounted(async () => {
   curPrompt.value = await messagesModel.getCurPrompt()
 })
+
 </script>
