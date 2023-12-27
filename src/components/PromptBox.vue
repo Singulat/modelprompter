@@ -257,7 +257,7 @@ const scanAndRunScripts = async (response) => {
         case 'output':
           await messagesModel.addMessage(Object.assign({
             channel: props.activeChannel,
-            role: 'assistant',
+            role: 'user',
             text: vars[script[1]],
             rel: 'output',
             collapsed: !script?.[2]?.includes('--expand'),
@@ -428,6 +428,7 @@ const clearMessages = () => {
  */
 defineExpose({
   curPrompt,
+  setPrompt: (val) => curPrompt.value = val,
   focus: () => $promptEl.value.focus(),
   clear: () => curPrompt.value = '',
   runPrompt: () => runPrompt(),

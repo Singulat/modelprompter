@@ -116,7 +116,7 @@ const onMessageEdit =(ev)=> {
     selectMessage($message)
   }
 }
-const onEditMessage = (ev)=> hotkeys.trigger('enter', props.hotkeysScope, ev)
+const onEditMessage = (ev)=> editSelectedMessage(false)
 
 
 /**
@@ -233,8 +233,8 @@ const nextMessage = (ev) => {
  */
 const editSelectedMessage =(isKey)=> {
   // Bail if not editing/selecting
-  if ((isKey && isEditing.value) || (isKey && !isEditing.value && !isSelecting.value)) return
-  
+  // if ((isKey && isEditing.value) || (isKey && !isEditing.value && !isSelecting.value)) return
+
   // Get the current message
   isEditing.value = isSelecting.value
   isSelecting.value = false
@@ -246,12 +246,14 @@ const editSelectedMessage =(isKey)=> {
   }
 
   // Update the prompt box
-  setTimeout(() => {
+  setTimeout(async () => {
     const message = messagesModel.messages[isEditing.value]
-    if ($promptBox.value) {
-      $promptBox.value.curPrompt = message.text
+    await messagesModel.setCurPrompt(message.text)
+
+    setTimeout(() => {
+      $promptBox.value.setPrompt(message.text)
       $promptBox.value.focus()
-    }
+    }, 0)
   }, 0)
 }
 
@@ -276,7 +278,7 @@ const updateMessage = async () => {
   }
 
   if ($promptBox.value) {
-    $promptBox.value.curPrompt = ''
+    $promptBox.value.setPrompt('')
   }
   if (isEditing.value) {
     isEditing.value = false
@@ -311,7 +313,7 @@ const cancelEditing =(ev)=> {
     channel: props.activeChannel
   })
 
-  if ($promptBox.value) $promptBox.value.curPrompt = ''
+  if ($promptBox.value) $promptBox.value.setPrompt('')
   $messages.value?.querySelector('.highlight')?.classList.remove('highlight')
 
   setTimeout(() => {
@@ -374,7 +376,7 @@ const clearMessages = async () => {
   } else if (isEditing.value) {
     await messagesModel.deleteMessage(isEditing.value)
   }
-  if ($promptBox.value) $promptBox.value.curPrompt = ''
+  if ($promptBox.value) $promptBox.value.setPrompt('')
   isEditing.value = false
 
   const $messagesEl = $messages.value.querySelectorAll('.message')
@@ -382,7 +384,7 @@ const clearMessages = async () => {
     $message.classList.remove('highlight')
   })
 
-  if ($promptBox.value) $promptBox.value.curPrompt = ''
+  if ($promptBox.value) $promptBox.value.setPrompt('')
   setTimeout(() => {
     // Select the next message
     if ($nextMessage) {
@@ -422,7 +424,7 @@ const changeRole = async (role) => {
     $message.classList.remove('highlight')
   })
   
-  if ($promptBox.value) $promptBox.value.curPrompt = ''
+  if ($promptBox.value) $promptBox.value.setPrompt('')
   $promptBox.value && $promptBox.value.focus()
 }
 
@@ -563,7 +565,7 @@ const onEscape = (ev) => {
     ev?.preventDefault()
     ev?.stopPropagation()
   }
-  if ($promptBox.value) $promptBox.value.curPrompt = ''
+  if ($promptBox.value) $promptBox.value.setPrompt('')
   isWorking.value = false
   chrome.runtime.sendMessage({
     type: 'cancelPrompting',
