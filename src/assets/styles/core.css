@@ -7,6 +7,7 @@ body, html {
   margin: 0;
   max-height: 100%;
   font-size: .9rem;
+  line-height: 1.1rem;
 }
 pre {
   overflow: auto;
@@ -58,15 +59,20 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: 0;
 }
 
-li > p {
-  display: block;
-  margin-top: -1rem !important;
+ul, ol {
+  padding-left: 1.5rem;
+  white-space: initial;
+  margin-top: 0;
+  margin-bottom: 0;
+  line-height: 1rem;
+  margin-block-end: 0;
+  margin-block-start: 0;
 }
-p + ol {
-  margin-top: 0
+li {
+  margin-bottom: 0.5rem;
 }
-p + ul {
-  margin-top: 0
+li > ul > li:first-child, li > ol > li:first-child {
+  margin-top: 0.5rem;
 }
 
 menu {
@@ -75,11 +81,6 @@ menu {
   cursor: initial;
 }
 
-
-ul {
-  margin-top: -1rem;
-  margin-bottom: -1rem;
-}
 
 table th, table td {
   font-size: .9rem;

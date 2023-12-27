@@ -48,6 +48,9 @@ select {
 menu[role="tablist"] {
   flex: 0;
 }
+menu li {
+  margin-bottom: 0 !important;
+}
 .window[role="tabpanel"] {
   /* flex grow */
   flex: 0 1 100%;

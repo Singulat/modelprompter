@@ -4,7 +4,17 @@
   fieldset.messages-wrap.overflow.fullheight(ref='$messages')
     legend Messages
     .messages
-      .message(v-for='message in sortedMessages' :data-role='message.role' :key='message.id' :data-id='message.id' @dblclick='$ev => onMessageEdit($ev)')
+      .message(
+        v-for='message in sortedMessages'
+        :key='message.id'
+        :data-id='message.id'
+        @dblclick='$ev => onMessageEdit($ev)'
+        :rel='message.rel'
+        :data-role='message.role'
+        :class=`{
+          collapsed: message.collapsed,
+        }`
+      )
         .window
           .window-body
             div(v-html='renderMarkdown(message.text)')

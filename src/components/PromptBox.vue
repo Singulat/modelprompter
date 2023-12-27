@@ -207,6 +207,7 @@ const runPrompt = async () => {
     console.log('✋ Message round cancelled')
   }
   console.log('💤 Message round over')
+  emit('scrollBottom')
   emit('stopWorking')
 }
 
@@ -222,11 +223,11 @@ const scanAndRunScripts = async (response) => {
   })
   md.render(text)
 
-  // Parse the response and extract all <code class="language-mp">...</code>
+  // Parse the response and extract all <code class="language-gpt">...</code>
   // @fixme we should probably use virtual dom for this 😬
   const $scriptsContainer = document.createElement('div')
   $scriptsContainer.innerHTML = text
-  const $scripts = $scriptsContainer.querySelectorAll('code.language-mp')
+  const $scripts = $scriptsContainer.querySelectorAll('code.language-gpt')
 
   for (const $script of Array.from($scripts)) {
     const script = $script.innerText
@@ -274,6 +275,8 @@ const scanAndRunScripts = async (response) => {
             channel: props.activeChannel,
             role: 'assistant',
             text: vars[script[1]],
+            rel: 'output',
+            collapsed: !script?.[2]?.includes('--expand'),
           }, {}))
         break
 
@@ -283,6 +286,8 @@ const scanAndRunScripts = async (response) => {
             channel: props.activeChannel,
             role: 'user',
             text: script[1],
+            rel: 'prompt',
+            collapsed: !script?.[2]?.includes('--expand'),
           }, {}))
 
           const messages = await messagesModel.getPreparedMessages(props.activeChannel)
