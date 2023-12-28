@@ -29,19 +29,8 @@
 
 <script setup>
 import {ref, watch, onMounted} from 'vue'
-import { useSkillsModel } from '../model/skills'
 import { useMessagesModel } from '../model/messages'
-import { useConnectionsModel } from '../model/connections'
-import MarkdownIt from 'markdown-it'
-import MarkdownItAttrs from 'markdown-it-attrs'
-import DOMPurify from 'dompurify'
-import shellParser from 'shell-quote/parse'
-
-// Markdown
-const md = new MarkdownIt({
-  html: true,
-})
-md.use(MarkdownItAttrs)
+import { usePromptCtrl } from '../controller/prompt'
 
 // Refs
 const $promptEl = ref(null)
@@ -50,14 +39,13 @@ const isShowingMore = ref(false)
 
 // Props and stores
 const messagesModel = useMessagesModel()
-const skillsModel = useSkillsModel()
-const connectionsModel = useConnectionsModel()
+const promptingCtrl = usePromptCtrl()
 const props = defineProps({
   hotkeysScope: {type: String, default: 'PromptBox'},
   isEditing: {type: Boolean, default: false},
   isSelecting: {type: Boolean, default: false},
   isWorking: {type: Boolean, default: false},
-  activeChannel: {type: String, default: ''},
+  activeChannel: {type: String, default: 'general'},
 })
 
 // Store the prompt the user is writing in the channel
@@ -80,7 +68,6 @@ const runPrompt = async () => {
   emit('startWorking')
   
   let response = ''
-  let neededPlan = false
   console.log('\n\n\n---\n📜 New Prompt:', curPrompt.value)
   
   // Add the users message
@@ -92,315 +79,11 @@ const runPrompt = async () => {
   })
   curPrompt.value = ''
   
-  /**
-   * Extract skills
-   */
-  if (!skillsModel.allSkillsDisabled) {
-    const skillsToParse = await getSkills(prompt)
-    const rawSkills = Object.values(skillsModel.skills)
-    const passedSkills = []
-    const responses = []
-    const placeholders = []
-
-    // Check each skill individually
-    console.log('🤸 Evaluating required skills')
-    for (let i = 0; i < skillsToParse.length; i++) {
-      if (!props.isWorking) return
-
-      console.log('🤔 Checking skill:', rawSkills[i].name)
-      response = await sendToLLM(skillsToParse[i], {
-        role: 'placeholder',
-        text: `📋 Checking skill: ${rawSkills[i].name}`,
-        isGeneratingSkills: true
-      })
-      if (response.skillPassedTest) {
-        passedSkills.push(rawSkills[i])
-      }
-      responses.push(response)
-      placeholders.push({
-        id: response.assistantId,
-      })
-    }
-    removePlaceholders(placeholders)
-
-    
-    if (props.isWorking) {
-    // Send the message through as normal chat if no skills passed
-      if (passedSkills.length === 0) {
-        const messages = await messagesModel.getPreparedMessages(props.activeChannel)
-        console.log('💬 No skills needed. Generating response.')
-        response = await sendToLLM(messages, {text: '🤔 Thinking...', role: 'assistant'})
-        removePlaceholders([response.placeholders])
-      } else {
-        const messages = await messagesModel.getPreparedMessages(props.activeChannel)
-
-        /**
-         * Planning stage
-         */
-        // Add skills
-        for (const skill of passedSkills.reverse()) {
-          messages.unshift({
-            role: 'system',
-            content: `Skill name: ${skill.name}
-  Trigger when: ${skill.triggers}
-  Reaction: ${skill.response}`
-          })
-        }
-
-        // Add planning prompt
-        messages.unshift({
-          role: 'system',
-          content: skillsModel.planningPrompt,
-        })
-        
-        // Send it
-        neededPlan = true
-        console.log('📋 Generating plan')
-        response = await sendToLLM(messages, {text: '🤔 Thinking...', role: 'assistant'})
-
-        
-        // Remove placeholders
-        console.log('📋 Plan generated:\n', response.combinedMessage)
-        removePlaceholders([response.placeholders])
-        await messagesModel.updateMessage(response.assistantId, {
-          text: response.combinedMessage
-        })
-      }
-    }
-  } else {
-    if (props.isWorking) {
-      const messages = await messagesModel.getPreparedMessages(props.activeChannel)
-      response = await sendToLLM(messages, {text: '🤔 Thinking...', role: 'assistant'})
-      removePlaceholders([response.placeholders])
-    }
-  }
-
-  // Extract scripts from the response and run them
-  if (props.isWorking) {
-    console.log('🖨️ Scanning for scripts')
-
-    /**
-     * Print additional data
-     */
-    await scanAndRunScripts(response)
-    neededPlan && console.log('📋 Reviewing plan and results')
-    neededPlan && console.log('🫡 Confirming')
-
-  // End the message round
-  } else {
-    console.log('✋ Message round cancelled')
-  }
-  console.log('💤 Message round over')
+  await promptingCtrl.extractSkills(prompt)
   emit('scrollBottom')
   emit('stopWorking')
 }
 
-
-
-/**
- * Scan and run scripts
- */
-const scanAndRunScripts = async (response) => {
-  let text = DOMPurify.sanitize(md.render(response.combinedMessage), {
-    ALLOWED_TAGS: ['code'],
-    ALLOWED_ATTR: ['class']
-  })
-  md.render(text)
-
-  // Parse the response and extract all <code class="language-gpt">...</code>
-  // @fixme we should probably use virtual dom for this 😬
-  const $scriptsContainer = document.createElement('div')
-  $scriptsContainer.innerHTML = text
-  const $scripts = $scriptsContainer.querySelectorAll('code.language-gpt')
-
-  for (const $script of Array.from($scripts)) {
-    const script = $script.innerText
-    // Split the script into lines
-    const scripts = script?.split('\n')
-    const vars = {}
-    for (let script of scripts) {
-      if (!script.trim()) continue
-      script = shellParser(script.trim())
-      
-      // Send to background script to be processed
-      console.log('📜 Running script:', JSON.stringify(script))
-      let completion = {}
-      try {
-        completion = await (async ()=> new Promise((resolve, reject) => {
-          chrome.runtime.sendMessage({
-            type: 'runGPTScript',
-            tabID: globalThis.gptScratchpad.tabID,
-            script,
-          }, response => {
-            if (response.error) {
-              reject(response.error)
-            } else {
-              resolve(response)
-            }
-          })
-        }))()
-      } catch (err) {
-        // @todo We need a notification system
-        continue
-      }
-
-      /**
-       * Respond to Functions
-       */
-      switch (script[0]) {
-        // [1] variable name to store in
-        case 'getPageText':
-          vars[script[1]] = completion.text
-        break
-
-        // [1] variable name to output
-        case 'output':
-          await messagesModel.addMessage(Object.assign({
-            channel: props.activeChannel,
-            role: 'user',
-            text: vars[script[1]],
-            rel: 'output',
-            collapsed: !script?.[2]?.includes('--expand'),
-          }, {}))
-        break
-
-        // [1] The message to prompt
-        case 'prompt':
-          await messagesModel.addMessage(Object.assign({
-            channel: props.activeChannel,
-            role: 'user',
-            text: script[1],
-            rel: 'prompt',
-            collapsed: !script?.[2]?.includes('--expand'),
-          }, {}))
-
-          const messages = await messagesModel.getPreparedMessages(props.activeChannel)
-          const response = await sendToLLM(messages, {text: '🤔 Thinking...', role: 'placeholder'})
-          removePlaceholders([response.placeholders])
-        break
-      }
-    }
-  }
-}
-
-/**
- * Get skills
- */
-const getSkills = async (prompt = '.') => {
-  // Send each skill for inference to check if it's a good match
-  const rawSkills = Object.values(skillsModel.skills)
-  const skills = []
-  
-  for (const skill of rawSkills) {
-    // System prompt
-    let skillMessages = [
-      {
-        role: 'system',
-        text: `${skillsModel.systemPrompt}`,
-        skill
-      }
-    ]
-    
-    // Skill compare against
-    skillMessages.push({
-      role: 'system',
-      text: `Skill name: ${skill.name}
-Trigger when: ${skill.triggers}`,
-    })
-
-    // User Prompt
-    skillMessages.push({
-      role: 'user',
-      text: `${prompt}`
-    })
-    
-    const prepped = await messagesModel.prepareMessages(skillMessages)
-    skills.push(prepped)
-  }
-
-  return skills
-}
-
-
-/**
- * Send to the llm for inference
- * @returns {skillPassedTest}
- */
-const sendToLLM = async (messages, assistantDefaults) => {
-  // Add a placeholder message to start updating
-  const assistantId = await messagesModel.addMessage(Object.assign({
-    channel: props.activeChannel,
-    role: 'assistant',
-    text: '',
-  }, assistantDefaults))
-  emit('scrollBottom')
-  $promptEl.value.focus()
-
-  // Extract possible non message
-  let isGeneratingSkills = !!assistantDefaults.isGeneratingSkills
-  delete assistantDefaults.isGeneratingSkills
-  
-  // Setup connection
-  let defaultConnection = connectionsModel.defaultConnection
-  defaultConnection = connectionsModel.connections[defaultConnection]
-
-  // Pull out all placeholders into a seperate array
-  // and remove them from the messages
-  const placeholders = [...messages.filter(message => message.role === 'placeholder')]
-  messages = messages.filter(message => message.role !== 'placeholder')
-
-  // Send to openai
-  console.log('📦 Sending to LLM', messages)
-  const completion = await (async ()=> new Promise((resolve, reject) => {
-    chrome.runtime.sendMessage({
-      type: 'sendToLLM',
-      assistantId,
-      messages,
-      channel: props.activeChannel,
-      model: defaultConnection.model,
-      isGeneratingSkills,
-      assistantDefaults,
-      connection: {
-        baseurl: defaultConnection.baseurl,
-        apiKey: defaultConnection.apiKey,
-        organization: defaultConnection.organization,        
-      },
-      temperature: +defaultConnection.temp,
-      stream: true
-    }, response => {
-      if (response.error) {
-        reject(response.error)
-      } else {
-        resolve(response)
-      }
-    })
-  }))()
-
-  return {
-    placeholders,
-    skillPassedTest: completion.skillPassedTest,
-    combinedMessage: completion.combinedMessage,
-    assistantId
-  }
-}
-
-
-/**
- * Remove placeholder elements
- * (they already get removed from store)
- */
-const removePlaceholders = (placeholders) => {
-  for (const placeholder of placeholders) {
-    // Remove the placeholder from the dom
-    const $placeholder = document.querySelector(`.messages [data-id="${placeholder.id}"]`)
-    if ($placeholder) {
-      $placeholder.remove()
-    }
-    
-    // Remove from store if it's there too
-    messagesModel.deleteMessage(placeholder.id)
-  }
-}
 
 /**
  * Cancel prompting

@@ -54,6 +54,7 @@ import { useMessagesModel } from './model/messages'
 import { useChannelsModel } from './model/channels'
 import { useSkillsModel } from './model/skills'
 import { useSettingsModel } from './model/settings'
+import { usePromptCtrl } from './controller/prompt'
 import {useTabsModel} from './model/tabs.js'
 import {ref, onMounted, computed, onBeforeMount, watch, provide} from 'vue'
 import hotkeys from 'hotkeys-js'
@@ -101,13 +102,16 @@ const connectionsModel = useConnectionsModel()
 const channelsModel = useChannelsModel()
 const skillsModel = useSkillsModel()
 const settingsModel = useSettingsModel()
+const promptCtrl = usePromptCtrl()
+
 onBeforeMount(async () => {
-  // Initialize models
+  // Initialize models and controllers
   await connectionsModel.init()
   await messagesModel.init(true)
   await channelsModel.init()
   await skillsModel.init()
   await settingsModel.init()
+  await promptCtrl.init()
 
   // Load the latest tab
   // @todo this should be in settingsModel

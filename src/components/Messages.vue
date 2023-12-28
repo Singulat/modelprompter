@@ -65,9 +65,10 @@ div(style='flex: 0;')
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { watch, ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import {useMessagesModel} from '../model/messages'
 import {useChannelsModel} from '../model/channels'
+import { usePromptCtrl } from '../controller/prompt'
 import Menu from '../components/Menu.vue'
 import PromptBox from '../components/PromptBox.vue'
 import MarkdownIt from 'markdown-it'
@@ -84,6 +85,7 @@ md.use(MarkdownItAttrs)
 // Stores and props
 const messagesModel = useMessagesModel()
 const channelsModel = useChannelsModel()
+const promptCtrl = usePromptCtrl()
 const props = defineProps({
   messages: Array,
   hotkeysScope: {type: String, default: 'Messages'},
@@ -99,6 +101,14 @@ const isWorking = ref(false)
 const roleToChangeTo = ref('user')
 const showingChangeRole = ref(false)
 
+
+/**
+ * Keep controllers updated
+ */
+watch(isWorking, (val) => {
+  promptCtrl.isWorking = val
+})
+watch(props.activeChannel, (val) => promptCtrl.activeChannel = val)
 
 
 /**
@@ -248,12 +258,14 @@ const editSelectedMessage =(isKey)=> {
   // Update the prompt box
   setTimeout(async () => {
     const message = messagesModel.messages[isEditing.value]
-    await messagesModel.setCurPrompt(message.text)
-
-    setTimeout(() => {
-      $promptBox.value.setPrompt(message.text)
-      $promptBox.value.focus()
-    }, 0)
+    if (message) {
+      await messagesModel.setCurPrompt(message.text)
+  
+      setTimeout(() => {
+        $promptBox.value.setPrompt(message.text)
+        $promptBox.value.focus()
+      }, 0)
+    }
   }, 0)
 }
 
@@ -400,10 +412,19 @@ const clearMessages = async () => {
  * Regenerate message
  */
 const regenerateMessage = async () => {
-  let promptsToUse = []
   // Get all messages up to the current one
   const activeMessage = isEditing.value || isSelecting.value
-  console.log('regenerate message')
+  const messages = messagesModel.getSortedByDate(props.activeChannel)
+  const index = messages.findIndex(message => message.id === activeMessage)
+  const messagesToUse = messages.slice(0, index+1)
+  
+  sendToLLM({
+    messages: messagesToUse,
+    channel: props.activeChannel,
+    defaults: {
+      created_at: messagesToUse[index].created_at + 10
+    }
+  })
 }
 
 
@@ -424,8 +445,10 @@ const changeRole = async (role) => {
     $message.classList.remove('highlight')
   })
   
-  if ($promptBox.value) $promptBox.value.setPrompt('')
-  $promptBox.value && $promptBox.value.focus()
+  if ($promptBox.value) {
+    $promptBox.value.setPrompt('')
+    $promptBox.value.focus()
+  }
 }
 
 

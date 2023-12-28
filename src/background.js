@@ -36,20 +36,19 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       
       // Send the request
       ;(async ()=> {
-        channelsActivelyPrompting[request.channelID] = true
+        // Chunk the response directly to memory and update by listening to reactive changes in UI
+        const messagesModel = useMessagesModel(pinia)
+        await messagesModel.init()
 
+        channelsActivelyPrompting[request.channelID] = true
         const completion = await openai.chat.completions.create({
-          messages: request.messages,
+          messages: messagesModel.prepareMessages(request.messages),
           model: request.model,
           temperature: +request.temp,
           stream: true
         })
 
-        // Chunk the response directly to memory and update by listening to reactive changes in UI
-        const messagesModel = useMessagesModel(pinia)
-        await messagesModel.init()
-
-        let combinedMessage = request.isGeneratingSkills ? request.assistantDefaults.text : ''
+        let combinedMessage = request.isGeneratingSkills ? request.defaults.text : ''
         let skillPassedTest = false
         for await (const completionChunk of completion) {
           if (!request.isGeneratingSkills) {
