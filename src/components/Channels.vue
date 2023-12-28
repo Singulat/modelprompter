@@ -213,8 +213,9 @@ onMounted(()=> {
   // Channel Management
   hotkeys('ctrl+shift+r', props.hotkeysScope, (ev) => resetChannel(ev))
   hotkeys('ctrl+n', props.hotkeysScope, (ev) => newChannel(ev))
+  hotkeys('ctrl+shift+e', props.hotkeysScope, (ev) => editChannel(ev))
   hotkeys('ctrl+e', props.hotkeysScope, (ev) => editChannel(ev))
-  hotkeys('ctrl+l', props.hotkeysScope, (ev) => selectChannels(ev))
+  hotkeys('ctrl+p', props.hotkeysScope, (ev) => selectChannels(ev))
 })
 
 

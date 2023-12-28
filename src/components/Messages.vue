@@ -155,7 +155,7 @@ const onEditMessage = (ev)=> editSelectedMessage(false)
  */
  const prevMessage = (ev) => {
   // Ignore naked arrows if in an input without bubbling
-  if (!ev?.shiftKey && !ev?.ctrlKey && ['INPUT', 'TEXTAREA'].includes(ev?.target?.tagName) && !ev?.target?.classList?.contains('bubble-arrow-hotkeys')) {
+  if (!ev?.shiftKey && !ev?.ctrlKey && ['INPUT', 'SELECT', 'TEXTAREA'].includes(ev?.target?.tagName) && !ev?.target?.classList?.contains('bubble-arrow-hotkeys')) {
     return
   }
 
@@ -191,7 +191,7 @@ const nextMessage = (ev) => {
   if (!isSelecting.value) return
   
   // Ignore naked arrows if in an input without bubbling
-  if (!ev.shiftKey && !ev.ctrlKey && ['INPUT', 'TEXTAREA'].includes(ev.target.tagName) && !ev.target.classList.contains('bubble-arrow-hotkeys')) {
+  if (!ev.shiftKey && !ev.ctrlKey && ['INPUT', 'SELECT', 'TEXTAREA'].includes(ev.target.tagName) && !ev.target.classList.contains('bubble-arrow-hotkeys')) {
     return
   }
 
@@ -482,8 +482,8 @@ const maybeAddOrUpdateSystemPrompt = async () => {
   const channel = channelsModel.channels[props.activeChannel]
 
   // Update the first system prompt, otherwise add a new one
-  if (sortedMessages) {
-    const sortedClone = [...sortedMessages]
+  if (sortedMessages.value) {
+    const sortedClone = [...sortedMessages.value]
     const firstMessage = sortedClone.shift()
     if (firstMessage.role === 'system') {
       await messagesModel.updateMessage(firstMessage.id, {

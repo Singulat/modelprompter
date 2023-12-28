@@ -151,14 +151,14 @@ onMounted(async () => {
    * Handle previous tab navigation
    */
   const prevTab =(ev)=> {
-    if (isThereAModalVisible() && ['INPUT', 'TEXTAREA'].includes(ev.target.tagName)) {
+    if (isThereAModalVisible() && ['INPUT', 'SELECT', 'TEXTAREA'].includes(ev.target.tagName)) {
       return
     }
 
     // Overrides input arrow key behavior with shortcut
     // when .bubble-arrow-hotkeys 
     if (!(ev.shiftKey && ev.ctrlKey && ev.altKey)
-      && ['INPUT', 'TEXTAREA'].includes(ev.target.tagName)
+      && ['INPUT', 'SELECT', 'TEXTAREA'].includes(ev.target.tagName)
       && !ev.target.classList.contains('bubble-arrow-hotkeys')
     ) {
       return
@@ -182,14 +182,14 @@ onMounted(async () => {
    * Handle previous tab navigation
    */
   const nextTab =(ev)=> {
-    if (isThereAModalVisible() && ['INPUT', 'TEXTAREA'].includes(ev.target.tagName)) {
+    if (isThereAModalVisible() && ['INPUT', 'SELECT', 'TEXTAREA'].includes(ev.target.tagName)) {
       return
     }
 
     // Overrides input arrow key behavior with shortcut
     // when .bubble-arrow-hotkeys 
     if (!(ev.shiftKey && ev.ctrlKey && ev.altKey)
-      && ['INPUT', 'TEXTAREA'].includes(ev.target.tagName)
+      && ['INPUT', 'SELECT', 'TEXTAREA'].includes(ev.target.tagName)
       && !ev.target.classList.contains('bubble-arrow-hotkeys')
     ) {
       return
