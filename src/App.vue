@@ -151,14 +151,14 @@ onMounted(async () => {
    * Handle previous tab navigation
    */
   const prevTab =(ev)=> {
-    if (isThereAModalVisible() && ['INPUT', 'SELECT', 'TEXTAREA'].includes(ev.target.tagName)) {
+    if (isThereAModalVisible() && ['INPUT', 'TEXTAREA'].includes(ev.target.tagName)) {
       return
     }
 
     // Overrides input arrow key behavior with shortcut
     // when .bubble-arrow-hotkeys 
     if (!(ev.shiftKey && ev.ctrlKey && ev.altKey)
-      && ['INPUT', 'SELECT', 'TEXTAREA'].includes(ev.target.tagName)
+      && ['INPUT', 'TEXTAREA'].includes(ev.target.tagName)
       && !ev.target.classList.contains('bubble-arrow-hotkeys')
     ) {
       return
@@ -167,7 +167,7 @@ onMounted(async () => {
     // Select previous tab with wraparound
     const tabs = Object.keys(mainTabs.value)
     const currentIndex = tabs.indexOf(activeTab.value)
-    const nextIndex = currentIndex - 1
+    let nextIndex = currentIndex - 1
     if (nextIndex < 0) nextIndex = tabs.length - 1
     activeTab.value = tabs[nextIndex]
   }
@@ -182,14 +182,14 @@ onMounted(async () => {
    * Handle previous tab navigation
    */
   const nextTab =(ev)=> {
-    if (isThereAModalVisible() && ['INPUT', 'SELECT', 'TEXTAREA'].includes(ev.target.tagName)) {
+    if (isThereAModalVisible() && ['INPUT', 'TEXTAREA'].includes(ev.target.tagName)) {
       return
     }
 
     // Overrides input arrow key behavior with shortcut
     // when .bubble-arrow-hotkeys 
     if (!(ev.shiftKey && ev.ctrlKey && ev.altKey)
-      && ['INPUT', 'SELECT', 'TEXTAREA'].includes(ev.target.tagName)
+      && ['INPUT', 'TEXTAREA'].includes(ev.target.tagName)
       && !ev.target.classList.contains('bubble-arrow-hotkeys')
     ) {
       return
@@ -198,7 +198,7 @@ onMounted(async () => {
     // Select previous tab with wraparound
     const tabs = Object.keys(mainTabs.value)
     const currentIndex = tabs.indexOf(activeTab.value)
-    const nextIndex = currentIndex + 1
+    let nextIndex = currentIndex + 1
     if (nextIndex >= tabs.length) nextIndex = 0
     activeTab.value = tabs[nextIndex]
   }

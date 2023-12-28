@@ -34,6 +34,7 @@ import hotkeys from 'hotkeys-js'
 import {useChannelsModel} from '../model/channels'
 import {useMessagesModel} from '../model/messages'
 import {useTabsModel} from '../model/tabs.js'
+import {usePromptCtrl} from '../controller/prompt'
 import WindowChannel from '../components/WindowChannel.vue'
 
 // Refs
@@ -47,6 +48,7 @@ const isChannelBeingEdited = ref(null)
 const channelsModel = useChannelsModel()
 const messagesModel = useMessagesModel()
 const tabsModel = useTabsModel()
+const promptCtrl = usePromptCtrl()
 const props = defineProps({
   hotkeysScope: {type: String, default: 'Channels'},
   isEditing: {type: Boolean, default: false},
@@ -56,7 +58,10 @@ const props = defineProps({
 
 // Emiters
 const emit = defineEmits(['scrollBottom', 'focusPrompt', 'maybeAddOrUpdateSystemPrompt', 'maybeAddSystemPrompt', 'resetChannel'])
-watch(activeChannel, (val) => emit('update:activeChannel', val))
+watch(activeChannel, (val) => {
+  emit('update:activeChannel', val)
+  promptCtrl.activeChannel = val
+})
 
 
 /**
@@ -213,9 +218,8 @@ onMounted(()=> {
   // Channel Management
   hotkeys('ctrl+shift+r', props.hotkeysScope, (ev) => resetChannel(ev))
   hotkeys('ctrl+n', props.hotkeysScope, (ev) => newChannel(ev))
-  hotkeys('ctrl+shift+e', props.hotkeysScope, (ev) => editChannel(ev))
-  hotkeys('ctrl+e', props.hotkeysScope, (ev) => editChannel(ev))
   hotkeys('ctrl+p', props.hotkeysScope, (ev) => selectChannels(ev))
+  hotkeys('ctrl+e', props.hotkeysScope, (ev) => editChannel(ev))
 })
 
 
