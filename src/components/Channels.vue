@@ -178,10 +178,6 @@ const resetChannel = async (ev) => {
   ev?.preventDefault()
   ev?.stopPropagation()
   
-  props.isSelecting = false
-  props.isEditing = false
-  props.isWorking = false    
-  
   // Delete if not general and not have messages, otherwise just clear
   if (channelsModel.currentChannel !== 'general' && !Object.keys(messagesModel.messages).length) {
     await deleteChannel()

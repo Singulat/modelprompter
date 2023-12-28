@@ -12,7 +12,7 @@
     @focusPrompt='$messages?.$promptBox?.focus()'
     @maybeAddSystemPrompt='maybeAddSystemPrompt'
     @maybeAddOrUpdateSystemPrompt='maybeAddOrUpdateSystemPrompt'
-    @resetChannel='$messages.clearMessages()'
+    @resetChannel='onResetChannel'
   )
 
 
@@ -45,6 +45,11 @@ const activeChannel = ref('general')
 const closeChannelModal =()=> {
   $channels.value.closeChannelModal()
   hotkeys.setScope('PromptLayout')
+}
+
+const onResetChannel = async ()=> {
+  await $messages.value.clearMessages()
+  await $messages.value.stopWorking()
 }
 
 /**

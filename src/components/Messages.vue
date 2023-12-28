@@ -628,6 +628,7 @@ defineExpose({
   clearMessages,
   maybeAddSystemPrompt,
   maybeAddOrUpdateSystemPrompt,
+  stopWorking,
   scrollBottom,
   $promptBox
 })
