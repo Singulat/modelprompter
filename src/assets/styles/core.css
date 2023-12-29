@@ -12,6 +12,13 @@ body, html {
 pre {
   overflow: auto;
 }
+pre > code {
+  display: block;
+}
+
+fieldset {
+  min-width: 0;
+}
 
 input, textarea {
   width: 100%

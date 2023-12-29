@@ -59,11 +59,16 @@ export default {
 
         /**
          * Respond to Functions
+         * @see contentscript.js
          */
         switch (script[0]) {
           // [1] variable name to store in
           case 'getPageText':
-            vars[script[1]] = completion.text
+            vars[script[1]] = DOMPurify.sanitize(completion.text)
+          break
+          // [1] variable name to store in
+          case 'getPageDOM':
+            vars[script[1]] = completion.dom
           break
 
           // [1] variable name to output

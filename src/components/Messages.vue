@@ -17,7 +17,9 @@
       )
         .window
           .window-body
-            div(v-html='renderMarkdown(message.text)')
+            div(v-if='message.rel === "output"')
+              div(v-if='isSelecting == message.id' v-html='renderSafeOutput(message.text)')
+            div(v-else v-html='renderMarkdown(message.text)')
 
 
 
@@ -125,6 +127,7 @@ const onMessageEdit =(ev)=> {
   if ($message) {
     selectMessage($message)
   }
+  document.getSelection()?.removeAllRanges()
 }
 const onEditMessage = (ev)=> editSelectedMessage(false)
 
@@ -528,6 +531,9 @@ const maybeAddOrUpdateSystemPrompt = async () => {
 const renderMarkdown = (text = '') => {
   text = DOMPurify.sanitize(md.render(text), { ADD_TAGS: ['iframe'], ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'scrolling'] })
   return md.render(text)
+}
+const renderSafeOutput = (text = '') => {
+  return md.render('```html\n' + text + '\n```')
 }
 
 

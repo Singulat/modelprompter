@@ -18,7 +18,7 @@ export default {
       for (let i = 0; i < skillsToParse.length; i++) {
         if (!this.isWorking) return
 
-        console.log('🤔 Checking skill:', rawSkills[i].name)
+        console.log('🤔 Checking skill:')
         response = await this.sendToLLM({
           messages: skillsToParse[i],
           channel: this.activeChannel,

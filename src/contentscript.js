@@ -23,6 +23,13 @@ globalThis.__GPT_SCRATCHPAD__ = {
               break
 
               /**
+               * Return the whole page as DOM
+               */
+              case 'getPageDOM':
+                await sendResponse({dom: document.body.innerHTML})
+              break
+
+              /**
                * Truthy
                */
               case 'prompt':
