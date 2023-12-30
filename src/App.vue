@@ -112,6 +112,15 @@ onBeforeMount(async () => {
   await skillsModel.init()
   await settingsModel.init()
   await promptCtrl.init()
+  globalThis.gpt.store = {
+    connections: connectionsModel,
+    messages: messagesModel,
+    channels: channelsModel,
+    skills: skillsModel,
+    settings: settingsModel,
+    prompt: promptCtrl,
+  }
+  
 
   // Load the latest tab
   // @todo this should be in settingsModel
@@ -143,7 +152,7 @@ onMounted(async () => {
   hotkeys.filter =()=> true
   hotkeys('ctrl+shift+m', () => chrome.runtime.sendMessage({
     type: 'maximizePopup',
-    tabID: globalThis.gptScratchpad.tabID
+    tabID: globalThis.gpt.tabID
   }))
 
 
@@ -216,7 +225,7 @@ onMounted(async () => {
   // Inject contentscript
   chrome.runtime.sendMessage({
     type: 'injectContentscript',
-    tabID: globalThis.gptScratchpad.tabID
+    tabID: globalThis.gpt.tabID
   })
 })
 

@@ -59,14 +59,14 @@ const onRestore = () => {emit('restore')}
 const onMaximize = () => {
   chrome.runtime.sendMessage({
     type: 'maximizePopup',
-    tabID: globalThis.gptScratchpad.tabID
+    tabID: globalThis.gpt.tabID
   })
   emit('maximize')
 }
 
 onMounted(() => {
   setTimeout(() => {
-    if (globalThis.gptScratchpad.context === 'iframe') {
+    if (globalThis.gpt.context === 'iframe') {
       windowHeight.value = '100vh'
       emit('maximize')
     } 

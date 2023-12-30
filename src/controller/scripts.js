@@ -42,7 +42,7 @@ export default {
           completion = await (async ()=> new Promise((resolve, reject) => {
             chrome.runtime.sendMessage({
               type: 'runGPTScript',
-              tabID: globalThis.gptScratchpad.tabID,
+              tabID: globalThis.gpt.tabID,
               script,
             }, response => {
               if (response.error) {
