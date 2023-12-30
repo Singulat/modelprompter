@@ -48,6 +48,12 @@
 <br>
 <br>
 <br>
+<br>
+<hr>
+<br>
+<br>
+<br>
+<br>
 
 # Install from source
 > **Playstore coming soon:** I'll make it easier to setup later, but for now you'll need to build from source.
