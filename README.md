@@ -1,16 +1,31 @@
-# Connect LLMs to your browser and teach them Skills
+<div align="center">
+  <p><img src="https://github.com/Singulat/modelprompter/assets/154478213/5e93d2cb-b549-414b-a488-ea9b3be01f8a"></p>
+  <h3>Connect LLMs to your browser and teach them Skills 🔮</h3>
+  <p>
+    <img class="mr-1" src="https://img.shields.io/github/tag/Singulat/modelprompter.svg"> <img class="mr-1" src="https://img.shields.io/github/last-commit/Singulat/modelprompter.svg">
+    <img src="https://img.shields.io/github/repo-size/Singulat/modelprompter.svg">
+  </p>
+  <p>
+    <img class="mr-1" src="https://img.shields.io/github/issues-raw/Singulat/modelprompter.svg"> <img src="https://img.shields.io/github/issues-pr-raw/Singulat/modelprompter.svg">
+  </p>
+</div>
+
+<br>
+<br>
 
 <table>
-  <tbody>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
+  <thead>
     <tr>
       <td>Summarize pages</td>
       <td>Fill out forms</td>
       <td>Recursive prompting</td>
+    </tr>
+  </thead>    
+  <tbody>
+    <tr>
+      <td><img src="https://github.com/Singulat/modelprompter/assets/154478213/809e673c-d9f6-4509-aa81-c5e22f81c94c" alt="Coming soon" style="width: 300px"></td>
+      <td><img src="https://placehold.co/300x250/EEE/31343C?text=Coming+Soon" alt="Coming soon" style="width: 300px"></td>
+      <td><img src="https://placehold.co/300x250/EEE/31343C?text=Coming+Soon" alt="Coming soon" style="width: 300px"></td>
     </tr>
   </tbody>
 </table>
