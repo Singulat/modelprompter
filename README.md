@@ -12,6 +12,7 @@
 
 <br>
 <br>
+<br>
 
 <table>
   <thead>
@@ -33,30 +34,36 @@
 <br>
 <br>
 <br>
+<br>
+<hr>
+<br>
+<br>
+<br>
+<br>
 
 # Quickstart
 <table>
   <tbody>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
     <tr>
       <td>Connecting to GPT4</td>
       <td>Teaching your GPTs Skills</td>
       <td>Keyboard shortcuts</td>
     </tr>
     <tr>
-      <td></td>
-      <td></td>
-      <td></td>
+      <td><img src="https://placehold.co/300x250/EEE/31343C?text=Coming+Soon" alt="Coming soon" style="width: 300px"></td>
+      <td><img src="https://placehold.co/300x250/EEE/31343C?text=Coming+Soon" alt="Coming soon" style="width: 300px"></td>
+      <td><img src="https://placehold.co/300x250/EEE/31343C?text=Coming+Soon" alt="Coming soon" style="width: 300px"></td>
     </tr>
     <tr>
       <td>Managing multiple connections</td>
       <td>Connecting to local models</td>
       <td>Roadmap</td>
     </tr>    
+    <tr>
+      <td><img src="https://placehold.co/300x250/EEE/31343C?text=Coming+Soon" alt="Coming soon" style="width: 300px"></td>
+      <td><img src="https://placehold.co/300x250/EEE/31343C?text=Coming+Soon" alt="Coming soon" style="width: 300px"></td>
+      <td><img src="https://placehold.co/300x250/EEE/31343C?text=Coming+Soon" alt="Coming soon" style="width: 300px"></td>
+    </tr>
   </tbody>
 </table>
 
