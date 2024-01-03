@@ -20,11 +20,11 @@ export default {
     })
     md.render(text)
 
-    // Parse the response and extract all <code class="language-gpt">...</code>
+    // Parse the response and extract all <code class="language-mp">...</code>
     // @fixme we should probably use virtual dom for this 😬
     const $scriptsContainer = document.createElement('div')
     $scriptsContainer.innerHTML = text
-    const $scripts = $scriptsContainer.querySelectorAll('code.language-gpt')
+    const $scripts = $scriptsContainer.querySelectorAll('code.language-mp')
 
     for (const $script of Array.from($scripts)) {
       const script = $script.innerText
@@ -41,7 +41,7 @@ export default {
         try {
           completion = await (async ()=> new Promise((resolve, reject) => {
             chrome.runtime.sendMessage({
-              type: 'runGPTScript',
+              type: 'runModelPrompterScript',
               tabID: globalThis.mp.tabID,
               script,
             }, response => {

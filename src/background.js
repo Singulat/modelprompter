@@ -125,7 +125,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     /**
      * Run a line of ModelPrompter
      */
-    case 'runGPTScript':
+    case 'runModelPrompterScript':
       ;(async ()=> {
         chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
           const ID = +request.tabID || tabs[0]?.id
@@ -133,7 +133,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             // Parse the prompt on the frontend
             const completion = await (async ()=> new Promise((resolve, reject) => {
               chrome.tabs.sendMessage(ID, {
-                type: 'contentscript:runGPTScript',
+                type: 'contentscript:runModelPrompterScript',
                 script: request.script
               }, response => {
                 if (response) {

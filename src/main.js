@@ -5,7 +5,7 @@ import App from './App.vue'
 // Clear any background.js messages, since they persist across reloads
 console.clear()
 const params = new URLSearchParams(window.location.search)
-globalThis.gpt = {
+globalThis.mp = {
   tabID: params.get('tabID'),
   context: params.get('context'),
 }

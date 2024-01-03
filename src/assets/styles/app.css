@@ -62,7 +62,7 @@ html, body {
   content: '🤖 Automated prompt';
 }
 .message.collapsed:not(.highlight)[rel="output"] > .window > div:before {
-  content: '📝 GPT Output';
+  content: '📝 Extra Output';
 }
 .message.collapsed:not(.highlight) {
   padding-left: 0 !important;

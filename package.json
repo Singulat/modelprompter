@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/singulat/gpt-scratchpad.git"
+    "url": "git+https://github.com/singulat/modelprompter.git"
   },
   "keywords": [
     "llms",
@@ -20,12 +20,12 @@
     "prompts",
     "userscripts"
   ],
-  "author": "A Singulatarian <asingulatarian@gmail.com>",
+  "author": "Singulat <asingulatarian@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/singulat/gpt-scratchpad/issues"
+    "url": "https://github.com/singulat/modelprompter/issues"
   },
-  "homepage": "https://github.com/singulat/gpt-scratchpad#readme",
+  "homepage": "https://github.com/singulat/modelprompter#readme",
   "dependencies": {
     "@crxjs/vite-plugin": "^1.0.14",
     "@vueuse/core": "^10.2.1",
