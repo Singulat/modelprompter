@@ -59,14 +59,14 @@ const onRestore = () => {emit('restore')}
 const onMaximize = () => {
   chrome.runtime.sendMessage({
     type: 'maximizePopup',
-    tabID: globalThis.gpt.tabID
+    tabID: globalThis.mp.tabID
   })
   emit('maximize')
 }
 
 onMounted(() => {
   setTimeout(() => {
-    if (globalThis.gpt.context === 'iframe') {
+    if (globalThis.mp.context === 'iframe') {
       windowHeight.value = '100vh'
       emit('maximize')
     } 

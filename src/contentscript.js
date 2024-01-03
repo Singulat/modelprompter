@@ -11,7 +11,7 @@ globalThis.__GPT_SCRATCHPAD__ = {
          * Get the whole page as text
          */
         case 'contentscript:runGPTScript':
-          console.log('🤖 GPT Scratchpad Function Call:', message.script)
+          console.log('🤖 ModelPrompter Function Call:', message.script)
           ;(async ()=> {
             // Determine the function to call
             switch (message.script[0]) {
@@ -45,7 +45,7 @@ globalThis.__GPT_SCRATCHPAD__ = {
         return true
       }
     })
-    console.log('🤖 GPT Scratchpad listeners initialized')
+    console.log('🤖 ModelPrompter listeners initialized')
   }
 }
 globalThis.__GPT_SCRATCHPAD__.init()

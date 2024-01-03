@@ -26,7 +26,7 @@ Prompt-->Skills-->Plan-->Execute-.->Prompt
 
 ## Skills
 
-When you submit a Prompt it's checked against every Skill individually. A Skill is made up of two sub-prompts, a Trigger Prompt and a Response Prompt. GPT Scratchpad creates a 3 message stack and asks the LLM to return `1` if the Skill matches the user's prompt based on a Skill Checker Prompt, or `0` otherwise:
+When you submit a Prompt it's checked against every Skill individually. A Skill is made up of two sub-prompts, a Trigger Prompt and a Response Prompt. ModelPrompter creates a 3 message stack and asks the LLM to return `1` if the Skill matches the user's prompt based on a Skill Checker Prompt, or `0` otherwise:
 
 ```js
 [
@@ -67,7 +67,7 @@ After the Skills are gathered, a new message stack is created by combining the P
 
 ### Executing
 
-Once the plan has been output and all of the code extracted and run, the Chat Turn has ended and the user must type another prompt to continue. However, GPT Scratchpad exposes `gpt.prompt(newPrompt)` so that the LLM can act on behalf of the user and continue iterating on the plan.
+Once the plan has been output and all of the code extracted and run, the Chat Turn has ended and the user must type another prompt to continue. However, ModelPrompter exposes `mp.prompt(newPrompt)` so that the LLM can act on behalf of the user and continue iterating on the plan.
 
 <br>
 <br>
@@ -119,8 +119,8 @@ npm install
 1. Visit `chrome://extensions` (even if you're on edge etc, your browser should automatically redirect)
 2. Enable **Developer Mode**
 3. Click **Load unpacked extension** and select the `gpt-scratchpad/dist` folder
-4. Enable the GPT Scratchpad extension
-5. Click on the GPT Scratchpad icon or press <kbd>CTRL+SHIFT+SPACE</kbd> to begin
+4. Enable the ModelPrompter extension
+5. Click on the ModelPrompter icon or press <kbd>CTRL+SHIFT+SPACE</kbd> to begin
 
 ### Visual guide: Edge Browser
 <img width="906" alt="image" src="https://github.com/singulat/gpt-scratchpad/assets/151397270/7768ff80-5f03-43e8-9f5f-5b3924b1a4e9">

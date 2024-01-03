@@ -1,5 +1,5 @@
 {
-  "name": "GPT Scratchpad",
+  "name": "ModelPrompter",
   "version": "0.0.1",
   "description": "A prompt manager for browser agents",
   "main": "index.js",

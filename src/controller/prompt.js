@@ -49,6 +49,9 @@ export const usePromptCtrl = defineStore({
       // and remove them from the messages
       const placeholders = [...messages.filter(message => message.role === 'placeholder')]
       messages = messages.filter(message => message.role !== 'placeholder')
+
+      // Remove any with skip
+      messages = messages.filter(message => !message.skip)
     
       // Send to openai
       console.log('📦 Sending to LLM', messages)

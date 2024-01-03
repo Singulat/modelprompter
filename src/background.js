@@ -101,7 +101,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return false
 
     /**
-     * Inject GPT Scratchpad
+     * Inject ModelPrompter
      */
     case 'injectContentscript':
       // Try injecting into current tab
@@ -123,7 +123,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return false
 
     /**
-     * Run a line of GPT Scratchpad
+     * Run a line of ModelPrompter
      */
     case 'runGPTScript':
       ;(async ()=> {

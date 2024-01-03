@@ -12,4 +12,4 @@ globalThis.gpt = {
 
 const app = createApp(App)
 app.use(createPinia())
-globalThis.gpt.app = app.mount('#app')
+globalThis.mp.app = app.mount('#app')

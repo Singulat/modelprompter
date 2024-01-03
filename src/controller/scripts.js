@@ -42,7 +42,7 @@ export default {
           completion = await (async ()=> new Promise((resolve, reject) => {
             chrome.runtime.sendMessage({
               type: 'runGPTScript',
-              tabID: globalThis.gpt.tabID,
+              tabID: globalThis.mp.tabID,
               script,
             }, response => {
               if (response.error) {
@@ -69,6 +69,14 @@ export default {
           // [1] variable name to store in
           case 'getPageDOM':
             vars[script[1]] = completion.dom
+            await this.messagesModel.addMessage(Object.assign({
+              channel: this.activeChannel,
+              role: 'user',
+              text: completion.dom,
+              rel: 'output',
+              skip: true,
+              collapsed: !script?.[2]?.includes('--expand'),
+            }, {}))            
           break
 
           // [1] variable name to output

@@ -85,7 +85,7 @@ const isShowingSystemPromptModel = ref(false)
 // Title
 const title = computed(() => {
   // @fixme This should always be a string
-  let title = settingsModel.namespaceName?.namespaceName || settingsModel.namespaceName || 'GPT Scratchpad'
+  let title = settingsModel.namespaceName?.namespaceName || settingsModel.namespaceName || 'ModelPrompter'
   return title + ' - Skills[' + (skillsModel.allSkillsDisabled ? 'off' : 'on') + ']'
 })
 
@@ -112,7 +112,7 @@ onBeforeMount(async () => {
   await skillsModel.init()
   await settingsModel.init()
   await promptCtrl.init()
-  globalThis.gpt.store = {
+  globalThis.mp.store = {
     connections: connectionsModel,
     messages: messagesModel,
     channels: channelsModel,
@@ -152,7 +152,7 @@ onMounted(async () => {
   hotkeys.filter =()=> true
   hotkeys('ctrl+shift+m', () => chrome.runtime.sendMessage({
     type: 'maximizePopup',
-    tabID: globalThis.gpt.tabID
+    tabID: globalThis.mp.tabID
   }))
 
 
@@ -225,7 +225,7 @@ onMounted(async () => {
   // Inject contentscript
   chrome.runtime.sendMessage({
     type: 'injectContentscript',
-    tabID: globalThis.gpt.tabID
+    tabID: globalThis.mp.tabID
   })
 })
 
@@ -287,7 +287,7 @@ const exportEverything = async(ev)=> {
   if (typeof namespaceName === 'object') {
     namespaceName = ''
   }
-  title = namespaceName ? `${namespaceName} -- ${title}` : `GPT Scratchpad -- ${title}`
+  title = namespaceName ? `${namespaceName} -- ${title}` : `ModelPrompter -- ${title}`
   
   // Download the json file
   // Convert the data to a JSON string
