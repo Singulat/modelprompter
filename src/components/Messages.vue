@@ -286,7 +286,7 @@ const updateMessage = async () => {
   })
 
   // If this is the first message and it's also a system prompt, update the channel system prompt
-  if (message.role === 'system' && sortedMessages[0].id === message.id) {
+  if (message.role === 'system' && sortedMessages[0]?.id === message.id) {
     await channelsModel.updateChannel(props.activeChannel, {
       systemPrompt: $promptBox.value?.curPrompt
     })

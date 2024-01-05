@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "permissions": ["storage", "unlimitedStorage", "tabs", "activeTab", "scripting"],
   "icons": {
-    "128": "public/favicon.png"
+    "128": "img/favicon.png"
   },
 
   "action": { "default_popup": "index.html" },

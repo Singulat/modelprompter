@@ -18,7 +18,7 @@ export default {
       for (let i = 0; i < skillsToParse.length; i++) {
         if (!this.isWorking) return
 
-        console.log('🤔 Checking skill:')
+        console.log('🤔 Checking skill:', rawSkills[i].name)
         response = await this.sendToLLM({
           messages: skillsToParse[i],
           channel: this.activeChannel,
@@ -37,7 +37,9 @@ export default {
 
       
       if (this.isWorking) {
-      // Send the message through as normal chat if no skills passed
+        /**
+         * Send as normal message if no skills needed
+         */
         if (passedSkills.length === 0) {
           const messages = await this.messagesModel.getPreparedMessages(this.activeChannel)
           console.log('💬 No skills needed. Generating response.')
@@ -47,6 +49,10 @@ export default {
             defaults: {text: '🤔 Thinking...', role: 'assistant'}
           })
           this.removePlaceholders([response.placeholders])
+        
+        /**
+         * Otherwise generate a plan
+         */
         } else {
           const messages = await this.messagesModel.getPreparedMessages(this.activeChannel)
 
@@ -57,9 +63,14 @@ export default {
           for (const skill of passedSkills.reverse()) {
             messages.unshift({
               role: 'system',
-              content: `Skill name: ${skill.name}
-    Trigger when: ${skill.triggers}
-    Reaction: ${skill.response}`
+              content: `<skill>Skill name: ${skill.name}
+  <trigger>
+    ${skill.triggers}
+  </trigger>
+  <reaction>
+    ${skill.response}
+  </reaction>
+</skill>`
             })
           }
 
@@ -141,8 +152,10 @@ export default {
       // Skill compare against
       skillMessages.push({
         role: 'system',
-        text: `Skill name: ${skill.name}
-  Trigger when: ${skill.triggers}`,
+        text: `<skill>
+  <name>${skill.name}</name>
+  <trigger>${skill.triggers}</trigger>
+</skill>`,
       })
 
       // User Prompt

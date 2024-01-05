@@ -6,6 +6,7 @@
   "scripts": {
     "start": "nodemon --watch src --watch manifest.json --watch sandbox.html --watch vite.config.js --ext js,json,vue,css --exec vite build",
     "build": "vite build",
+    "postinstall": "git submodule init && git submodule update",
     "preview": "vite preview"
   },
   "repository": {
