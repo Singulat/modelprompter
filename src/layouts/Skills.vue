@@ -7,7 +7,7 @@
         input#skills-enabled(type='checkbox' @change='toggleAllSkills' :checked='!skillsModel.allSkillsDisabled')
         label(for='skills-enabled') Enabled
       div(style='flex: 0 1 25%')
-      button(@click='showSystemPromptEditor') Skill system prompt
+      button(@click='showSystemPromptEditor') System prompts
   Table.fullheight(
     ref='$table'
     hotkeysScope="Skills"
